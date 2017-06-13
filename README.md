@@ -1,8 +1,11 @@
-PHP PEG.js
+`phpegjs`
 ======
 
-PHP PEG.js is a php code generation plugin for 
+A php code generation plugin for
 [PEG.js](https://github.com/dmajda/pegjs).
+
+Fork of
+[`php-pegjs`](https://github.com/Nordth/php-pegjs).
 
 ## Requirements
 
@@ -13,24 +16,24 @@ Installation
 
 ### Node.js
 
-Install PEG.js with php-pegjs plugin
+Install PEG.js with `phpegjs` plugin
 
-    $ npm install php-pegjs
+    $ npm install phpegjs
 
 Usage
 -----
 
 ### Generating a Parser
 
-In Node.js, require both the PEG.js parser generator and the php-pegjs plugin:
+In Node.js, require both the PEG.js parser generator and the `phpegjs` plugin:
 
     var pegjs = require("pegjs");
-    var phppegjs = require("php-pegjs");
+    var phpegjs = require("phpegjs");
 
-To generate a php parser, pass to `pegjs.buildParser` php-pegjs plugin and your grammar:
+To generate a php parser, pass to `pegjs.buildParser` `phpegjs` plugin and your grammar:
 
     var parser = pegjs.buildParser("start = ('a' / 'b')+", {
-        plugins: [phppegjs]
+        plugins: [phpegjs]
     });
 
 
@@ -47,8 +50,8 @@ Supported options of `pegjs.buildParser`:
 
 Additional PHP PEG.js plugin options:  
 
-  * `phppegjs.parserNamespace` - namespace of generated parser (default: `"PhpPegJs"`). If value is `""`, parser will be in global namespace
-  * `phppegjs.parserClassName` - name of generated class for parser (default: `"Parser"`)
+  * `phpegjs.parserNamespace` - namespace of generated parser (default: `"PhpPegJs"`). If value is `""`, parser will be in global namespace
+  * `phpegjs.parserClassName` - name of generated class for parser (default: `"Parser"`)
 
 Using the Parser
 ----------------
