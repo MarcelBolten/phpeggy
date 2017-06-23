@@ -9,7 +9,7 @@ Fork of
 
 ## Requirements
 
-* [PEG.js](http://pegjs.majda.cz/) 
+* [PEG.js](http://pegjs.majda.cz/)
 
 Installation
 ------------
@@ -18,7 +18,9 @@ Installation
 
 Install PEG.js with `phpegjs` plugin
 
-    $ npm install phpegjs
+```sh
+$ npm install phpegjs
+```
 
 Usage
 -----
@@ -27,17 +29,22 @@ Usage
 
 In Node.js, require both the PEG.js parser generator and the `phpegjs` plugin:
 
-    var pegjs = require("pegjs");
-    var phpegjs = require("phpegjs");
+```js
+var pegjs = require("pegjs");
+var phpegjs = require("phpegjs");
+```
 
-To generate a PHP parser, pass to `pegjs.buildParser` `phpegjs` plugin and your grammar:
+To generate a PHP parser, pass both the `phpegjs` plugin and your grammar to
+`pegjs.buildParser`:
 
-    var parser = pegjs.buildParser("start = ('a' / 'b')+", {
-        plugins: [phpegjs]
-    });
+```js
+var parser = pegjs.buildParser("start = ('a' / 'b')+", {
+    plugins: [phpegjs]
+});
+```
 
-
-The method will return source code of generated parser as a string. Unlike original PEG.js, generated PHP parser will be a class, not a function.
+The method will return source code of generated parser as a string. Unlike
+original PEG.js, generated PHP parser will be a class, not a function.
 
 Supported options of `pegjs.buildParser`:
 
@@ -48,10 +55,12 @@ Supported options of `pegjs.buildParser`:
   * `allowedStartRules` — rules the parser will be allowed to start parsing from
     (default: the first rule in the grammar)
 
-Additional PHP PEG.js plugin options:  
+Additional PHP PEG.js plugin options:
 
-  * `phpegjs.parserNamespace` - namespace of generated parser (default: `"PhpPegJs"`). If value is `""`, parser will be in global namespace
-  * `phpegjs.parserClassName` - name of generated class for parser (default: `"Parser"`)
+  * `phpegjs.parserNamespace` - namespace of generated parser (default:
+    `"PhpPegJs"`). If value is `""`, parser will be in global namespace
+  * `phpegjs.parserClassName` - name of generated class for parser (default:
+    `"Parser"`)
 
 Using the Parser
 ----------------
@@ -60,25 +69,25 @@ Using the Parser
 
 2) In PHP code:
 
-    include "your.parser.file.php";
-    
-    try
-    {
-        $parser = new PhpPegJs\Parser;
-        $result = $parser->parse($input);
-    }
-    catch (PhpPegJs\SyntaxError $ex)
-    {
-        // Handle parsing error
-        // [...]
-    }
+```php
+include "your.parser.file.php";
 
-You can use following snippet to format parsing error:
+try {
+    $parser = new PhpPegJs\Parser;
+    $result = $parser->parse($input);
+} catch (PhpPegJs\SyntaxError $ex) {
+    // Handle parsing error
+    // [...]
+}
+```
 
-    catch (PhpPegJs\SyntaxError $ex)
-    {
-        $message = "Syntax error: " . $ex->getMessage() . ' At line ' . $ex->grammarLine . ' column ' . $ex->grammarColumn . ' offset ' . $ex->grammarOffset;
-    }
+You can use the following snippet to format parsing errors:
+
+```php
+catch (PhpPegJs\SyntaxError $ex) {
+    $message = "Syntax error: " . $ex->getMessage() . ' at line ' . $ex->grammarLine . ' column ' . $ex->grammarColumn . ' offset ' . $ex->grammarOffset;
+}
+```
 
 Grammar Syntax and Semantics
 ----------------------------
@@ -87,54 +96,58 @@ See documentation of [PEG.js](https://github.com/dmajda/pegjs#grammar-syntax-and
 
 Original PEG.js rule:
 
-    media_list
-      = head:medium tail:("," S* medium)* {
-          var result = [head];
-          for (var i = 0; i < tail.length; i++) {
-            result.push(tail[i][2]);
-          }
-          return result;
-        }
+```js
+media_list = head:medium tail:("," S* medium)* {
+  var result = [head];
+  for (var i = 0; i < tail.length; i++) {
+    result.push(tail[i][2]);
+  }
+  return result;
+}
+```
 
 PHP PEG.js rule:
 
-    media_list
-      = head:medium tail:("," S* medium)* {
-          $result = array($head);
-          for ($i = 0; $i < count($tail); $i++) {
-            $result[] = $tail[$i][2];
-          }
-          return $result;
-        }
+```php
+media_list = head:medium tail:("," S* medium)* {
+  $result = array($head);
+  for ($i = 0; $i < count($tail); $i++) {
+    $result[] = $tail[$i][2];
+  }
+  return $result;
+}
+```
 
 To target both JavaScript and PHP with a single grammar, you can mix the two
 languages using a special comment syntax:
 
-    media_list
-      = head:medium tail:("," S* medium)* {
-          /** <?php
-          $result = array($head);
-          for ($i = 0; $i < count($tail); $i++) {
-            $result[] = $tail[$i][2];
-          }
-          return $result;
-          ?> **/
+```js
+media_list = head:medium tail:("," S* medium)* {
+  /** <?php
+  $result = array($head);
+  for ($i = 0; $i < count($tail); $i++) {
+    $result[] = $tail[$i][2];
+  }
+  return $result;
+  ?> **/
 
-          var result = [head];
-          for (var i = 0; i < tail.length; i++) {
-            result.push(tail[i][2]);
-          }
-          return result;
-        }
+  var result = [head];
+  for (var i = 0; i < tail.length; i++) {
+    result.push(tail[i][2]);
+  }
+  return result;
+}
+```
 
-You can also use following util functions in action blocks:
+You can also use the following utility functions in PHP action blocks:
 
-`chr_unicode($code)` - return character by its UTF-8 code (Analogue of javascript  String.fromCharCode)
+- `chr_unicode($code)` - return character by its UTF-8 code (analogue of
+  JavaScript's `String.fromCharCode` function).
 
-Guide of converting PEG.js action blocks to PHP PEG.js
-------------------------------------------------------
+Guide for converting PEG.js action blocks to PHP PEG.js
+-------------------------------------------------------
 
-| Javascript code                   | PHP analogue                              | 
+| Javascript code                   | PHP analogue                              |
 | --------------------------------- | ----------------------------------------- |
 | `some_var`                        | `$some_var`                               |
 | `{f1: "val1", f2: "val2"}`        | `array("f1" => "val1", "f2" => "val2")`   |
