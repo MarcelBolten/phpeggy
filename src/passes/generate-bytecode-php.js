@@ -28,7 +28,12 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  * 
  */
-var utils = require("pegjs/lib/utils"),
+
+var arrayUtils = require("pegjs/lib/utils/arrays"),
+    objectUtils = require("pegjs/lib/utils/objects"),
+    js = require("pegjs/lib/compiler/js"),
+    asts = require("pegjs/lib/compiler/asts"),
+    visitor = require("pegjs/lib/compiler/visitor"),
     op    = require("pegjs/lib/compiler/opcodes"),
     internalUtils = require("../utils");
 
@@ -44,48 +49,63 @@ var utils = require("pegjs/lib/utils"),
  *
  *        stack.push(consts[c]);
  *
- *  [1] PUSH_CURR_POS
+ *  [1] PUSH_UNDEFINED
+ *
+ *        stack.push(undefined);
+ *
+ *  [2] PUSH_NULL
+ *
+ *        stack.push(null);
+ *
+ *  [3] PUSH_FAILED
+ *
+ *        stack.push(FAILED);
+ *
+ *  [4] PUSH_EMPTY_ARRAY
+ *
+ *        stack.push([]);
+ *
+ *  [5] PUSH_CURR_POS
  *
  *        stack.push(currPos);
  *
- *  [2] POP
+ *  [6] POP
  *
  *        stack.pop();
  *
- *  [3] POP_CURR_POS
+ *  [7] POP_CURR_POS
  *
  *        currPos = stack.pop();
  *
- *  [4] POP_N n
+ *  [8] POP_N n
  *
  *        stack.pop(n);
  *
- *  [5] NIP
+ *  [9] NIP
  *
  *        value = stack.pop();
  *        stack.pop();
  *        stack.push(value);
  *
- *  [6] APPEND
+ * [10] APPEND
  *
  *        value = stack.pop();
  *        array = stack.pop();
  *        array.push(value);
  *        stack.push(array);
  *
- *  [7] WRAP n
+ * [11] WRAP n
  *
  *        stack.push(stack.pop(n));
  *
- *  [8] TEXT
+ * [12] TEXT
  *
- *        stack.pop();
- *        stack.push(input.substring(stack.top(), currPos));
+ *        stack.push(input.substring(stack.pop(), currPos));
  *
  * Conditions and Loops
  * --------------------
  *
- *  [9] IF t, f
+ * [13] IF t, f
  *
  *        if (stack.top()) {
  *          interpret(ip + 3, ip + 3 + t);
@@ -93,7 +113,7 @@ var utils = require("pegjs/lib/utils"),
  *          interpret(ip + 3 + t, ip + 3 + t + f);
  *        }
  *
- * [10] IF_ERROR t, f
+ * [14] IF_ERROR t, f
  *
  *        if (stack.top() === FAILED) {
  *          interpret(ip + 3, ip + 3 + t);
@@ -101,7 +121,7 @@ var utils = require("pegjs/lib/utils"),
  *          interpret(ip + 3 + t, ip + 3 + t + f);
  *        }
  *
- * [11] IF_NOT_ERROR t, f
+ * [15] IF_NOT_ERROR t, f
  *
  *        if (stack.top() !== FAILED) {
  *          interpret(ip + 3, ip + 3 + t);
@@ -109,7 +129,7 @@ var utils = require("pegjs/lib/utils"),
  *          interpret(ip + 3 + t, ip + 3 + t + f);
  *        }
  *
- * [12] WHILE_NOT_ERROR b
+ * [16] WHILE_NOT_ERROR b
  *
  *        while(stack.top() !== FAILED) {
  *          interpret(ip + 2, ip + 2 + b);
@@ -118,7 +138,7 @@ var utils = require("pegjs/lib/utils"),
  * Matching
  * --------
  *
- * [13] MATCH_ANY a, f, ...
+ * [17] MATCH_ANY a, f, ...
  *
  *        if (input.length > currPos) {
  *          interpret(ip + 3, ip + 3 + a);
@@ -126,7 +146,7 @@ var utils = require("pegjs/lib/utils"),
  *          interpret(ip + 3 + a, ip + 3 + a + f);
  *        }
  *
- * [14] MATCH_STRING s, a, f, ...
+ * [18] MATCH_STRING s, a, f, ...
  *
  *        if (input.substr(currPos, consts[s].length) === consts[s]) {
  *          interpret(ip + 4, ip + 4 + a);
@@ -134,7 +154,7 @@ var utils = require("pegjs/lib/utils"),
  *          interpret(ip + 4 + a, ip + 4 + a + f);
  *        }
  *
- * [15] MATCH_STRING_IC s, a, f, ...
+ * [19] MATCH_STRING_IC s, a, f, ...
  *
  *        if (input.substr(currPos, consts[s].length).toLowerCase() === consts[s]) {
  *          interpret(ip + 4, ip + 4 + a);
@@ -142,7 +162,7 @@ var utils = require("pegjs/lib/utils"),
  *          interpret(ip + 4 + a, ip + 4 + a + f);
  *        }
  *
- * [16] MATCH_REGEXP r, a, f, ...
+ * [20] MATCH_REGEXP r, a, f, ...
  *
  *        if (consts[r].test(input.charAt(currPos))) {
  *          interpret(ip + 4, ip + 4 + a);
@@ -150,17 +170,17 @@ var utils = require("pegjs/lib/utils"),
  *          interpret(ip + 4 + a, ip + 4 + a + f);
  *        }
  *
- * [17] ACCEPT_N n
+ * [21] ACCEPT_N n
  *
  *        stack.push(input.substring(currPos, n));
  *        currPos += n;
  *
- * [18] ACCEPT_STRING s
+ * [22] ACCEPT_STRING s
  *
  *        stack.push(consts[s]);
  *        currPos += consts[s].length;
  *
- * [19] FAIL e
+ * [23] FAIL e
  *
  *        stack.push(FAILED);
  *        fail(consts[e]);
@@ -168,15 +188,15 @@ var utils = require("pegjs/lib/utils"),
  * Calls
  * -----
  *
- * [20] REPORT_SAVED_POS p
+ * [24] LOAD_SAVED_POS p
  *
- *        reportedPos = stack[p];
+ *        savedPos = stack[p];
  *
- * [21] REPORT_CURR_POS
+ * [25] UPDATE_SAVED_POS
  *
- *        reportedPos = currPos;
+ *        savedPos = currPos;
  *
- * [22] CALL f, n, pc, p1, p2, ..., pN
+ * [26] CALL f, n, pc, p1, p2, ..., pN
  *
  *        value = consts[f](stack[p1], ..., stack[pN]);
  *        stack.pop(n);
@@ -185,18 +205,18 @@ var utils = require("pegjs/lib/utils"),
  * Rules
  * -----
  *
- * [23] RULE r
+ * [27] RULE r
  *
  *        stack.push(parseRule(r));
  *
  * Failure Reporting
  * -----------------
  *
- * [24] SILENT_FAILS_ON
+ * [28] SILENT_FAILS_ON
  *
  *        silentFails++;
  *
- * [25] SILENT_FAILS_OFF
+ * [29] SILENT_FAILS_OFF
  *
  *        silentFails--;
  */
@@ -204,7 +224,7 @@ module.exports = function(ast) {
   var consts = [];
 
   function addConst(value) {
-    var index = utils.indexOf(consts, function(c) { return c === value; });
+    var index = arrayUtils.indexOf(consts, function(c) { return c === value; });
 
     return index === -1 ? consts.push(value) - 1 : index;
   }
@@ -237,21 +257,18 @@ module.exports = function(ast) {
   }
 
   function buildCall(functionIndex, delta, env, sp) {
-    var params = utils.map( utils.values(env), function(p) { return sp - p; });
+    var params = arrayUtils.map( objectUtils.values(env), function(p) { return sp - p; });
 
     return [op.CALL, functionIndex, delta, params.length].concat(params);
   }
 
   function buildSimplePredicate(expression, negative, context) {
-    var undefinedIndex = addConst('null'), // addConst('void 0'),
-        failedIndex    = addConst('$this->peg_FAILED');
-
     return buildSequence(
       [op.PUSH_CURR_POS],
       [op.SILENT_FAILS_ON],
       generate(expression, {
         sp:     context.sp + 1,
-        env:    { },
+        env:    objectUtils.clone(context.env),
         action: null
       }),
       [op.SILENT_FAILS_OFF],
@@ -260,34 +277,32 @@ module.exports = function(ast) {
         buildSequence(
           [op.POP],
           [negative ? op.POP : op.POP_CURR_POS],
-          [op.PUSH, undefinedIndex]
+          [op.PUSH_UNDEFINED]
         ),
         buildSequence(
           [op.POP],
           [negative ? op.POP_CURR_POS : op.POP],
-          [op.PUSH, failedIndex]
+          [op.PUSH_FAILED]
         )
       )
     );
   }
 
   function buildSemanticPredicate(code, negative, context) {
-    var functionIndex  = addFunctionConst(utils.keys(context.env), code),
-        undefinedIndex = addConst('null'), // addConst('void 0'),
-        failedIndex    = addConst('$this->peg_FAILED');
+    var functionIndex  = addFunctionConst(objectUtils.keys(context.env), code);
 
     return buildSequence(
-      [op.REPORT_CURR_POS],
+      [op.UPDATE_SAVED_POS],
       buildCall(functionIndex, 0, context.env, context.sp),
       buildCondition(
         [op.IF],
         buildSequence(
           [op.POP],
-          [op.PUSH, negative ? failedIndex : undefinedIndex]
+          negative ? [op.PUSH_FAILED] : [op.PUSH_UNDEFINED]
         ),
         buildSequence(
           [op.POP],
-          [op.PUSH, negative ? undefinedIndex : failedIndex]
+          negative ? [op.PUSH_UNDEFINED] : [op.PUSH_FAILED]
         )
       )
     );
@@ -300,9 +315,9 @@ module.exports = function(ast) {
     );
   }
 
-  var generate = utils.buildNodeVisitor({
+  var generate = visitor.build({
     grammar: function(node) {
-      utils.each(node.rules, generate);
+      arrayUtils.each(node.rules, generate);
 
       node.consts = consts;
     },
@@ -317,7 +332,7 @@ module.exports = function(ast) {
 
     named: function(node, context) {
       var nameIndex = addConst(
-        'array("type" => "other", "description" => ' + utils.quote(node.name) + ' )'
+        'array("type" => "other", "description" => ' + internalUtils.quote(node.name) + ' )'
       );
 
       /*
@@ -339,7 +354,7 @@ module.exports = function(ast) {
         return buildSequence(
           generate(alternatives[0], {
             sp:     context.sp,
-            env:    { },
+            env:    objectUtils.clone(context.env),
             action: null
           }),
           alternatives.length > 1
@@ -359,7 +374,7 @@ module.exports = function(ast) {
     },
 
     action: function(node, context) {
-      var env            = { },
+      var env            = objectUtils.clone(context.env),
           emitCall       = node.expression.type !== "sequence"
                         || node.expression.elements.length === 0,
           expressionCode = generate(node.expression, {
@@ -367,7 +382,7 @@ module.exports = function(ast) {
             env:    env,
             action: node
           }),
-          functionIndex  = addFunctionConst(utils.keys(env), node.code);
+          functionIndex  = addFunctionConst(objectUtils.keys(env), node.code);
   
       return emitCall
         ? buildSequence(
@@ -376,7 +391,7 @@ module.exports = function(ast) {
             buildCondition(
               [op.IF_NOT_ERROR],
               buildSequence(
-                [op.REPORT_SAVED_POS, 1],
+                [op.LOAD_SAVED_POS, 1],
                 buildCall(functionIndex, 1, env, context.sp + 2)
               ),
               []
@@ -387,8 +402,6 @@ module.exports = function(ast) {
     },
 
     sequence: function(node, context) {
-      var emptyArrayIndex;
-
       function buildElementsCode(elements, context) {
         var processedCount, functionIndex;
 
@@ -411,19 +424,19 @@ module.exports = function(ast) {
               buildSequence(
                 processedCount > 1 ? [op.POP_N, processedCount] : [op.POP],
                 [op.POP_CURR_POS],
-                [op.PUSH, failedIndex]
+                [op.PUSH_FAILED]
               )
             )
           );
         } else {
           if (context.action) {
             functionIndex = addFunctionConst(
-              utils.keys(context.env),
+              objectUtils.keys(context.env),
               context.action.code
             );
 
             return buildSequence(
-              [op.REPORT_SAVED_POS, node.elements.length],
+              [op.LOAD_SAVED_POS, node.elements.length],
               buildCall(
                 functionIndex,
                 node.elements.length,
@@ -439,8 +452,6 @@ module.exports = function(ast) {
       }
 
       if (node.elements.length > 0) {
-        failedIndex = addConst('$this->peg_FAILED');
-
         return buildSequence(
           [op.PUSH_CURR_POS],
           buildElementsCode(node.elements, {
@@ -450,18 +461,18 @@ module.exports = function(ast) {
           })
         );
       } else {
-        emptyArrayIndex = addConst('array()');
-
-        return [op.PUSH, emptyArrayIndex];
+        return [op.PUSH_EMPTY_ARRAY];
       }
     },
 
     labeled: function(node, context) {
+      var env = objectUtils.clone(context.env);
+
       context.env[node.label] = context.sp + 1;
 
       return generate(node.expression, {
         sp:     context.sp,
-        env:    { },
+        env:    env,
         action: null
       });
     },
@@ -471,11 +482,14 @@ module.exports = function(ast) {
         [op.PUSH_CURR_POS],
         generate(node.expression, {
           sp:     context.sp + 1,
-          env:    { },
+          env:    objectUtils.clone(context.env),
           action: null
         }),
-        buildCondition([op.IF_NOT_ERROR], [op.TEXT], []),
-        [op.NIP]
+        buildCondition(
+          [op.IF_NOT_ERROR],
+          buildSequence([op.POP], [op.TEXT]),
+          [op.NIP]
+        )
       );
     },
 
@@ -487,6 +501,62 @@ module.exports = function(ast) {
       return buildSimplePredicate(node.expression, true, context);
     },
 
+    optional: function(node, context) {
+      return buildSequence(
+        generate(node.expression, {
+          sp:     context.sp,
+          env:    objectUtils.clone(context.env),
+          action: null
+        }),
+        buildCondition(
+          [op.IF_ERROR],
+          buildSequence([op.POP], [op.PUSH_NULL]),
+          []
+        )
+      );
+    },
+
+    zero_or_more: function(node, context) {
+      var expressionCode  = generate(node.expression, {
+            sp:     context.sp + 1,
+            env:    objectUtils.clone(context.env),
+            action: null
+          });
+
+      return buildSequence(
+        [op.PUSH_EMPTY_ARRAY],
+        expressionCode,
+        buildAppendLoop(expressionCode),
+        [op.POP]
+      );
+    },
+
+    one_or_more: function(node, context) {
+      var expressionCode  = generate(node.expression, {
+            sp:     context.sp + 1,
+            env:    objectUtils.clone(context.env),
+            action: null
+          });
+
+      return buildSequence(
+        [op.PUSH_EMPTY_ARRAY],
+        expressionCode,
+        buildCondition(
+          [op.IF_NOT_ERROR],
+          buildSequence(buildAppendLoop(expressionCode), [op.POP]),
+          buildSequence([op.POP], [op.POP], [op.PUSH_FAILED])
+        )
+      );
+    },
+
+    group: function(node, context) {
+      return generate(node.expression, {
+        sp:     context.sp,
+        env:    objectUtils.clone(context.env),
+        action: null
+      });
+    },
+
     semantic_and: function(node, context) {
       return buildSemanticPredicate(node.code, false, context);
     },
@@ -495,61 +565,8 @@ module.exports = function(ast) {
       return buildSemanticPredicate(node.code, true, context);
     },
 
-    optional: function(node, context) {
-      var nullIndex = addConst('null');
-
-      return buildSequence(
-        generate(node.expression, {
-          sp:     context.sp,
-          env:    { },
-          action: null
-        }),
-        buildCondition(
-          [op.IF_ERROR],
-          buildSequence([op.POP], [op.PUSH, nullIndex]),
-          []
-        )
-      );
-    },
-
-    zero_or_more: function(node, context) {
-      var emptyArrayIndex = addConst('array()');
-          expressionCode  = generate(node.expression, {
-            sp:     context.sp + 1,
-            env:    { },
-            action: null
-          });
-
-      return buildSequence(
-        [op.PUSH, emptyArrayIndex],
-        expressionCode,
-        buildAppendLoop(expressionCode),
-        [op.POP]
-      );
-    },
-
-    one_or_more: function(node, context) {
-      var emptyArrayIndex = addConst('array()');
-          failedIndex     = addConst('$this->peg_FAILED');
-          expressionCode  = generate(node.expression, {
-            sp:     context.sp + 1,
-            env:    { },
-            action: null
-          });
-
-      return buildSequence(
-        [op.PUSH, emptyArrayIndex],
-        expressionCode,
-        buildCondition(
-          [op.IF_NOT_ERROR],
-          buildSequence(buildAppendLoop(expressionCode), [op.POP]),
-          buildSequence([op.POP], [op.POP], [op.PUSH, failedIndex])
-        )
-      );
-    },
-
     rule_ref: function(node) {
-      return [op.RULE, utils.indexOfRuleByName(ast, node.name)];
+      return [op.RULE, asts.indexOfRule(ast, node.name)];
     },
 
     literal: function(node) {
@@ -557,14 +574,14 @@ module.exports = function(ast) {
 
       if (node.value.length > 0) {
         stringIndex = addConst(node.ignoreCase
-          ? utils.quote(node.value.toLowerCase())
-          : utils.quote(node.value)
+          ? internalUtils.quote(node.value.toLowerCase())
+          : internalUtils.quote(node.value)
         );
         expectedIndex = addConst([
           'array(',
           '"type" => "literal",',
-          '"value" => ' + utils.quote(node.value) + ',',
-          '"description" => ' + utils.quote(utils.quote(node.value)),
+          '"value" => ' + internalUtils.quote(node.value) + ',',
+          '"description" => ' + internalUtils.quote(internalUtils.quote(node.value)),
           ')'
         ].join(' '));
 
@@ -591,7 +608,11 @@ module.exports = function(ast) {
 
     "class": function(node) {
       var regexp, regexpIndex, expectedIndex;
-      
+
+      function hex(ch) {
+        return ch.charCodeAt(0).toString(16).toUpperCase();
+      }
+
       function quoteForPhpRegexp(s)
       {
            return s
@@ -610,7 +631,8 @@ module.exports = function(ast) {
             .replace(/\v/g, '\\x0B') // vertical tab
             .replace(/\f/g, '\\f')   // form feed
             .replace(/\r/g, '\\r')   // carriage return
-            .replace(/[\x00-\x07\x0B\x0E-\x1F\x80-\xFF]/g, utils.escape)
+            .replace(/[\x00-\x0f]/g,          function(ch) { return '\\x0' + hex(ch); })
+            .replace(/[\x10-\x1f\x7f-\x9f]/g, function(ch) { return '\\x' + hex(ch); })
             .replace(/[\xFF-\uFFFF]/g, function(ch) {
                 var charCode = ch.charCodeAt(0);
                 return '\\x{' + utils.padLeft(charCode.toString(16).toUpperCase(), '0', 4) + '}';
@@ -628,14 +650,15 @@ module.exports = function(ast) {
               .replace(/\f/g, '\\f')   // form feed
               .replace(/\r/g, '\\r')   // carriage return
               .replace(/\$/g, '\\$')   // dollar
-              .replace(/[\x00-\x07\x0B\x0E-\x1F\x80-\xFF]/g, utils.escape)
+              .replace(/[\x00-\x0f]/g,          function(ch) { return '\\x0' + hex(ch); })
+              .replace(/[\x10-\x1f\x7f-\x9f]/g, function(ch) { return '\\x' + hex(ch); })
               + '"';
       }
 
       if (node.parts.length > 0) {
         regexp = '/^['
           + (node.inverted ? '^' : '')
-          + utils.map(node.parts, function(part) {
+          + arrayUtils.map(node.parts, function(part) {
               return part instanceof Array
                 ? quoteForPhpRegexp(part[0])
                   + '-'
@@ -650,13 +673,21 @@ module.exports = function(ast) {
          */
         regexp = node.inverted ? '/^[\\S\\s]/' : '/^(?!)/';
       }
-      
-      regexpIndex   = addConst(quotePhp(regexp));
+
+      regexpIndex = addConst(quotePhp(regexp));
+      const rawText = '[' + arrayUtils.map(node.parts, function(part) {
+        if ( typeof part === 'string' ) {
+          // TODO test with '-' '[' ']' by themselves in classes
+          return part;
+        }
+        return part.join('-');
+      }).join('') + ']';
+
       expectedIndex = addConst([
         'array(',
         '"type" => "class",',
-        '"value" => ' + quotePhp(node.rawText) + ',',
-        '"description" => ' + quotePhp(node.rawText),
+        '"value" => ' + quotePhp(rawText) + ',',
+        '"description" => ' + quotePhp(rawText),
         ')'
       ].join(' '));
 

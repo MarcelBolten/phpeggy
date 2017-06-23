@@ -22,8 +22,9 @@
  *   SOFTWARE.
  */
 
-var utils = require("pegjs/lib/utils"),
-    op    = require("pegjs/lib/compiler/opcodes"),
+var arrayUtils = require("pegjs/lib/utils/arrays"),
+    asts = require("pegjs/lib/compiler/asts"),
+    op = require("pegjs/lib/compiler/opcodes"),
     internalUtils = require("../utils");
 
 /* Generates parser Php code. */
@@ -44,7 +45,7 @@ module.exports = function(ast, options) {
     }
 
     function generateTablesDeclaration() {
-        return utils.map(
+        return arrayUtils.map(
                 ast.consts,
                 function(c, i) {
                     return 'private $peg_c' + i + ';';
@@ -53,7 +54,7 @@ module.exports = function(ast, options) {
     }
     
     function generateTablesDefinition() {
-        return utils.map(
+        return arrayUtils.map(
                 ast.consts,
                 function(c, i) {
                     return '$this->peg_c' + i + ' = ' + c + ';';
@@ -110,7 +111,7 @@ module.exports = function(ast, options) {
                     return s(this.sp--);
                 } else {
                     n = arguments[0];
-                    values = utils.map(utils.range(this.sp - n + 1, this.sp + 1), s);
+                    values = arrayUtils.map(arrayUtils.range(this.sp - n + 1, this.sp + 1), s);
                     this.sp -= n;
 
                     return values;
@@ -190,7 +191,7 @@ module.exports = function(ast, options) {
 
                 var params = bc.slice(ip + baseLength, ip + baseLength + paramsLength);
                 var value = "call_user_func(" + c(bc[ip + 1]);
-                if (params.length > 0) value +=  ',' + utils.map(
+                if (params.length > 0) value +=  ',' + arrayUtils.map(
                                                             params,
                                                             stackIndex
                                                             ).join(', ');
@@ -211,15 +212,28 @@ module.exports = function(ast, options) {
             while (ip < end) {
                 switch (bc[ip]) {
                     case op.PUSH:             // PUSH c
-                        /*
-                         * Hack: One of the constants can be an empty array. It needs to be
-                         * handled specially because it can be modified later on the stack
-                         * by |APPEND|.
-                         */
-                        parts.push(
-                                stack.push(ast.consts[bc[ip + 1]] === "[]" ? "array()" : c(bc[ip + 1]))
-                                );
+                        parts.push(stack.push(c(bc[ip + 1])));
                         ip += 2;
+                        break;
+
+                    case op.PUSH_UNDEFINED:   // PUSH_UNDEFINED
+                        parts.push(stack.push('null'));
+                        ip++;
+                        break;
+
+                    case op.PUSH_NULL:        // PUSH_NULL
+                        parts.push(stack.push('null'));
+                        ip++;
+                        break;
+
+                    case op.PUSH_FAILED:      // PUSH_FAILED
+                        parts.push(stack.push('$this->peg_FAILED'));
+                        ip++;
+                        break;
+
+                    case op.PUSH_EMPTY_ARRAY: // PUSH_EMPTY_ARRAY
+                        parts.push(stack.push('array()'));
+                        ip++;
                         break;
 
                     case op.PUSH_CURR_POS:    // PUSH_CURR_POS
@@ -263,9 +277,8 @@ module.exports = function(ast, options) {
                         break;
 
                     case op.TEXT:             // TEXT
-                        stack.pop();
                         parts.push(
-                                stack.push('mb_substr($this->input, ' + stack.top() + ', $this->peg_currPos - ' + stack.top() + ', "UTF-8")')
+                                stack.push('mb_substr($this->input, ' + stack.pop() + ', $this->peg_currPos, "UTF-8")')
                                 );
                         ip++;
                         break;
@@ -345,12 +358,12 @@ module.exports = function(ast, options) {
                         ip += 2;
                         break;
 
-                    case op.REPORT_SAVED_POS: // REPORT_SAVED_POS p
+                    case op.LOAD_SAVED_POS:   // LOAD_SAVED_POS p
                         parts.push('$this->peg_reportedPos = ' + stack.index(bc[ip + 1]) + ';');
                         ip += 2;
                         break;
 
-                    case op.REPORT_CURR_POS:  // REPORT_CURR_POS
+                    case op.UPDATE_SAVED_POS: // UPDATE_SAVED_POS
                         parts.push('$this->peg_reportedPos = $this->peg_currPos;');
                         ip++;
                         break;
@@ -391,7 +404,7 @@ module.exports = function(ast, options) {
 
         if (options.cache) {
             parts.push(indent2(
-                    generateCacheHeader(utils.indexOfRuleByName(ast, rule.name))
+                    generateCacheHeader(asts.indexOfRule(ast, rule.name))
                     ));
         }
 
@@ -662,7 +675,7 @@ module.exports = function(ast, options) {
     parts.push(indent4(generateTablesDeclaration()));
     parts.push('');
       
-    utils.each(ast.rules, function(rule) {
+    arrayUtils.each(ast.rules, function(rule) {
         parts.push(indent4(generateRuleFunction(rule)));
         parts.push('');
     });
@@ -683,7 +696,7 @@ module.exports = function(ast, options) {
     parts.push('');
     
     startRuleFunctions = 'array( '
-            + utils.map(
+            + arrayUtils.map(
                     options.allowedStartRules,
                     function(r) {
                         return '\'' + r + '\' => array($this, "peg_parse' + r + '")';

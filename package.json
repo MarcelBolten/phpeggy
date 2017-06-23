@@ -20,7 +20,7 @@
       "test/test_index.php"
   ],
   "peerDependencies": {
-    "pegjs": "~0.8.0"
+    "pegjs": "~0.10.0"
   },
   "devDependencies": {},
   "scripts": {

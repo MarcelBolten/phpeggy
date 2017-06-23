@@ -1,3 +1,9 @@
+var js = require( 'pegjs/lib/compiler/js' );
+
+exports.quote = function( str ) {
+	return '"' + js.stringEscape( str ) + '"';
+}
+
 // Matches: /** <?php
 var regexPhpStart = /\/\*\*\s*<\?php/;
 // Matches: ?> **/
