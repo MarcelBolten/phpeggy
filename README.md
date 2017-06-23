@@ -95,7 +95,7 @@ Original PEG.js rule:
           }
           return result;
         }
-        
+
 PHP PEG.js rule:
 
     media_list
@@ -106,7 +106,27 @@ PHP PEG.js rule:
           }
           return $result;
         }
-        
+
+To target both JavaScript and PHP with a single grammar, you can mix the two
+languages using a special comment syntax:
+
+    media_list
+      = head:medium tail:("," S* medium)* {
+          /** <?php
+          $result = array($head);
+          for ($i = 0; $i < count($tail); $i++) {
+            $result[] = $tail[$i][2];
+          }
+          return $result;
+          ?> **/
+
+          var result = [head];
+          for (var i = 0; i < tail.length; i++) {
+            result.push(tail[i][2]);
+          }
+          return result;
+        }
+
 You can also use following util functions in action blocks:
 
 `chr_unicode($code)` - return character by its UTF-8 code (Analogue of javascript  String.fromCharCode)
