@@ -4,27 +4,30 @@
   "description": "PHP target for PEG.js parser generator",
   "main": "src/phppegjs.js",
   "files": [
-      "LICENSE",
-      "README.md",
-      "examples/arithmetics.pegjs",
-      "examples/css.pegjs",
-      "examples/javascript.pegjs",
-      "examples/json.pegjs",
-      "examples/digits.pegjs",
-      "src/phppegjs.js",
-      "src/utils.js",
-      "src/passes/generate-bytecode-php.js",
-      "src/passes/generate-php.js",
-      "test/README",
-      "test/test.js",
-      "test/test_index.php"
+    "LICENSE",
+    "README.md",
+    "examples/arithmetics.pegjs",
+    "examples/css.pegjs",
+    "examples/javascript.pegjs",
+    "examples/json.pegjs",
+    "examples/digits.pegjs",
+    "src/phppegjs.js",
+    "src/utils.js",
+    "src/passes/generate-bytecode-php.js",
+    "src/passes/generate-php.js",
+    "test/README",
+    "test/test.js",
+    "test/test_index.php"
   ],
   "peerDependencies": {
     "pegjs": "~0.10.0"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "chai": "^4.0.2",
+    "mocha": "^3.4.2"
+  },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha"
   },
   "repository": {
     "type": "git",
