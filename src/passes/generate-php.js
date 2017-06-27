@@ -129,6 +129,7 @@ module.exports = function(ast, options) {
             var ip = 0,
                     end = bc.length,
                     parts = [],
+                    stackTop,
                     value;
 
             function compileCondition(cond, argCount) {
@@ -277,8 +278,9 @@ module.exports = function(ast, options) {
                         break;
 
                     case op.TEXT:             // TEXT
+                        stackTop = stack.pop();
                         parts.push(
-                                stack.push('mb_substr($this->input, ' + stack.pop() + ', $this->peg_currPos, "UTF-8")')
+                                stack.push('mb_substr($this->input, ' + stackTop + ', $this->peg_currPos - ' + stackTop + ', "UTF-8")')
                                 );
                         ip++;
                         break;
