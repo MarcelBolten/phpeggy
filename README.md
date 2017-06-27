@@ -1,5 +1,4 @@
-`phpegjs`
-======
+# `phpegjs` (PHP PEG.js) [![Build status](https://img.shields.io/travis/nylen/phpegjs/master.svg?style=flat)](https://travis-ci.org/nylen/phpegjs) [![npm package](http://img.shields.io/npm/v/phpegjs.svg?style=flat)](https://www.npmjs.org/package/phpegjs)
 
 A PHP code generation plugin for
 [PEG.js](https://github.com/dmajda/pegjs).
