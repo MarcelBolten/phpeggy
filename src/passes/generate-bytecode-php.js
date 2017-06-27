@@ -677,7 +677,6 @@ module.exports = function(ast) {
       regexpIndex = addConst(quotePhp(regexp));
       const rawText = '[' + arrayUtils.map(node.parts, function(part) {
         if ( typeof part === 'string' ) {
-          // TODO test with '-' '[' ']' by themselves in classes
           return part;
         }
         return part.join('-');
