@@ -92,32 +92,31 @@ class Parser{
       throw $this->peg_buildException($message, null, $this->peg_reportedPos);
     }
 
-    private function peg_computePosDetails($pos) {
-      $self = $this;
-      $advance = function(&$details, $startPos, $endPos) use($self) {
-        for ($p = $startPos; $p < $endPos; $p++) {
-          $ch = mb_substr($self->input, $p, 1, "UTF-8");
-          if ($ch === "\n") {
-            if (!$details["seenCR"]) { $details["line"]++; }
-            $details["column"] = 1;
-            $details["seenCR"] = false;
-          } else if ($ch === "\r" || $ch === "\u2028" || $ch === "\u2029") {
-            $details["line"]++;
-            $details["column"] = 1;
-            $details["seenCR"] = true;
-          } else {
-            $details["column"]++;
-            $details["seenCR"] = false;
-          }
+    private function peg_advancePos(&$details, $startPos, $endPos) {
+      for ($p = $startPos; $p < $endPos; $p++) {
+        $ch = mb_substr($this->input, $p, 1, "UTF-8");
+        if ($ch === "\n") {
+          if (!$details["seenCR"]) { $details["line"]++; }
+          $details["column"] = 1;
+          $details["seenCR"] = false;
+        } else if ($ch === "\r" || $ch === "\u2028" || $ch === "\u2029") {
+          $details["line"]++;
+          $details["column"] = 1;
+          $details["seenCR"] = true;
+        } else {
+          $details["column"]++;
+          $details["seenCR"] = false;
         }
-      };
+      }
+    }
 
+    private function peg_computePosDetails($pos) {
       if ($this->peg_cachedPos !== $pos) {
         if ($this->peg_cachedPos > $pos) {
           $this->peg_cachedPos = 0;
           $this->peg_cachedPosDetails = array( "line" => 1, "column" => 1, "seenCR" => false );
         }
-        $advance($this->peg_cachedPosDetails, $this->peg_cachedPos, $pos);
+        $this->peg_advancePos($this->peg_cachedPosDetails, $this->peg_cachedPos, $pos);
         $this->peg_cachedPos = $pos;
       }
 
@@ -135,20 +134,23 @@ class Parser{
       $this->peg_maxFailExpected[] = $expected;
     }
 
+    private function peg_buildException_expectedComparator($a, $b) {
+      if ($a["description"] < $b["description"]) {
+        return -1;
+      } else if ($a["description"] > $b["description"]) {
+        return 1;
+      } else {
+        return 0;
+      }
+    }
+
     private function peg_buildException($message, $expected, $pos) {
-      $cleanupExpected = function (&$expected){
+      $posDetails = $this->peg_computePosDetails($pos);
+      $found      = $pos < mb_strlen($this->input, "UTF-8") ? mb_substr($this->input, $pos, 1, "UTF-8") : null;
+
+      if ($expected !== null) {
+        usort($expected, array($this, "peg_buildException_expectedComparator"));
         $i = 1;
-
-        usort($expected, function($a, $b) {
-          if ($a["description"] < $b["description"]) {
-            return -1;
-          } else if ($a["description"] > $b["description"]) {
-            return 1;
-          } else {
-            return 0;
-          }
-        });
-
         while ($i < count($expected)) {
           if ($expected[$i - 1] === $expected[$i]) {
             array_splice($expected, $i, 1);
@@ -156,24 +158,9 @@ class Parser{
             $i++;
           }
         }
-      };
+      }
 
-      $buildMessage = function ($expected, $found) {
-        $stringEscape = function ($s) {
-          $hex = function($ch) { return strtoupper(dechex(ord($ch[0])));};
-
-            $s = str_replace("\\",   "\\\\", $s);
-            $s = str_replace("\"",    "\\\"", $s);
-            $s = str_replace('\x08', '\\b', $s);
-            $s = str_replace('\t',   '\\t', $s);
-            $s = str_replace('\n',   '\\n', $s);
-            $s = str_replace('\f',   '\\f', $s);
-            $s = str_replace('\r',   '\\r', $s);
-            $s = preg_replace_callback('/[\\x00-\\x07\\x0B\\x0E\\x0F]/u', function($ch) use($hex) { return '\\x0' + $hex($ch[0]); }, $s);
-            $s = preg_replace_callback('/[\\x10-\\x1F\\x80-\\xFF]/u',     function($ch) use($hex) { return '\\x'  + $hex($ch[0]); }, $s);
-            return $s;
-        };
-
+      if ($message === null) {
         $expectedDescs = array_fill(0, count($expected), null);
 
         for ($i = 0; $i < count($expected); $i++) {
@@ -186,20 +173,13 @@ class Parser{
               . $expectedDescs[count($expected) - 1]
           : $expectedDescs[0];
 
-        $foundDesc = $found ? "\"" . $stringEscape($found) . "\"" : "end of input";
+        $foundDesc = $found ? json_encode($found) : "end of input";
 
-        return "Expected " . $expectedDesc . " but " . $foundDesc . " found.";
-      };
-
-      $posDetails = $this->peg_computePosDetails($pos);
-      $found      = $pos < mb_strlen($this->input, "UTF-8") ? mb_substr($this->input, $pos, 1, "UTF-8") : null;
-
-      if ($expected !== null) {
-        $cleanupExpected($expected);
+        $message = "Expected " . $expectedDesc . " but " . $foundDesc . " found.";
       }
 
       return new SyntaxError(
-        $message !== null ? $message : $buildMessage($expected, $found),
+        $message,
         $expected,
         $found,
         $pos,
