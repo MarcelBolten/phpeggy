@@ -55,7 +55,7 @@ if ( ! match ) {
 console.log( 'PHP version: ' + match[ 0 ].trim() );
 const major = +match[ 1 ];
 const minor = +match[ 2 ];
-if ( major < 5 || minor < 2 ) {
+if ( major < 5 || ( major === 5 && minor < 2 ) ) {
 	throw new Error(
 		'This library requires at least PHP 5.2.  (Why so old?)'
 	);
