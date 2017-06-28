@@ -5,18 +5,17 @@
  * http://pegjs.majda.cz/
  */
 
-namespace PhpPegJs;
 
 /* Usefull functions: */
 
-/* chr_unicode - get unicode character from its char code */
-if (!function_exists('PhpPegJs\\chr_unicode')) { function chr_unicode($code) { return mb_convert_encoding('&#' . $code . ';', 'UTF-8', 'HTML-ENTITIES');} }
-/* peg_regex_test - multibyte regex test */
-if (!function_exists('PhpPegJs\\peg_regex_test')) { function peg_regex_test($pattern, $string) { if (substr($pattern, -1) == 'i') return mb_eregi(substr($pattern, 1, -2), $string); else return mb_ereg(substr($pattern, 1, -1), $string);}}
+/* php52_compat_chr_unicode - get unicode character from its char code */
+if (!function_exists('php52_compat_chr_unicode')) { function php52_compat_chr_unicode($code) { return mb_convert_encoding('&#' . $code . ';', 'UTF-8', 'HTML-ENTITIES');} }
+/* php52_compat_peg_regex_test - multibyte regex test */
+if (!function_exists('php52_compat_peg_regex_test')) { function php52_compat_peg_regex_test($pattern, $string) { if (substr($pattern, -1) == 'i') return mb_eregi(substr($pattern, 1, -2), $string); else return mb_ereg(substr($pattern, 1, -1), $string);}}
 
 /* Syntax error exception */
-if (!class_exists("PhpPegJs\\SyntaxError", false)){
-class SyntaxError extends \Exception
+if (!class_exists("php52_compat_SyntaxError", false)){
+class php52_compat_SyntaxError extends Exception
 {
     public $expected;
     public $found;
@@ -32,11 +31,11 @@ class SyntaxError extends \Exception
         $this->grammarOffset = $offset;
         $this->grammarLine = $line;
         $this->grammarColumn = $column;
-        $this->name = "SyntaxError";
+        $this->name = "php52_compat_SyntaxError";
     }
 };}
 
-class Parser {
+class php52_compat_Parser {
 
 
     private $peg_currPos          = 0;
@@ -178,7 +177,7 @@ class Parser {
         $message = "Expected " . $expectedDesc . " but " . $foundDesc . " found.";
       }
 
-      return new SyntaxError(
+      return new php52_compat_SyntaxError(
         $message,
         $expected,
         $found,
@@ -1015,7 +1014,7 @@ class Parser {
 
     private function peg_parseASCII_Letter() {
 
-      if (peg_regex_test($this->peg_c18, mb_substr($this->input, $this->peg_currPos, 1, "UTF-8"))) {
+      if (php52_compat_peg_regex_test($this->peg_c18, mb_substr($this->input, $this->peg_currPos, 1, "UTF-8"))) {
         $s0 = mb_substr($this->input, $this->peg_currPos, 1, "UTF-8");
         $this->peg_currPos++;
       } else {
@@ -1028,7 +1027,7 @@ class Parser {
 
     private function peg_parseASCII_Digit() {
 
-      if (peg_regex_test($this->peg_c20, mb_substr($this->input, $this->peg_currPos, 1, "UTF-8"))) {
+      if (php52_compat_peg_regex_test($this->peg_c20, mb_substr($this->input, $this->peg_currPos, 1, "UTF-8"))) {
         $s0 = mb_substr($this->input, $this->peg_currPos, 1, "UTF-8");
         $this->peg_currPos++;
       } else {
@@ -1041,7 +1040,7 @@ class Parser {
 
     private function peg_parseSpecial_Chars() {
 
-      if (peg_regex_test($this->peg_c22, mb_substr($this->input, $this->peg_currPos, 1, "UTF-8"))) {
+      if (php52_compat_peg_regex_test($this->peg_c22, mb_substr($this->input, $this->peg_currPos, 1, "UTF-8"))) {
         $s0 = mb_substr($this->input, $this->peg_currPos, 1, "UTF-8");
         $this->peg_currPos++;
       } else {
@@ -1054,7 +1053,7 @@ class Parser {
 
     private function peg_parseWS() {
 
-      if (peg_regex_test($this->peg_c24, mb_substr($this->input, $this->peg_currPos, 1, "UTF-8"))) {
+      if (php52_compat_peg_regex_test($this->peg_c24, mb_substr($this->input, $this->peg_currPos, 1, "UTF-8"))) {
         $s0 = mb_substr($this->input, $this->peg_currPos, 1, "UTF-8");
         $this->peg_currPos++;
       } else {
@@ -1067,7 +1066,7 @@ class Parser {
 
     private function peg_parseNewline() {
 
-      if (peg_regex_test($this->peg_c26, mb_substr($this->input, $this->peg_currPos, 1, "UTF-8"))) {
+      if (php52_compat_peg_regex_test($this->peg_c26, mb_substr($this->input, $this->peg_currPos, 1, "UTF-8"))) {
         $s0 = mb_substr($this->input, $this->peg_currPos, 1, "UTF-8");
         $this->peg_currPos++;
       } else {
@@ -1080,7 +1079,7 @@ class Parser {
 
     private function peg_parse_() {
 
-      if (peg_regex_test($this->peg_c28, mb_substr($this->input, $this->peg_currPos, 1, "UTF-8"))) {
+      if (php52_compat_peg_regex_test($this->peg_c28, mb_substr($this->input, $this->peg_currPos, 1, "UTF-8"))) {
         $s0 = mb_substr($this->input, $this->peg_currPos, 1, "UTF-8");
         $this->peg_currPos++;
       } else {
@@ -1128,7 +1127,7 @@ class Parser {
     $old_regex_encoding = mb_regex_encoding();
     mb_regex_encoding("UTF-8");
 
-    $this->peg_FAILED = new \stdClass;
+    $this->peg_FAILED = new stdClass;
     $this->peg_c0 = "<!--";
     $this->peg_c1 = array( "type" => "literal", "value" => "<!--", "description" => "\"<!--\"" );
     $this->peg_c2 = "wp:";
@@ -1164,7 +1163,7 @@ class Parser {
     $peg_startRuleFunction  = array($this, "peg_parseDocument");
     if (isset($options["startRule"])) {
       if (!(isset($peg_startRuleFunctions[$options["startRule"]]))) {
-        throw new \Exception("Can't start parsing from rule \"" + $options["startRule"] + "\".");
+        throw new Exception("Can't start parsing from rule \"" + $options["startRule"] + "\".");
       }
 
       $peg_startRuleFunction = $peg_startRuleFunctions[$options["startRule"]];

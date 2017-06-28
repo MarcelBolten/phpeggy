@@ -10,7 +10,7 @@ const phpegjs = require( '../src/phppegjs' );
 function getUniqueBasenames( array ) {
 	return array
 		// Strip extensions
-		.map( filename => filename.replace( /\.(pegjs|php|txt|json)$/, '' ) )
+		.map( filename => filename.replace( /\..+$/, '' ) )
 		// Filter to unique entries: https://stackoverflow.com/a/14438954
 		.filter( ( value, index, array ) => array.indexOf( value ) === index );
 }
@@ -26,16 +26,56 @@ function fixtureFilePath( filename ) {
 	}
 }
 
+function runPhp( arguments, stdin ) {
+	const result = cp.spawnSync( 'php', arguments, {
+		input: stdin || null,
+		encoding: 'utf8'
+	} );
+	if ( result.error ) {
+		throw result.error;
+	}
+	if ( result.status ) {
+		console.log( {
+			stderr: result.stderr,
+			stdout: result.stdout,
+		} );
+		throw new Error(
+			'Non-zero exit code from PHP: ' + result.status
+		);
+	}
+	return result;
+}
+
+console.log( 'Determining version of PHP command-line executable...' );
+const result = runPhp( [ '--version' ] );
+const match = result.stdout.match( /^PHP (\d+)\.(\d+)(\.[^ ]+) / );
+if ( ! match ) {
+	throw new Error( 'Unable to determine PHP version.' );
+}
+console.log( 'PHP version: ' + match[ 0 ].trim() );
+const major = +match[ 1 ];
+const minor = +match[ 2 ];
+if ( major < 5 || minor < 2 ) {
+	throw new Error(
+		'This library requires at least PHP 5.2.  (Why so old?)'
+	);
+}
+const isPHP52 = ( major === 5 && minor === 2 );
+console.log(
+	'(Running tests in %s mode)',
+	isPHP52 ? 'PHP 5.2' : 'modern PHP'
+);
+
 function getPHPParserTestCode( parser, input ) {
 	return parser + `
 
 $input = base64_decode( '${ new Buffer( input ).toString( 'base64' ) }' );
 
 try {
-	$parser = new Parser;
+	$parser = new ${ isPHP52 ? 'php52_compat_Parser' : 'Parser' };
 	$result = $parser->parse( $input );
 	echo json_encode( $result );
-} catch ( SyntaxError $ex ) {
+} catch ( ${ isPHP52 ? 'php52_compat_SyntaxError' : 'SyntaxError' } $ex ) {
 	echo json_encode( array(
 		'error' => array(
 			'message'  => $ex->getMessage(),
@@ -54,19 +94,6 @@ const grammarNames = getUniqueBasenames(
 	fs.readdirSync( path.join( __dirname, 'fixtures' ) )
 );
 
-describe( 'PHP command-line executable', () => {
-	it( 'is present', () => {
-		const result = cp.spawnSync( 'php', [ '--version' ], {
-			encoding: 'utf8'
-		} );
-		if ( result.error ) {
-			throw result.error;
-		}
-		console.log( result.stderr || result.stdout );
-		expect( result.status ).to.eql( 0 );
-	} );
-} );
-
 grammarNames.forEach( grammarName => {
 	describe( 'Example grammar ' + grammarName, () => {
 		let phpActual;
@@ -76,11 +103,19 @@ grammarNames.forEach( grammarName => {
 				fixtureFilePath( grammarName + '.pegjs' ),
 				'utf8'
 			);
-			phpActual = pegjs.generate(
-				grammar,
-				{ plugins: [ phpegjs ] }
+			const pegjsOptions = {
+				plugins: [ phpegjs ]
+			};
+			if ( isPHP52 ) {
+				pegjsOptions.phpegjs = {
+					parserNamespace: null,
+					parserGlobalNamePrefix: 'php52_compat_'
+				};
+			}
+			phpActual = pegjs.generate( grammar, pegjsOptions );
+			const phpExpectedPath = fixtureFilePath(
+				grammarName + ( isPHP52 ? '.php52.php' : '.php' )
 			);
-			const phpExpectedPath = fixtureFilePath( grammarName + '.php' );
 			if (
 				process.env.GENERATE_MISSING_FIXTURES &&
 				! fs.existsSync( phpExpectedPath )
@@ -111,22 +146,7 @@ grammarNames.forEach( grammarName => {
 					'utf8'
 				);
 
-				const result = cp.spawnSync( 'php', {
-					input: getPHPParserTestCode( phpActual, input ),
-					encoding: 'utf8'
-				} );
-				if ( result.error ) {
-					throw result.error;
-				}
-				if ( result.status ) {
-					console.log( {
-						stderr: result.stderr,
-						stdout: result.stdout,
-					} );
-					throw new Error(
-						'Non-zero exit code from PHP: ' + result.status
-					);
-				}
+				const result = runPhp( [], getPHPParserTestCode( phpActual, input ) );
 				const outputActual = JSON.parse( result.stdout );
 
 				const outputExpectedPath =

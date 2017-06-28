@@ -344,7 +344,7 @@ module.exports = function(ast, options) {
 
                     case op.MATCH_REGEXP:     // MATCH_REGEXP r, a, f, ...
                         compileCondition(
-                                'peg_regex_test(' + c(bc[ip + 1]) + ', mb_substr($this->input, $this->peg_currPos, 1, "UTF-8"))',
+                                phpGlobalNamePrefix + 'peg_regex_test(' + c(bc[ip + 1]) + ', mb_substr($this->input, $this->peg_currPos, 1, "UTF-8"))',
                                 1
                                 );
                         break;
@@ -443,9 +443,25 @@ module.exports = function(ast, options) {
     }
 
     var parts = [], startRuleFunctions, startRuleFunction;
-    var php_namespace = options.phppegjs ? options.phppegjs.parserNamespace : '';
-    var php_parser_class = options.phppegjs ? options.phppegjs.parserClassName : 'Parser';
-    
+    var phpGlobalNamePrefix, phpGlobalNamespacePrefix, phpGlobalNamePrefixOrNamespaceEscaped;
+    var phpNamespace = options.phpegjs.parserNamespace;
+    var phpParserClass = options.phpegjs.parserClassName;
+    if (phpNamespace) {
+        phpGlobalNamePrefix = '';
+        phpGlobalNamespacePrefix = '\\';
+        // For use within strings inside generated code
+        phpGlobalNamePrefixOrNamespaceEscaped = phpNamespace + '\\\\';
+    } else if (options.phpegjs.parserGlobalNamePrefix) {
+        phpGlobalNamePrefix = options.phpegjs.parserGlobalNamePrefix;
+        phpGlobalNamespacePrefix = '';
+        phpGlobalNamePrefixOrNamespaceEscaped = phpGlobalNamePrefix;
+        phpParserClass = phpGlobalNamePrefix + phpParserClass;
+    } else {
+        phpGlobalNamePrefix = '';
+        phpGlobalNamespacePrefix = '';
+        phpGlobalNamePrefixOrNamespaceEscaped = '';
+    }
+
     parts.push([
         '<?php',
         '/*',
@@ -454,18 +470,18 @@ module.exports = function(ast, options) {
         ' * http://pegjs.majda.cz/',
         ' */',
         ''].join('\n'));
-    if (php_namespace) parts.push('namespace ' + php_namespace + ';');
+    if (phpNamespace) parts.push('namespace ' + phpNamespace + ';');
     parts.push(['',
         '/* Usefull functions: */',
         '',
-        '/* chr_unicode - get unicode character from its char code */',
-        "if (!function_exists('" + php_namespace + "\\\\chr_unicode')) { function chr_unicode($code) { return mb_convert_encoding('&#' . $code . ';', 'UTF-8', 'HTML-ENTITIES');} }",
-        '/* peg_regex_test - multibyte regex test */',
-        "if (!function_exists('" + php_namespace + "\\\\peg_regex_test')) { function peg_regex_test($pattern, $string) { if (substr($pattern, -1) == 'i') return mb_eregi(substr($pattern, 1, -2), $string); else return mb_ereg(substr($pattern, 1, -1), $string);}}",
+        '/* ' + phpGlobalNamePrefix + 'chr_unicode - get unicode character from its char code */',
+        "if (!function_exists('" + phpGlobalNamePrefixOrNamespaceEscaped + "chr_unicode')) { function " + phpGlobalNamePrefix + "chr_unicode($code) { return mb_convert_encoding('&#' . $code . ';', 'UTF-8', 'HTML-ENTITIES');} }",
+        '/* ' + phpGlobalNamePrefix + 'peg_regex_test - multibyte regex test */',
+        "if (!function_exists('" + phpGlobalNamePrefixOrNamespaceEscaped + "peg_regex_test')) { function " + phpGlobalNamePrefix + "peg_regex_test($pattern, $string) { if (substr($pattern, -1) == 'i') return mb_eregi(substr($pattern, 1, -2), $string); else return mb_ereg(substr($pattern, 1, -1), $string);}}",
         '',
         '/* Syntax error exception */',
-        'if (!class_exists("' + php_namespace + '\\\\SyntaxError", false)){',
-        'class SyntaxError extends \\Exception',
+        'if (!class_exists("' + phpGlobalNamePrefixOrNamespaceEscaped + 'SyntaxError", false)){',
+        'class ' + phpGlobalNamePrefix + 'SyntaxError extends ' + phpGlobalNamespacePrefix + 'Exception',
         '{',
         '    public $expected;',
         '    public $found;',
@@ -475,17 +491,17 @@ module.exports = function(ast, options) {
         '    public $name;',
         '    public function __construct($message, $expected, $found, $offset, $line, $column)',
         '    {',
-        '        parent::__construct($message, 0, null);',
+        '        parent::__construct($message, 0);',
         '        $this->expected = $expected;',
         '        $this->found = $found;',
         '        $this->grammarOffset = $offset;',
         '        $this->grammarLine = $line;',
         '        $this->grammarColumn = $column;',
-        '        $this->name = "SyntaxError";',
+        '        $this->name = "' + phpGlobalNamePrefix + 'SyntaxError";',
         '    }',
         '};}',
         '',
-        'class ' + php_parser_class + '{',
+        'class ' + phpParserClass + ' {',
         ''
     ].join('\n'));
 
@@ -648,7 +664,7 @@ module.exports = function(ast, options) {
         '        $message = "Expected " . $expectedDesc . " but " . $foundDesc . " found.";',
         '      }',
         '',
-        '      return new SyntaxError(',
+        '      return new ' + phpGlobalNamePrefix + 'SyntaxError(',
         '        $message,',
         '        $expected,',
         '        $found,',
@@ -682,7 +698,7 @@ module.exports = function(ast, options) {
         ''
     ].join('\n'));
 
-    parts.push(indent4('$this->peg_FAILED = new \\stdClass;'));
+    parts.push(indent4('$this->peg_FAILED = new ' + phpGlobalNamespacePrefix + 'stdClass;'));
     parts.push(indent4(generateTablesDefinition()));
     parts.push('');
     
@@ -704,7 +720,7 @@ module.exports = function(ast, options) {
     parts.push([
         '    if (isset($options["startRule"])) {',
         '      if (!(isset($peg_startRuleFunctions[$options["startRule"]]))) {',
-        '        throw new \\Exception("Can\'t start parsing from rule \\"" + $options["startRule"] + "\\".");',
+        '        throw new ' + phpGlobalNamespacePrefix + 'Exception("Can\'t start parsing from rule \\"" + $options["startRule"] + "\\".");',
         '      }',
         '',
         '      $peg_startRuleFunction = $peg_startRuleFunctions[$options["startRule"]];',

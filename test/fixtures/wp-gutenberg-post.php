@@ -26,7 +26,7 @@ class SyntaxError extends \Exception
     public $name;
     public function __construct($message, $expected, $found, $offset, $line, $column)
     {
-        parent::__construct($message, 0, null);
+        parent::__construct($message, 0);
         $this->expected = $expected;
         $this->found = $found;
         $this->grammarOffset = $offset;
@@ -36,7 +36,7 @@ class SyntaxError extends \Exception
     }
 };}
 
-class Parser{
+class Parser {
 
 
     private $peg_currPos          = 0;
