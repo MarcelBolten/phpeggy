@@ -46,22 +46,34 @@ module.exports = function(ast, options) {
 
     function generateTablesDeclaration() {
         return arrayUtils.map(
-                ast.consts,
-                function(c, i) {
-                    return 'private $peg_c' + i + ';';
-                }
+            ast.consts,
+            function(c, i) {
+                return 'private $peg_c' + i + ';';
+            }
         ).join('\n');
     }
-    
+
     function generateTablesDefinition() {
         return arrayUtils.map(
-                ast.consts,
-                function(c, i) {
-                    return '$this->peg_c' + i + ' = ' + c + ';';
-                }
+            ast.consts,
+            function(c, i) {
+                return '$this->peg_c' + i + ' = ' + c + ';';
+            }
         ).join('\n');
     }
-    
+
+    function generateFunctions() {
+        return arrayUtils.map(
+            ast.functions,
+            function( c, i ) {
+                return 'private function peg_f' + i
+                    + '(' + c.params + ') {'
+                    + c.code
+                    + '}';
+            }
+        ).join('\n');
+    }
+
     function generateCacheHeader(ruleIndexCode) {
         return [
             '$key    = $this->peg_currPos * ' + ast.rules.length + ' + ' + ruleIndexCode + ';',
@@ -88,6 +100,9 @@ module.exports = function(ast, options) {
         function c(i) {
             return "$this->peg_c" + i;
         } // |consts[i]| of the abstract machine
+        function f(i) {
+            return "$this->peg_f" + i;
+        } // |functions[i]| of the abstract machine
         function s(i) {
             return "$s" + i;
         } // |stack[i]| of the abstract machine
@@ -191,11 +206,13 @@ module.exports = function(ast, options) {
                         paramsLength = bc[ip + baseLength - 1];
 
                 var params = bc.slice(ip + baseLength, ip + baseLength + paramsLength);
-                var value = "call_user_func(" + c(bc[ip + 1]);
-                if (params.length > 0) value +=  ',' + arrayUtils.map(
-                                                            params,
-                                                            stackIndex
-                                                            ).join(', ');
+                var value = f(bc[ip + 1]) + '(';
+                if (params.length > 0) {
+                    value +=  arrayUtils.map(
+                        params,
+                        stackIndex
+                    ).join(', ');
+                }
                 value += ')';
                 stack.pop(bc[ip + 2]);
                 parts.push(stack.push(value));
@@ -676,12 +693,14 @@ module.exports = function(ast, options) {
     parts.push('    private $peg_FAILED;');
     parts.push(indent4(generateTablesDeclaration()));
     parts.push('');
-      
+    parts.push(indent4(generateFunctions()));
+    parts.push('');
+
     arrayUtils.each(ast.rules, function(rule) {
         parts.push(indent4(generateRuleFunction(rule)));
         parts.push('');
     });
-    
+
     parts.push([
         '  public function parse($input) {',
         '    $arguments = func_get_args();',

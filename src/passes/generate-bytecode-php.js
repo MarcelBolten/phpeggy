@@ -222,6 +222,7 @@ var arrayUtils = require("pegjs/lib/utils/arrays"),
  */
 module.exports = function(ast) {
   var consts = [];
+  var functions = [];
 
   function addConst(value) {
     var index = arrayUtils.indexOf(consts, function(c) { return c === value; });
@@ -230,14 +231,25 @@ module.exports = function(ast) {
   }
 
   function addFunctionConst(params, code) {
-    var res = "function(" ;
+    var value = {
+      params: '',
+      code: internalUtils.extractPhpCode( code )
+    };
+
     var first = true;
-    for (var i = 0; i < params.length; i++) {
-        if (!first) res += ',';
-        res += '$' + params[i];
-        first = false;
+    for ( var i = 0; i < params.length; i++ ) {
+      if ( ! first ) {
+        value.params += ', ';
+      }
+      value.params += '$' + params[i];
+      first = false;
     }
-    return addConst(res + ") {" + internalUtils.extractPhpCode( code ) + "}");
+
+    var index = arrayUtils.indexOf( functions, function( c ) {
+      return c.params === value.params && c.code === value.code;
+    } );
+
+    return index === -1 ? functions.push(value) - 1 : index;
   }
 
   function buildSequence() {
@@ -320,6 +332,7 @@ module.exports = function(ast) {
       arrayUtils.each(node.rules, generate);
 
       node.consts = consts;
+      node.functions = functions;
     },
 
     rule: function(node) {
