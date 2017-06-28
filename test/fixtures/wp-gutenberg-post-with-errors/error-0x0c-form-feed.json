@@ -1,0 +1,20 @@
+{
+    "error": {
+        "message": "Expected \"<!--\" or end of input but \"\\f\" found.",
+        "expected": [
+            {
+                "type": "literal",
+                "value": "<!--",
+                "description": "\"<!--\""
+            },
+            {
+                "type": "end",
+                "description": "end of input"
+            }
+        ],
+        "found": "\f",
+        "line": 1,
+        "column": 1,
+        "offset": 0
+    }
+}

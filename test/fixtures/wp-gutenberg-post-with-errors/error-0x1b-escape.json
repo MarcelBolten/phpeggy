@@ -1,0 +1,20 @@
+{
+    "error": {
+        "message": "Expected \"<!--\" or end of input but \"\\u001b\" found.",
+        "expected": [
+            {
+                "type": "literal",
+                "value": "<!--",
+                "description": "\"<!--\""
+            },
+            {
+                "type": "end",
+                "description": "end of input"
+            }
+        ],
+        "found": "\u001b",
+        "line": 1,
+        "column": 1,
+        "offset": 0
+    }
+}
