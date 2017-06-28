@@ -1280,9 +1280,12 @@ class Parser{
       $peg_startRuleFunction = $peg_startRuleFunctions[$options["startRule"]];
     }
 
+    /* BEGIN initializer code */
+
     // The `maybeJSON` function is not needed in PHP because its return semantics
     // are the same as `json_decode`
 
+    /* END initializer code */
 
     $peg_result = call_user_func($peg_startRuleFunction);
 

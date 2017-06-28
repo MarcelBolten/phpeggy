@@ -712,9 +712,12 @@ module.exports = function(ast, options) {
     ].join('\n'));
 
     if (ast.initializer) {
+        parts.push('');
+        parts.push(indent4('/* BEGIN initializer code */'));
         parts.push(indent4(
             internalUtils.extractPhpCode(ast.initializer.code)
         ));
+        parts.push(indent4('/* END initializer code */'));
         parts.push('');
     }
 
