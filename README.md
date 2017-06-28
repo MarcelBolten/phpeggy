@@ -54,12 +54,27 @@ Supported options of `pegjs.buildParser`:
   * `allowedStartRules` — rules the parser will be allowed to start parsing from
     (default: the first rule in the grammar)
 
-Additional PHP PEG.js plugin options:
+You can also pass options specific to the PHP PEG.js plugin as follows:
 
-  * `phpegjs.parserNamespace` - namespace of generated parser (default:
-    `"PhpPegJs"`). If value is `""`, parser will be in global namespace
-  * `phpegjs.parserClassName` - name of generated class for parser (default:
-    `"Parser"`)
+```js
+var parser = pegjs.buildParser("start = ('a' / 'b')+", {
+    plugins: [phpegjs],
+    phpegjs: { /* phpegjs-specific options */ }
+});
+```
+
+Here are the options available to pass this way:
+
+  * `parserNamespace` - namespace of generated parser (default: `PhpPegJs`). If
+    value is `''` or `null`, no namespace will be used (and the generated
+    parser will be compatible with PHP 5.2).
+  * `parserGlobalNamePrefix` - prefix to add to all globally defined names
+    including the parser, its helper functions, and the `SyntaxError` class.
+    This should only be used if PHP 5.2 compatibility is needed; otherwise the
+    `parserNamespace` option should be used instead.
+  * `parserClassName` - name of generated class for parser (default: `Parser`).
+    Note that if a `parserGlobalNamePrefix` is specified, this prefix will be
+    added to the name specified by `parserClassName`.
 
 Using the Parser
 ----------------
