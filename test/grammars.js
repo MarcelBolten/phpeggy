@@ -26,8 +26,8 @@ function fixtureFilePath( filename ) {
 	}
 }
 
-function runPhp( arguments, stdin ) {
-	const result = cp.spawnSync( 'php', arguments, {
+function runPhp( args, stdin ) {
+	const result = cp.spawnSync( 'php', args, {
 		input: stdin || null,
 		encoding: 'utf8'
 	} );
