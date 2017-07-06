@@ -106,11 +106,20 @@ grammarNames.forEach( grammarName => {
 			const pegjsOptions = {
 				plugins: [ phpegjs ]
 			};
+			let extraOptions = {};
+			try {
+				extraOptions = JSON.parse( fs.readFileSync(
+					fixtureFilePath( grammarName + '.options.json' ),
+					'utf8'
+				) );
+			} catch ( err ) { }
+			for ( const key in extraOptions ) {
+				pegjsOptions[ key ] = extraOptions[ key ];
+			}
 			if ( isPHP52 ) {
-				pegjsOptions.phpegjs = {
-					parserNamespace: null,
-					parserGlobalNamePrefix: 'php52_compat_'
-				};
+				pegjsOptions.phpegjs = pegjsOptions.phpegjs || {};
+				pegjsOptions.phpegjs.parserNamespace = null;
+				pegjsOptions.phpegjs.parserGlobalNamePrefix = 'php52_compat_';
 			}
 			phpActual = pegjs.generate( grammar, pegjsOptions );
 			const phpExpectedPath = fixtureFilePath(
