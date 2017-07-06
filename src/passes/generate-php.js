@@ -319,7 +319,7 @@ module.exports = function(ast, options) {
                         break;
 
                     case op.MATCH_ANY:        // MATCH_ANY a, f, ...
-                        compileCondition('mb_strlen($this->input, "UTF-8") > $this->peg_currPos', 0);
+                        compileCondition('$this->input_length > $this->peg_currPos', 0);
                         break;
 
                     case op.MATCH_STRING:     // MATCH_STRING s, a, f, ...
@@ -533,6 +533,7 @@ module.exports = function(ast, options) {
         '      $this->peg_maxFailExpected  = array();',
         '      $this->peg_silentFails      = 0;',
         '      $this->input                = "";',
+        '      $this->input_length         = 0;',
 
                options.cache ?
         '      $this->peg_cache = array();' : '',
@@ -627,7 +628,7 @@ module.exports = function(ast, options) {
         '',
         '    private function peg_buildException($message, $expected, $pos) {',
         '      $posDetails = $this->peg_computePosDetails($pos);',
-        '      $found      = $pos < mb_strlen($this->input, "UTF-8") ? mb_substr($this->input, $pos, 1, "UTF-8") : null;',
+        '      $found      = $pos < $this->input_length ? mb_substr($this->input, $pos, 1, "UTF-8") : null;',
         '',
         '      if ($expected !== null) {',
         '        usort($expected, array($this, "peg_buildException_expectedComparator"));',
@@ -693,6 +694,7 @@ module.exports = function(ast, options) {
         '    $options = count($arguments) > 1 ? $arguments[1] : array();',
         '    $this->cleanup_state();',
         '    $this->input = $input;',
+        '    $this->input_length = mb_strlen($input, "UTF-8");',
         '    $old_regex_encoding = mb_regex_encoding();',
         '    mb_regex_encoding("UTF-8");',
         ''
@@ -747,10 +749,10 @@ module.exports = function(ast, options) {
     parts.push([
         '',
         '    mb_regex_encoding($old_regex_encoding);',
-        '    if ($peg_result !== $this->peg_FAILED && $this->peg_currPos === mb_strlen($input, "UTF-8")) {',
+        '    if ($peg_result !== $this->peg_FAILED && $this->peg_currPos === $this->input_length) {',
         '      return $peg_result;',
         '    } else {',
-        '      if ($peg_result !== $this->peg_FAILED && $this->peg_currPos < mb_strlen($input, "UTF-8")) {',
+        '      if ($peg_result !== $this->peg_FAILED && $this->peg_currPos < $this->input_length) {',
         '        $this->peg_fail(array("type" => "end", "description" => "end of input" ));',
         '      }',
         '',
