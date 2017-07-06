@@ -739,6 +739,11 @@ module.exports = function(ast, options) {
 
     parts.push('    $peg_result = call_user_func($peg_startRuleFunction);');
 
+    if (options.cache) {
+        parts.push('');
+        parts.push('    $this->peg_cache = array();');
+    }
+
     parts.push([
         '',
         '    mb_regex_encoding($old_regex_encoding);',
