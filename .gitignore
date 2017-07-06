@@ -1,5 +1,2 @@
-.idea
-
-node_modules/*
-
-/test/output
+/node_modules
+/manual-test/output
