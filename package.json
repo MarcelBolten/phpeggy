@@ -1,6 +1,6 @@
 {
   "name": "phpegjs",
-  "version": "1.0.0-beta4",
+  "version": "1.0.0-beta5",
   "description": "PHP target for PEG.js parser generator",
   "main": "src/phppegjs.js",
   "files": [
