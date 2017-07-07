@@ -1197,13 +1197,16 @@ class php52_compat_Parser {
 
     mb_regex_encoding($old_regex_encoding);
     if ($peg_result !== $this->peg_FAILED && $this->peg_currPos === $this->input_length) {
+      $this->cleanup_state(); // Free up memory
       return $peg_result;
     } else {
       if ($peg_result !== $this->peg_FAILED && $this->peg_currPos < $this->input_length) {
         $this->peg_fail(array("type" => "end", "description" => "end of input" ));
       }
 
-      throw $this->peg_buildException(null, $this->peg_maxFailExpected, $this->peg_maxFailPos);
+      $exception = $this->peg_buildException(null, $this->peg_maxFailExpected, $this->peg_maxFailPos);
+      $this->cleanup_state(); // Free up memory
+      throw $exception;
     }
   }
 
