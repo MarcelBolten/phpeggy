@@ -297,7 +297,7 @@ module.exports = function(ast, options) {
                     case op.TEXT:             // TEXT
                         stackTop = stack.pop();
                         parts.push(
-                                stack.push('mb_substr($this->input, ' + stackTop + ', $this->peg_currPos - ' + stackTop + ', "UTF-8")')
+                                stack.push('$this->input_substr(' + stackTop + ', $this->peg_currPos - ' + stackTop + ')')
                                 );
                         ip++;
                         break;
@@ -324,9 +324,9 @@ module.exports = function(ast, options) {
 
                     case op.MATCH_STRING:     // MATCH_STRING s, a, f, ...
                         compileCondition(
-                                'mb_substr($this->input, $this->peg_currPos, '
+                                '$this->input_substr($this->peg_currPos, '
                                 + eval(ast.consts[bc[ip + 1]]).length
-                                + ', "UTF-8") === '
+                                + ') === '
                                 + c(bc[ip + 1]),
                                 1
                                 );
@@ -334,9 +334,9 @@ module.exports = function(ast, options) {
 
                     case op.MATCH_STRING_IC:  // MATCH_STRING_IC s, a, f, ...
                         compileCondition(
-                                'mb_strtolower(mb_substr($this->input, $this->peg_currPos, '
+                                'mb_strtolower($this->input_substr($this->peg_currPos, '
                                 + eval(ast.consts[bc[ip + 1]]).length
-                                + ', "UTF-8"), "UTF-8") === '
+                                + '), "UTF-8") === '
                                 + c(bc[ip + 1]),
                                 1
                                 );
@@ -344,14 +344,14 @@ module.exports = function(ast, options) {
 
                     case op.MATCH_REGEXP:     // MATCH_REGEXP r, a, f, ...
                         compileCondition(
-                                phpGlobalNamePrefix + 'peg_regex_test(' + c(bc[ip + 1]) + ', mb_substr($this->input, $this->peg_currPos, 1, "UTF-8"))',
+                                phpGlobalNamePrefix + 'peg_regex_test(' + c(bc[ip + 1]) + ', $this->input_substr($this->peg_currPos, 1))',
                                 1
                                 );
                         break;
 
                     case op.ACCEPT_N:         // ACCEPT_N n
                         parts.push(stack.push(
-                                'mb_substr($this->input, $this->peg_currPos, ' + bc[ip + 1] + ', "UTF-8")'
+                                '$this->input_substr($this->peg_currPos, ' + bc[ip + 1] + ')'
                                 ));
                         parts.push(
                                 bc[ip + 1] > 1
@@ -514,7 +514,7 @@ module.exports = function(ast, options) {
         '    private $peg_maxFailPos       = 0;',
         '    private $peg_maxFailExpected  = array();',
         '    private $peg_silentFails      = 0;', // 0 = report failures, > 0 = silence failures
-        '    private $input                = "";',
+        '    private $input                = array();',
         ''
     ].join('\n'));
 
@@ -524,7 +524,7 @@ module.exports = function(ast, options) {
 
     parts.push([
         '',
-        '    private function cleanup_state(){',
+        '    private function cleanup_state() {',
         '      $this->peg_currPos          = 0;',
         '      $this->peg_reportedPos      = 0;',
         '      $this->peg_cachedPos        = 0;',
@@ -532,16 +532,28 @@ module.exports = function(ast, options) {
         '      $this->peg_maxFailPos       = 0;',
         '      $this->peg_maxFailExpected  = array();',
         '      $this->peg_silentFails      = 0;',
-        '      $this->input                = "";',
+        '      $this->input                = array();',
         '      $this->input_length         = 0;',
 
                options.cache ?
         '      $this->peg_cache = array();' : '',
 
         '    }',
+        '',
+        '    private function input_substr($start, $length) {',
+        '      if ($length === 1) {',
+        '        return $this->input[$start];',
+        '      }',
+        '      $substr = \'\';',
+        '      $max = min($start + $length, $this->input_length);',
+        '      for ($i = $start; $i < $max; $i++) {',
+        '        $substr .= $this->input[$i];',
+        '      }',
+        '      return $substr;',
+        '    }',
         ''
     ].join('\n'));
-    
+
     parts.push([
         '',
         '    private function text() {',
@@ -576,7 +588,7 @@ module.exports = function(ast, options) {
         '',
         '    private function peg_advancePos(&$details, $startPos, $endPos) {',
         '      for ($p = $startPos; $p < $endPos; $p++) {',
-        '        $ch = mb_substr($this->input, $p, 1, "UTF-8");',
+        '        $ch = $this->input_substr($p, 1);',
         '        if ($ch === "\\n") {',
         '          if (!$details["seenCR"]) { $details["line"]++; }',
         '          $details["column"] = 1;',
@@ -628,7 +640,7 @@ module.exports = function(ast, options) {
         '',
         '    private function peg_buildException($message, $expected, $pos) {',
         '      $posDetails = $this->peg_computePosDetails($pos);',
-        '      $found      = $pos < $this->input_length ? mb_substr($this->input, $pos, 1, "UTF-8") : null;',
+        '      $found      = $pos < $this->input_length ? $this->input_substr($pos, 1) : null;',
         '',
         '      if ($expected !== null) {',
         '        usort($expected, array($this, "peg_buildException_expectedComparator"));',
@@ -693,8 +705,17 @@ module.exports = function(ast, options) {
         '    $arguments = func_get_args();',
         '    $options = count($arguments) > 1 ? $arguments[1] : array();',
         '    $this->cleanup_state();',
-        '    $this->input = $input;',
-        '    $this->input_length = mb_strlen($input, "UTF-8");',
+        '',
+        // TODO: The `u` modifier is not always availale.  See:
+        // - https://core.trac.wordpress.org/browser/tags/4.8/src/wp-includes/compat.php?annotate=blame#L16
+        // - https://core.trac.wordpress.org/changeset/32364
+        // - https://core.trac.wordpress.org/ticket/32165 (light on details)
+        // - https://core.trac.wordpress.org/ticket/22692
+        // - https://core.trac.wordpress.org/ticket/22363
+        '    preg_match_all("/./us", $input, $match);',
+        '    $this->input = $match[0];',
+        '    $this->input_length = count($this->input);',
+        '',
         '    $old_regex_encoding = mb_regex_encoding();',
         '    mb_regex_encoding("UTF-8");',
         ''
