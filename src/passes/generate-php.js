@@ -289,8 +289,8 @@ module.exports = function(ast, options) {
 
                     case op.WRAP:             // WRAP n
                         parts.push(
-                                stack.push('array(' + stack.pop(bc[ip + 1]).join(', ') + ')')
-                                );
+                            stack.push('array(' + stack.pop(bc[ip + 1]).join(', ') + ')')
+                        );
                         ip += 2;
                         break;
 
@@ -354,17 +354,17 @@ module.exports = function(ast, options) {
                                 '$this->input_substr($this->peg_currPos, ' + bc[ip + 1] + ')'
                                 ));
                         parts.push(
-                                bc[ip + 1] > 1
+                            bc[ip + 1] > 1
                                 ? '$this->peg_currPos += ' + bc[ip + 1] + ';'
                                 : '$this->peg_currPos++;'
-                                );
+                        );
                         ip += 2;
                         break;
 
                     case op.ACCEPT_STRING:    // ACCEPT_STRING s
                         parts.push(stack.push(c(bc[ip + 1])));
                         parts.push(
-                                eval(ast.consts[bc[ip + 1]]).length > 1
+                            eval(ast.consts[bc[ip + 1]]).length > 1
                                 ? '$this->peg_currPos += ' + eval(ast.consts[bc[ip + 1]]).length + ';'
                                 : '$this->peg_currPos++;'
                                 );
@@ -373,7 +373,9 @@ module.exports = function(ast, options) {
 
                     case op.FAIL:             // FAIL e
                         parts.push(stack.push('$this->peg_FAILED'));
-                        parts.push('if ($this->peg_silentFails === 0) { $this->peg_fail(' + c(bc[ip + 1]) + '); }');
+                        parts.push('if ($this->peg_silentFails === 0) {');
+                        parts.push('    $this->peg_fail(' + c(bc[ip + 1]) + ');');
+                        parts.push('}');
                         ip += 2;
                         break;
 
