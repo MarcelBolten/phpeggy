@@ -1,0 +1,11 @@
+// ASCII characters (space, 0, @)
+\x20\x30\x40
+
+\x27 // Single quote
+\x22 // Double quote
+
+// Emoji
+\x1F4A9
+
+// Chinese characters
+\x4e00\x6761\x9c7c
