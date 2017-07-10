@@ -156,7 +156,12 @@ grammarNames.forEach( grammarName => {
 				);
 
 				const result = runPhp( [], getPHPParserTestCode( phpActual, input ) );
-				const outputActual = JSON.parse( result.stdout );
+				let outputActual
+				try {
+					outputActual = JSON.parse( result.stdout );
+				} catch ( err ) {
+					throw new Error( 'JSON.parse failed:  ' + result.stdout );
+				}
 
 				const outputExpectedPath =
 					fixtureFilePath( [ grammarName, testName + '.json' ] );
