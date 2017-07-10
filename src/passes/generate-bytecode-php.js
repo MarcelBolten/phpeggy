@@ -626,8 +626,7 @@ module.exports = function(ast) {
         return ch.charCodeAt(0).toString(16).toUpperCase();
       }
 
-      function quoteForPhpRegexp(s)
-      {
+      function quoteForPhpRegexp(s) {
            return s
             .replace(/\\/g, '\\\\')  // backslash
             .replace(/\//g, '\\/')   // closing slash
@@ -647,13 +646,13 @@ module.exports = function(ast) {
             .replace(/[\x00-\x0f]/g,          function(ch) { return '\\x0' + hex(ch); })
             .replace(/[\x10-\x1f\x7f-\x9f]/g, function(ch) { return '\\x' + hex(ch); })
             .replace(/[\xFF-\uFFFF]/g, function(ch) {
-                var charCode = ch.charCodeAt(0);
-                return '\\x{' + utils.padLeft(charCode.toString(16).toUpperCase(), '0', 4) + '}';
+                var hexCode = ch.charCodeAt(0).toString(16).toUpperCase();
+                hexCode = Array(4 - hexCode.length + 1).join('0') + hexCode;
+                return '\\x{' + hexCode + '}';
               });
       }
-            
-      function quotePhp(s)
-      {          
+
+      function quotePhp(s) {
             return '"' + s
               .replace(/\\/g, '\\\\')  // backslash
               .replace(/"/g, '\\"')    // closing quote character
@@ -665,6 +664,11 @@ module.exports = function(ast) {
               .replace(/\$/g, '\\$')   // dollar
               .replace(/[\x00-\x0f]/g,          function(ch) { return '\\x0' + hex(ch); })
               .replace(/[\x10-\x1f\x7f-\x9f]/g, function(ch) { return '\\x' + hex(ch); })
+              .replace(/[\xFF-\uFFFF]/g, function(ch) {
+                  var hexCode = ch.charCodeAt(0).toString(16).toUpperCase();
+                  hexCode = Array(4 - hexCode.length + 1).join('0') + hexCode;
+                  return '\\x{' + hexCode + '}';
+                })
               + '"';
       }
 

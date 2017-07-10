@@ -1,0 +1,87 @@
+[
+    {
+        "rule": "Letter_Or_Number",
+        "value": "S"
+    },
+    {
+        "rule": "Letter_Or_Number",
+        "value": "o"
+    },
+    {
+        "rule": "Letter_Or_Number",
+        "value": "m"
+    },
+    {
+        "rule": "Letter_Or_Number",
+        "value": "e"
+    },
+    {
+        "rule": "Letter_Or_Number",
+        "value": "L"
+    },
+    {
+        "rule": "Letter_Or_Number",
+        "value": "e"
+    },
+    {
+        "rule": "Letter_Or_Number",
+        "value": "t"
+    },
+    {
+        "rule": "Letter_Or_Number",
+        "value": "t"
+    },
+    {
+        "rule": "Letter_Or_Number",
+        "value": "e"
+    },
+    {
+        "rule": "Letter_Or_Number",
+        "value": "r"
+    },
+    {
+        "rule": "Letter_Or_Number",
+        "value": "s"
+    },
+    "\n",
+    {
+        "rule": "Quote",
+        "value": "'"
+    },
+    {
+        "rule": "Quote",
+        "value": "\""
+    },
+    "\n",
+    {
+        "rule": "Char_Padding_Test",
+        "value": "ÿ"
+    },
+    {
+        "rule": "Char_Padding_Test",
+        "value": "Ā"
+    },
+    "\n",
+    {
+        "rule": "Chinese_Character",
+        "value": "⼀"
+    },
+    {
+        "rule": "Chinese_Character",
+        "value": "㐀"
+    },
+    "\n",
+    {
+        "rule": "Chinese_Character",
+        "value": "一"
+    },
+    {
+        "rule": "Chinese_Character",
+        "value": "条"
+    },
+    {
+        "rule": "Chinese_Character",
+        "value": "鱼"
+    },
+    "\n"
+]
