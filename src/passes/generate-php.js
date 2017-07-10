@@ -107,6 +107,14 @@ module.exports = function(ast, options) {
             return "$s" + i;
         } // |stack[i]| of the abstract machine
 
+        function inputSubstr(start, len) {
+            if ( len === 1 ) {
+                return "$this->input[" + start + "]";
+            } else {
+                return "$this->input_substr(" + start + ", " + len + ")";
+            }
+        }
+
         var stack = {
             sp: -1,
             maxSp: -1,
@@ -296,9 +304,12 @@ module.exports = function(ast, options) {
 
                     case op.TEXT:             // TEXT
                         stackTop = stack.pop();
-                        parts.push(
-                                stack.push('$this->input_substr(' + stackTop + ', $this->peg_currPos - ' + stackTop + ')')
-                                );
+                        parts.push(stack.push(
+                            inputSubstr(
+                                stackTop,
+                                '$this->peg_currPos - ' + stackTop
+                            )
+                        ));
                         ip++;
                         break;
 
@@ -324,35 +335,38 @@ module.exports = function(ast, options) {
 
                     case op.MATCH_STRING:     // MATCH_STRING s, a, f, ...
                         compileCondition(
-                                '$this->input_substr($this->peg_currPos, '
-                                + eval(ast.consts[bc[ip + 1]]).length
-                                + ') === '
-                                + c(bc[ip + 1]),
-                                1
-                                );
+                            inputSubstr(
+                                '$this->peg_currPos',
+                                eval(ast.consts[bc[ip + 1]]).length
+                            ) + ' === ' + c(bc[ip + 1]),
+                            1
+                        );
                         break;
 
                     case op.MATCH_STRING_IC:  // MATCH_STRING_IC s, a, f, ...
                         compileCondition(
-                                'mb_strtolower($this->input_substr($this->peg_currPos, '
-                                + eval(ast.consts[bc[ip + 1]]).length
-                                + '), "UTF-8") === '
-                                + c(bc[ip + 1]),
-                                1
-                                );
+                            'mb_strtolower(' + inputSubstr(
+                                '$this->peg_currPos',
+                                eval(ast.consts[bc[ip + 1]]).length
+                            ) + ', "UTF-8") === ' + c(bc[ip + 1]),
+                            1
+                        );
                         break;
 
                     case op.MATCH_REGEXP:     // MATCH_REGEXP r, a, f, ...
                         compileCondition(
-                                phpGlobalNamePrefix + 'peg_regex_test(' + c(bc[ip + 1]) + ', $this->input_substr($this->peg_currPos, 1))',
-                                1
-                                );
+                            phpGlobalNamePrefix + 'peg_regex_test('
+                            + c(bc[ip + 1]) + ', '
+                            + inputSubstr('$this->peg_currPos', 1)
+                            + ')',
+                            1
+                        );
                         break;
 
                     case op.ACCEPT_N:         // ACCEPT_N n
                         parts.push(stack.push(
-                                '$this->input_substr($this->peg_currPos, ' + bc[ip + 1] + ')'
-                                ));
+                            inputSubstr('$this->peg_currPos', bc[ip + 1])
+                        ));
                         parts.push(
                             bc[ip + 1] > 1
                                 ? '$this->peg_currPos += ' + bc[ip + 1] + ';'
@@ -543,9 +557,6 @@ module.exports = function(ast, options) {
         '    }',
         '',
         '    private function input_substr($start, $length) {',
-        '      if ($length === 1) {',
-        '        return $this->input[$start];',
-        '      }',
         '      $substr = \'\';',
         '      $max = min($start + $length, $this->input_length);',
         '      for ($i = $start; $i < $max; $i++) {',
@@ -590,7 +601,7 @@ module.exports = function(ast, options) {
         '',
         '    private function peg_advancePos(&$details, $startPos, $endPos) {',
         '      for ($p = $startPos; $p < $endPos; $p++) {',
-        '        $ch = $this->input_substr($p, 1);',
+        '        $ch = $this->input[$p];',
         '        if ($ch === "\\n") {',
         '          if (!$details["seenCR"]) { $details["line"]++; }',
         '          $details["column"] = 1;',
@@ -642,7 +653,7 @@ module.exports = function(ast, options) {
         '',
         '    private function peg_buildException($message, $expected, $pos) {',
         '      $posDetails = $this->peg_computePosDetails($pos);',
-        '      $found      = $pos < $this->input_length ? $this->input_substr($pos, 1) : null;',
+        '      $found      = $pos < $this->input_length ? $this->input[$pos] : null;',
         '',
         '      if ($expected !== null) {',
         '        usort($expected, array($this, "peg_buildException_expectedComparator"));',
