@@ -156,7 +156,7 @@ grammarNames.forEach( grammarName => {
 				);
 
 				const result = runPhp( [], getPHPParserTestCode( phpActual, input ) );
-				let outputActual
+				let outputActual;
 				try {
 					outputActual = JSON.parse( result.stdout );
 				} catch ( err ) {
