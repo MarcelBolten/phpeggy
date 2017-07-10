@@ -156,6 +156,10 @@ grammarNames.forEach( grammarName => {
 				);
 
 				const result = runPhp( [], getPHPParserTestCode( phpActual, input ) );
+				expect( result.stderr ).to.eql(
+					'',
+					'Received messages from PHP stderr'
+				);
 				let outputActual;
 				try {
 					outputActual = JSON.parse( result.stdout );
