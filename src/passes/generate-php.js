@@ -108,11 +108,10 @@ module.exports = function(ast, options) {
         } // |stack[i]| of the abstract machine
 
         function inputSubstr(start, len) {
-            if ( len === 1 ) {
-                return "$this->input[" + start + "]";
-            } else {
-                return "$this->input_substr(" + start + ", " + len + ")";
-            }
+            // TODO If we can guarantee that `start` is within the bounds of
+            // the array, replace this with a direct array access when
+            // `len === 1`.  Currently we cannot guarantee this.
+            return "$this->input_substr(" + start + ", " + len + ")";
         }
 
         var stack = {
@@ -566,6 +565,9 @@ module.exports = function(ast, options) {
         '    }',
         '',
         '    private function input_substr($start, $length) {',
+        '      if ($length === 1 && $start < $this->input_length) {',
+        '        return $this->input[$start];',
+        '      }',
         '      $substr = \'\';',
         '      $max = min($start + $length, $this->input_length);',
         '      for ($i = $start; $i < $max; $i++) {',
