@@ -493,7 +493,7 @@ module.exports = function(ast, options) {
         '/* ' + phpGlobalNamePrefix + 'chr_unicode - get unicode character from its char code */',
         'if (!function_exists("' + phpGlobalNamePrefixOrNamespaceEscaped + 'chr_unicode")) {',
         '    function ' + phpGlobalNamePrefix + 'chr_unicode($code) {',
-        '        return mb_convert_encoding("&#$code;", "UTF-8", "HTML-ENTITIES");',
+        '        return html_entity_decode("&#$code;", ENT_QUOTES, "UTF-8");',
         '    }',
         '}',
         '/* ' + phpGlobalNamePrefix + 'peg_regex_test - multibyte regex test */',

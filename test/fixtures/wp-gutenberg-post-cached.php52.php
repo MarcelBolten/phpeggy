@@ -11,7 +11,7 @@
 /* php52_compat_chr_unicode - get unicode character from its char code */
 if (!function_exists("php52_compat_chr_unicode")) {
     function php52_compat_chr_unicode($code) {
-        return mb_convert_encoding("&#$code;", "UTF-8", "HTML-ENTITIES");
+        return html_entity_decode("&#$code;", ENT_QUOTES, "UTF-8");
     }
 }
 /* php52_compat_peg_regex_test - multibyte regex test */

@@ -12,7 +12,7 @@ namespace PhpPegJs;
 /* chr_unicode - get unicode character from its char code */
 if (!function_exists("PhpPegJs\\chr_unicode")) {
     function chr_unicode($code) {
-        return mb_convert_encoding("&#$code;", "UTF-8", "HTML-ENTITIES");
+        return html_entity_decode("&#$code;", ENT_QUOTES, "UTF-8");
     }
 }
 /* peg_regex_test - multibyte regex test */
