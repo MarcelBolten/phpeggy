@@ -7,38 +7,47 @@
 
 namespace PhpPegJs;
 
-/* Usefull functions: */
+/* Useful functions: */
 
 /* chr_unicode - get unicode character from its char code */
-if (!function_exists('PhpPegJs\\chr_unicode')) { function chr_unicode($code) { return mb_convert_encoding('&#' . $code . ';', 'UTF-8', 'HTML-ENTITIES');} }
+if (!function_exists("PhpPegJs\\chr_unicode")) {
+    function chr_unicode($code) {
+        return mb_convert_encoding("&#$code;", "UTF-8", "HTML-ENTITIES");
+    }
+}
 /* peg_regex_test - multibyte regex test */
-if (!function_exists('PhpPegJs\\peg_regex_test')) { function peg_regex_test($pattern, $string) { if (substr($pattern, -1) == 'i') return mb_eregi(substr($pattern, 1, -2), $string); else return mb_ereg(substr($pattern, 1, -1), $string);}}
+if (!function_exists("PhpPegJs\\peg_regex_test")) {
+    function peg_regex_test($pattern, $string) {
+        if (substr($pattern, -1) == "i") {
+            return mb_eregi(substr($pattern, 1, -2), $string);
+        } else {
+            return mb_ereg(substr($pattern, 1, -1), $string);
+        }
+    }
+}
 
 /* Syntax error exception */
-if (!class_exists("PhpPegJs\\SyntaxError", false)){
-class SyntaxError extends \Exception
-{
-    public $expected;
-    public $found;
-    public $grammarOffset;
-    public $grammarLine;
-    public $grammarColumn;
-    public $name;
-    public function __construct($message, $expected, $found, $offset, $line, $column)
-    {
-        parent::__construct($message, 0);
-        $this->expected = $expected;
-        $this->found = $found;
-        $this->grammarOffset = $offset;
-        $this->grammarLine = $line;
-        $this->grammarColumn = $column;
-        $this->name = "SyntaxError";
+if (!class_exists("PhpPegJs\\SyntaxError", false)) {
+    class SyntaxError extends \Exception {
+        public $expected;
+        public $found;
+        public $grammarOffset;
+        public $grammarLine;
+        public $grammarColumn;
+        public $name;
+        public function __construct($message, $expected, $found, $offset, $line, $column) {
+            parent::__construct($message, 0);
+            $this->expected = $expected;
+            $this->found = $found;
+            $this->grammarOffset = $offset;
+            $this->grammarLine = $line;
+            $this->grammarColumn = $column;
+            $this->name = "SyntaxError";
+        }
     }
-};}
+}
 
 class Parser {
-
-
     private $peg_currPos          = 0;
     private $peg_reportedPos      = 0;
     private $peg_cachedPos        = 0;

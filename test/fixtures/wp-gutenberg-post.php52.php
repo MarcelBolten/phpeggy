@@ -6,38 +6,47 @@
  */
 
 
-/* Usefull functions: */
+/* Useful functions: */
 
 /* php52_compat_chr_unicode - get unicode character from its char code */
-if (!function_exists('php52_compat_chr_unicode')) { function php52_compat_chr_unicode($code) { return mb_convert_encoding('&#' . $code . ';', 'UTF-8', 'HTML-ENTITIES');} }
+if (!function_exists("php52_compat_chr_unicode")) {
+    function php52_compat_chr_unicode($code) {
+        return mb_convert_encoding("&#$code;", "UTF-8", "HTML-ENTITIES");
+    }
+}
 /* php52_compat_peg_regex_test - multibyte regex test */
-if (!function_exists('php52_compat_peg_regex_test')) { function php52_compat_peg_regex_test($pattern, $string) { if (substr($pattern, -1) == 'i') return mb_eregi(substr($pattern, 1, -2), $string); else return mb_ereg(substr($pattern, 1, -1), $string);}}
+if (!function_exists("php52_compat_peg_regex_test")) {
+    function php52_compat_peg_regex_test($pattern, $string) {
+        if (substr($pattern, -1) == "i") {
+            return mb_eregi(substr($pattern, 1, -2), $string);
+        } else {
+            return mb_ereg(substr($pattern, 1, -1), $string);
+        }
+    }
+}
 
 /* Syntax error exception */
-if (!class_exists("php52_compat_SyntaxError", false)){
-class php52_compat_SyntaxError extends Exception
-{
-    public $expected;
-    public $found;
-    public $grammarOffset;
-    public $grammarLine;
-    public $grammarColumn;
-    public $name;
-    public function __construct($message, $expected, $found, $offset, $line, $column)
-    {
-        parent::__construct($message, 0);
-        $this->expected = $expected;
-        $this->found = $found;
-        $this->grammarOffset = $offset;
-        $this->grammarLine = $line;
-        $this->grammarColumn = $column;
-        $this->name = "php52_compat_SyntaxError";
+if (!class_exists("php52_compat_SyntaxError", false)) {
+    class php52_compat_SyntaxError extends Exception {
+        public $expected;
+        public $found;
+        public $grammarOffset;
+        public $grammarLine;
+        public $grammarColumn;
+        public $name;
+        public function __construct($message, $expected, $found, $offset, $line, $column) {
+            parent::__construct($message, 0);
+            $this->expected = $expected;
+            $this->found = $found;
+            $this->grammarOffset = $offset;
+            $this->grammarLine = $line;
+            $this->grammarColumn = $column;
+            $this->name = "php52_compat_SyntaxError";
+        }
     }
-};}
+}
 
 class php52_compat_Parser {
-
-
     private $peg_currPos          = 0;
     private $peg_reportedPos      = 0;
     private $peg_cachedPos        = 0;
