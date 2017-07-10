@@ -56,7 +56,7 @@ class Parser {
     private $peg_maxFailExpected  = array();
     private $peg_silentFails      = 0;
     private $input                = array();
-
+    private $input_length         = 0;
     public $peg_cache = array();
 
     private function cleanup_state() {

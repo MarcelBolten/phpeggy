@@ -55,7 +55,7 @@ class php52_compat_Parser {
     private $peg_maxFailExpected  = array();
     private $peg_silentFails      = 0;
     private $input                = array();
-
+    private $input_length         = 0;
 
     private function cleanup_state() {
       $this->peg_currPos          = 0;

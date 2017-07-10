@@ -540,7 +540,7 @@ module.exports = function(ast, options) {
         '    private $peg_maxFailExpected  = array();',
         '    private $peg_silentFails      = 0;', // 0 = report failures, > 0 = silence failures
         '    private $input                = array();',
-        ''
+        '    private $input_length         = 0;',
     ].join('\n'));
 
     if (options.cache) {
