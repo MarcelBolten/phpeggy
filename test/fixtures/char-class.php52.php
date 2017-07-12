@@ -131,7 +131,7 @@ class php52_compat_Parser {
 
     private function peg_advancePos(&$details, $startPos, $endPos) {
       for ($p = $startPos; $p < $endPos; $p++) {
-        $ch = $this->input[$p];
+        $ch = $this->input_substr($p, 1);
         if ($ch === "\n") {
           if (!$details["seenCR"]) { $details["line"]++; }
           $details["column"] = 1;
