@@ -797,14 +797,12 @@ module.exports = function(ast, options) {
         '    $options = count($arguments) > 1 ? $arguments[1] : array();',
         '    $this->cleanup_state();',
         '',
-        // TODO: The `u` modifier is not always availale.  See:
-        // - https://core.trac.wordpress.org/browser/tags/4.8/src/wp-includes/compat.php?annotate=blame#L16
-        // - https://core.trac.wordpress.org/changeset/32364
-        // - https://core.trac.wordpress.org/ticket/32165 (light on details)
-        // - https://core.trac.wordpress.org/ticket/22692
-        // - https://core.trac.wordpress.org/ticket/22363
-        '    preg_match_all("/./us", $input, $match);',
-        '    $this->input = $match[0];',
+        '    if (is_array($input)) {',
+        '        $this->input = $input;',
+        '    } else {',
+        '        preg_match_all("/./us", $input, $match);',
+        '        $this->input = $match[0];',
+        '    }',
         '    $this->input_length = count($this->input);',
         '',
     ].join('\n'));

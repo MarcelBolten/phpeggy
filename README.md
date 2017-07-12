@@ -110,6 +110,13 @@ catch (PhpPegJs\SyntaxError $ex) {
 }
 ```
 
+Note that the generated PHP parser will call `preg_match_all( '/./us', ... )`
+on the input string.  This may be undesirable for projects that need to
+maintain compatibility with PCRE versions that are missing Unicode support
+(WordPress, for example).  To avoid this call, split the input string into an
+array (one array element per UTF-8 character) and pass this array into
+`$parser->parse()` instead of the string input.
+
 Grammar Syntax and Semantics
 ----------------------------
 
