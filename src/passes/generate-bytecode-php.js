@@ -220,7 +220,13 @@ var arrayUtils = require("pegjs/lib/utils/arrays"),
  *
  *        silentFails--;
  */
-module.exports = function(ast) {
+module.exports = function(ast, options) {
+  var mbstringAllowed = (
+    typeof options.phpegjs.mbstringAllowed === 'undefined'
+      ? true
+      : options.phpegjs.mbstringAllowed
+  );
+
   var consts = [];
   var functions = [];
 
@@ -583,6 +589,14 @@ module.exports = function(ast) {
     },
 
     literal: function(node) {
+      if (node.ignoreCase && !mbstringAllowed) {
+        throw new Error(
+          'Case-insensitive string matching requires the '
+          + '`mbstring` PHP extension, but it is disabled '
+          + 'via `mbstringAllowed: false`.'
+        );
+      }
+
       var stringIndex, expectedIndex;
 
       if (node.value.length > 0) {
@@ -620,6 +634,14 @@ module.exports = function(ast) {
     },
 
     "class": function(node) {
+      if (node.ignoreCase && !mbstringAllowed) {
+        throw new Error(
+          'Case-insensitive character class matching requires the '
+          + '`mbstring` PHP extension, but it is disabled '
+          + 'via `mbstringAllowed: false`.'
+        );
+      }
+
       var regexp, regexpIndex, expectedIndex;
 
       function hex(ch) {
@@ -684,6 +706,13 @@ module.exports = function(ast) {
             }).join('')
           + ']/' + (node.ignoreCase ? 'i' : '');
       } else {
+        if (!mbstringAllowed) {
+          throw new Error(
+            'Empty character class matching requires the '
+            + '`mbstring` PHP extension, but it is disabled '
+            + 'via `mbstringAllowed: false`.'
+          );
+        }
         /*
          * IE considers regexps /[]/ and /[^]/ as syntactically invalid, so we
          * translate them into euqivalents it can handle.
@@ -691,8 +720,23 @@ module.exports = function(ast) {
         regexp = node.inverted ? '/^[\\S\\s]/' : '/^(?!)/';
       }
 
-      regexpIndex = addConst(quotePhp(regexp));
-      const rawText = '[' + arrayUtils.map(node.parts, function(part) {
+      if (mbstringAllowed) {
+        regexpIndex = addConst(quotePhp(regexp));
+      } else {
+        var classArray = 'array('
+          + arrayUtils.map(node.parts, function(part) {
+            if (!(part instanceof Array)) {
+              part = [part, part];
+            }
+            return 'array('
+              + part[0].charCodeAt(0) + ','
+              + part[1].charCodeAt(0) + ')';
+          }).join(', ')
+          + ')';
+        regexpIndex = addConst(classArray);
+      }
+
+      var rawText = '[' + arrayUtils.map(node.parts, function(part) {
         if ( typeof part === 'string' ) {
           return part;
         }

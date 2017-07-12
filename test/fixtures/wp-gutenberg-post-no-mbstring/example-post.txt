@@ -1,0 +1,14 @@
+<!-- wp:core/text {"align":"right"} -->
+<p style="text-align:right;">... like this one, which is separate from the above and right aligned.</p>
+<!-- /wp:core/text -->
+
+<!-- wp:core/separator -->
+<hr class="wp-block-separator" />
+<!-- /wp:core/separator -->
+
+<!-- wp:core/freeform -->
+Testing freeform block with some
+<div class="wp-some-class">
+	HTML <span style="color: red;">content</span>
+</div>
+<!-- /wp:core/freeform -->

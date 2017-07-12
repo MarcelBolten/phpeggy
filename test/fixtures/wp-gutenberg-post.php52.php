@@ -14,6 +14,22 @@ if (!function_exists("php52_compat_chr_unicode")) {
         return html_entity_decode("&#$code;", ENT_QUOTES, "UTF-8");
     }
 }
+/* php52_compat_ord_unicode - get unicode char code from string */
+if (!function_exists("php52_compat_ord_unicode")) {
+    function php52_compat_ord_unicode($character) {
+        if (strlen($character) === 1) {
+            return ord($character);
+        }
+        $json = json_encode($character);
+        $utf16_1 = hexdec(substr($json, 3, 4));
+        if (substr($json, 7, 2) === "\u") {
+            $utf16_2 = hexdec(substr($json, 9, 4));
+            return 0x10000 + (($utf16_1 & 0x3ff) << 10) + ($utf16_2 & 0x3ff);
+        } else {
+            return $utf16_1;
+        }
+    }
+}
 /* php52_compat_peg_regex_test - multibyte regex test */
 if (!function_exists("php52_compat_peg_regex_test")) {
     function php52_compat_peg_regex_test($pattern, $string) {
@@ -1371,6 +1387,7 @@ class php52_compat_Parser {
     $peg_result = call_user_func($peg_startRuleFunction);
 
     mb_regex_encoding($old_regex_encoding);
+
     if ($peg_result !== $this->peg_FAILED && $this->peg_currPos === $this->input_length) {
       $this->cleanup_state(); // Free up memory
       return $peg_result;

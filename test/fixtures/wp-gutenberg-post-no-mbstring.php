@@ -31,14 +31,16 @@ if (!function_exists("PhpPegJs\\ord_unicode")) {
         }
     }
 }
-/* peg_regex_test - multibyte regex test */
-if (!function_exists("PhpPegJs\\peg_regex_test")) {
-    function peg_regex_test($pattern, $string) {
-        if (substr($pattern, -1) == "i") {
-            return mb_eregi(substr($pattern, 1, -2), $string);
-        } else {
-            return mb_ereg(substr($pattern, 1, -1), $string);
+/* peg_char_class_test - simple character class test */
+if (!function_exists("PhpPegJs\\peg_char_class_test")) {
+    function peg_char_class_test($class, $character) {
+        $code = ord_unicode($character);
+        foreach ($class as $range) {
+            if ($code >= $range[0] && $code <= $range[1]) {
+                return true;
+            }
         }
+        return false;
     }
 }
 
@@ -1205,7 +1207,7 @@ class Parser {
 
     private function peg_parseASCII_Letter() {
 
-      if (peg_regex_test($this->peg_c18, $this->input_substr($this->peg_currPos, 1))) {
+      if (peg_char_class_test($this->peg_c18, $this->input_substr($this->peg_currPos, 1))) {
         $s0 = $this->input_substr($this->peg_currPos, 1);
         $this->peg_currPos++;
       } else {
@@ -1220,7 +1222,7 @@ class Parser {
 
     private function peg_parseASCII_Digit() {
 
-      if (peg_regex_test($this->peg_c20, $this->input_substr($this->peg_currPos, 1))) {
+      if (peg_char_class_test($this->peg_c20, $this->input_substr($this->peg_currPos, 1))) {
         $s0 = $this->input_substr($this->peg_currPos, 1);
         $this->peg_currPos++;
       } else {
@@ -1235,7 +1237,7 @@ class Parser {
 
     private function peg_parseSpecial_Chars() {
 
-      if (peg_regex_test($this->peg_c22, $this->input_substr($this->peg_currPos, 1))) {
+      if (peg_char_class_test($this->peg_c22, $this->input_substr($this->peg_currPos, 1))) {
         $s0 = $this->input_substr($this->peg_currPos, 1);
         $this->peg_currPos++;
       } else {
@@ -1250,7 +1252,7 @@ class Parser {
 
     private function peg_parseWS() {
 
-      if (peg_regex_test($this->peg_c24, $this->input_substr($this->peg_currPos, 1))) {
+      if (peg_char_class_test($this->peg_c24, $this->input_substr($this->peg_currPos, 1))) {
         $s0 = $this->input_substr($this->peg_currPos, 1);
         $this->peg_currPos++;
       } else {
@@ -1265,7 +1267,7 @@ class Parser {
 
     private function peg_parseNewline() {
 
-      if (peg_regex_test($this->peg_c26, $this->input_substr($this->peg_currPos, 1))) {
+      if (peg_char_class_test($this->peg_c26, $this->input_substr($this->peg_currPos, 1))) {
         $s0 = $this->input_substr($this->peg_currPos, 1);
         $this->peg_currPos++;
       } else {
@@ -1280,7 +1282,7 @@ class Parser {
 
     private function peg_parse_() {
 
-      if (peg_regex_test($this->peg_c28, $this->input_substr($this->peg_currPos, 1))) {
+      if (peg_char_class_test($this->peg_c28, $this->input_substr($this->peg_currPos, 1))) {
         $s0 = $this->input_substr($this->peg_currPos, 1);
         $this->peg_currPos++;
       } else {
@@ -1333,9 +1335,6 @@ class Parser {
     $this->input = $match[0];
     $this->input_length = count($this->input);
 
-    $old_regex_encoding = mb_regex_encoding();
-    mb_regex_encoding("UTF-8");
-
     $this->peg_FAILED = new \stdClass;
     $this->peg_c0 = "<!--";
     $this->peg_c1 = array( "type" => "literal", "value" => "<!--", "description" => "\"<!--\"" );
@@ -1355,17 +1354,17 @@ class Parser {
     $this->peg_c15 = array( "type" => "literal", "value" => "}", "description" => "\"}\"" );
     $this->peg_c16 = "";
     $this->peg_c17 = array("type" => "any", "description" => "any character" );
-    $this->peg_c18 = "/^[a-zA-Z]/";
+    $this->peg_c18 = array(array(97,122), array(65,90));
     $this->peg_c19 = array( "type" => "class", "value" => "[a-zA-Z]", "description" => "[a-zA-Z]" );
-    $this->peg_c20 = "/^[0-9]/";
+    $this->peg_c20 = array(array(48,57));
     $this->peg_c21 = array( "type" => "class", "value" => "[0-9]", "description" => "[0-9]" );
-    $this->peg_c22 = "/^[-_]/";
+    $this->peg_c22 = array(array(45,45), array(95,95));
     $this->peg_c23 = array( "type" => "class", "value" => "[-_]", "description" => "[-_]" );
-    $this->peg_c24 = "/^[ \\t\\r\\n]/";
+    $this->peg_c24 = array(array(32,32), array(9,9), array(13,13), array(10,10));
     $this->peg_c25 = array( "type" => "class", "value" => "[ \t\r\n]", "description" => "[ \t\r\n]" );
-    $this->peg_c26 = "/^[\\r\\n]/";
+    $this->peg_c26 = array(array(13,13), array(10,10));
     $this->peg_c27 = array( "type" => "class", "value" => "[\r\n]", "description" => "[\r\n]" );
-    $this->peg_c28 = "/^[ \\t]/";
+    $this->peg_c28 = array(array(32,32), array(9,9));
     $this->peg_c29 = array( "type" => "class", "value" => "[ \t]", "description" => "[ \t]" );
 
     $peg_startRuleFunctions = array( 'Document' => array($this, "peg_parseDocument") );
@@ -1386,8 +1385,6 @@ class Parser {
     /* END initializer code */
 
     $peg_result = call_user_func($peg_startRuleFunction);
-
-    mb_regex_encoding($old_regex_encoding);
 
     if ($peg_result !== $this->peg_FAILED && $this->peg_currPos === $this->input_length) {
       $this->cleanup_state(); // Free up memory

@@ -47,6 +47,11 @@ module.exports = function(ast, options) {
         phpGlobalNamespacePrefix = '';
         phpGlobalNamePrefixOrNamespaceEscaped = '';
     }
+    var mbstringAllowed = (
+        typeof options.phpegjs.mbstringAllowed === 'undefined'
+            ? true
+            : options.phpegjs.mbstringAllowed
+    );
 
     /* These only indent non-empty lines to avoid trailing whitespace. */
     function indent2(code) {
@@ -361,6 +366,8 @@ module.exports = function(ast, options) {
                         break;
 
                     case op.MATCH_STRING_IC:  // MATCH_STRING_IC s, a, f, ...
+                        // Disallowed in `generate-bytecode-php.js` if the
+                        // `mbstringAllowed` option is set to false.
                         compileCondition(
                             'mb_strtolower(' + inputSubstr(
                                 '$this->peg_currPos',
@@ -371,13 +378,23 @@ module.exports = function(ast, options) {
                         break;
 
                     case op.MATCH_REGEXP:     // MATCH_REGEXP r, a, f, ...
-                        compileCondition(
-                            phpGlobalNamePrefix + 'peg_regex_test('
-                            + c(bc[ip + 1]) + ', '
-                            + inputSubstr('$this->peg_currPos', 1)
-                            + ')',
-                            1
-                        );
+                        if (mbstringAllowed) {
+                            compileCondition(
+                                phpGlobalNamePrefix + 'peg_regex_test('
+                                + c(bc[ip + 1]) + ', '
+                                + inputSubstr('$this->peg_currPos', 1)
+                                + ')',
+                                1
+                            );
+                        } else {
+                            compileCondition(
+                                phpGlobalNamePrefix + 'peg_char_class_test('
+                                + c(bc[ip + 1]) + ', '
+                                + inputSubstr('$this->peg_currPos', 1)
+                                + ')',
+                                1
+                            );
+                        }
                         break;
 
                     case op.ACCEPT_N:         // ACCEPT_N n
@@ -484,9 +501,13 @@ module.exports = function(ast, options) {
         ' *',
         ' * http://pegjs.majda.cz/',
         ' */',
-        ''].join('\n'));
-    if (phpNamespace) parts.push('namespace ' + phpNamespace + ';');
-    parts.push(['',
+        '',
+    ].join('\n'));
+    if (phpNamespace) {
+        parts.push('namespace ' + phpNamespace + ';');
+    }
+    parts.push([
+        '',
         '/* Useful functions: */',
         '',
         '/* ' + phpGlobalNamePrefix + 'chr_unicode - get unicode character from its char code */',
@@ -495,17 +516,63 @@ module.exports = function(ast, options) {
         '        return html_entity_decode("&#$code;", ENT_QUOTES, "UTF-8");',
         '    }',
         '}',
-        '/* ' + phpGlobalNamePrefix + 'peg_regex_test - multibyte regex test */',
-        'if (!function_exists("' + phpGlobalNamePrefixOrNamespaceEscaped + 'peg_regex_test")) {',
-        '    function ' + phpGlobalNamePrefix + 'peg_regex_test($pattern, $string) {',
-        '        if (substr($pattern, -1) == "i") {',
-        '            return mb_eregi(substr($pattern, 1, -2), $string);',
+        '/* ' + phpGlobalNamePrefix + 'ord_unicode - get unicode char code from string */',
+        'if (!function_exists("' + phpGlobalNamePrefixOrNamespaceEscaped + 'ord_unicode")) {',
+        '    function ' + phpGlobalNamePrefix + 'ord_unicode($character) {',
+        '        if (strlen($character) === 1) {',
+        '            return ord($character);',
+        '        }',
+        '        $json = json_encode($character);',
+        '        $utf16_1 = hexdec(substr($json, 3, 4));',
+        // A character inside the BMP has a JSON representation like "\uXXXX".
+        // A character outside the BMP looks like "\uXXXX\uXXXX".
+        '        if (substr($json, 7, 2) === "\\u") {',
+        // Outside the BMP.  Math from https://stackoverflow.com/a/6240819
+        '            $utf16_2 = hexdec(substr($json, 9, 4));',
+        '            return 0x10000 + (($utf16_1 & 0x3ff) << 10) + ($utf16_2 & 0x3ff);',
         '        } else {',
-        '            return mb_ereg(substr($pattern, 1, -1), $string);',
+        '            return $utf16_1;',
         '        }',
         '    }',
         '}',
-        '',
+    ].join('\n'));
+
+    if (mbstringAllowed) {
+        parts.push([
+            '/* ' + phpGlobalNamePrefix + 'peg_regex_test - multibyte regex test */',
+            'if (!function_exists("' + phpGlobalNamePrefixOrNamespaceEscaped + 'peg_regex_test")) {',
+            '    function ' + phpGlobalNamePrefix + 'peg_regex_test($pattern, $string) {',
+            '        if (substr($pattern, -1) == "i") {',
+            '            return mb_eregi(substr($pattern, 1, -2), $string);',
+            '        } else {',
+            '            return mb_ereg(substr($pattern, 1, -1), $string);',
+            '        }',
+            '    }',
+            '}',
+            '',
+        ].join('\n'));
+    } else {
+        // Case-insensitive character classes are disallowed in
+        // `generate-bytecode-php.js` if the `mbstringAllowed` option is set to
+        // false.
+        parts.push([
+            '/* ' + phpGlobalNamePrefix + 'peg_char_class_test - simple character class test */',
+            'if (!function_exists("' + phpGlobalNamePrefixOrNamespaceEscaped + 'peg_char_class_test")) {',
+            '    function ' + phpGlobalNamePrefix + 'peg_char_class_test($class, $character) {',
+            '        $code = ' + phpGlobalNamePrefix + 'ord_unicode($character);',
+            '        foreach ($class as $range) {',
+            '            if ($code >= $range[0] && $code <= $range[1]) {',
+            '                return true;',
+            '            }',
+            '        }',
+            '        return false;',
+            '    }',
+            '}',
+            '',
+        ].join('\n'));
+    }
+
+    parts.push([
         '/* Syntax error exception */',
         'if (!class_exists("' + phpGlobalNamePrefixOrNamespaceEscaped + 'SyntaxError", false)) {',
         '    class ' + phpGlobalNamePrefix + 'SyntaxError extends ' + phpGlobalNamespacePrefix + 'Exception {',
@@ -740,10 +807,15 @@ module.exports = function(ast, options) {
         '    $this->input = $match[0];',
         '    $this->input_length = count($this->input);',
         '',
-        '    $old_regex_encoding = mb_regex_encoding();',
-        '    mb_regex_encoding("UTF-8");',
-        ''
     ].join('\n'));
+
+    if (mbstringAllowed) {
+        parts.push([
+            '    $old_regex_encoding = mb_regex_encoding();',
+            '    mb_regex_encoding("UTF-8");',
+            '',
+        ].join('\n'));
+    }
 
     parts.push(indent4('$this->peg_FAILED = new ' + phpGlobalNamespacePrefix + 'stdClass;'));
     parts.push(indent4(generateTablesDefinition()));
@@ -791,9 +863,15 @@ module.exports = function(ast, options) {
         parts.push('    $this->peg_cache = array();');
     }
 
+    if (mbstringAllowed) {
+        parts.push([
+            '',
+            '    mb_regex_encoding($old_regex_encoding);',
+        ].join('\n'));
+    }
+
     parts.push([
         '',
-        '    mb_regex_encoding($old_regex_encoding);',
         '    if ($peg_result !== $this->peg_FAILED && $this->peg_currPos === $this->input_length) {',
         '      $this->cleanup_state(); // Free up memory',
         '      return $peg_result;',

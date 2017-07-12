@@ -75,6 +75,13 @@ Here are the options available to pass this way:
   * `parserClassName` - name of generated class for parser (default: `Parser`).
     Note that if a `parserGlobalNamePrefix` is specified, this prefix will be
     added to the name specified by `parserClassName`.
+  * `mbstringAllowed` - whether to allow usage of PHP's `mb_*` functions which
+    depend on the `mbstring` extension being installed (default: `true`).  This
+    can be disabled for compatibility with a wider range of PHP configurations,
+    but this will also disable several features of PEG.js (case-insensitive
+    string matching, case-insensitive character classes, and empty character
+    classes).  Attempting to use these features with `mbstringAllowed: false`
+    will cause `buildParser` to throw an error.
 
 Using the Parser
 ----------------
@@ -157,6 +164,8 @@ You can also use the following utility functions in PHP action blocks:
 
 - `chr_unicode($code)` - return character by its UTF-8 code (analogue of
   JavaScript's `String.fromCharCode` function).
+- `ord_unicode($code)` - return the UTF-8 code for a character (analogue of
+  JavaScript's `String.prototype.charCodeAt(0)` function).
 
 Guide for converting PEG.js action blocks to PHP PEG.js
 -------------------------------------------------------

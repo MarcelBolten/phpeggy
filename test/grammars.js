@@ -3,6 +3,7 @@ const expect = require( 'chai' ).expect;
 const fs = require( 'fs' );
 const path = require( 'path' );
 const cp = require( 'child_process' );
+const util = require( 'util' );
 
 const pegjs = require( 'pegjs' );
 const phpegjs = require( '../src/phppegjs' );
@@ -103,6 +104,7 @@ grammarNames.forEach( grammarName => {
 				fixtureFilePath( grammarName + '.pegjs' ),
 				'utf8'
 			);
+
 			const pegjsOptions = {
 				plugins: [ phpegjs ]
 			};
@@ -121,7 +123,16 @@ grammarNames.forEach( grammarName => {
 				pegjsOptions.phpegjs.parserNamespace = null;
 				pegjsOptions.phpegjs.parserGlobalNamePrefix = 'php52_compat_';
 			}
-			phpActual = pegjs.generate( grammar, pegjsOptions );
+
+			try {
+				phpActual = pegjs.generate( grammar, pegjsOptions );
+			} catch ( err ) {
+				phpActual = util.format(
+					'<?php /*\nERROR GENERATING PARSER:\n\n%s\n\n*/\n',
+					err.message
+				);
+			}
+
 			const phpExpectedPath = fixtureFilePath(
 				grammarName + ( isPHP52 ? '.php52.php' : '.php' )
 			);
