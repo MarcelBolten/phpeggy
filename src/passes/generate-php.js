@@ -27,8 +27,26 @@ var arrayUtils = require("pegjs/lib/utils/arrays"),
     op = require("pegjs/lib/compiler/opcodes"),
     internalUtils = require("../utils");
 
-/* Generates parser Php code. */
+/* Generates parser PHP code. */
 module.exports = function(ast, options) {
+    var phpGlobalNamePrefix, phpGlobalNamespacePrefix, phpGlobalNamePrefixOrNamespaceEscaped;
+    var phpNamespace = options.phpegjs.parserNamespace;
+    var phpParserClass = options.phpegjs.parserClassName;
+    if (phpNamespace) {
+        phpGlobalNamePrefix = '';
+        phpGlobalNamespacePrefix = '\\';
+        // For use within strings inside generated code
+        phpGlobalNamePrefixOrNamespaceEscaped = phpNamespace + '\\\\';
+    } else if (options.phpegjs.parserGlobalNamePrefix) {
+        phpGlobalNamePrefix = options.phpegjs.parserGlobalNamePrefix;
+        phpGlobalNamespacePrefix = '';
+        phpGlobalNamePrefixOrNamespaceEscaped = phpGlobalNamePrefix;
+        phpParserClass = phpGlobalNamePrefix + phpParserClass;
+    } else {
+        phpGlobalNamePrefix = '';
+        phpGlobalNamespacePrefix = '';
+        phpGlobalNamePrefixOrNamespaceEscaped = '';
+    }
 
     /* These only indent non-empty lines to avoid trailing whitespace. */
     function indent2(code) {
@@ -458,24 +476,6 @@ module.exports = function(ast, options) {
     }
 
     var parts = [], startRuleFunctions, startRuleFunction;
-    var phpGlobalNamePrefix, phpGlobalNamespacePrefix, phpGlobalNamePrefixOrNamespaceEscaped;
-    var phpNamespace = options.phpegjs.parserNamespace;
-    var phpParserClass = options.phpegjs.parserClassName;
-    if (phpNamespace) {
-        phpGlobalNamePrefix = '';
-        phpGlobalNamespacePrefix = '\\';
-        // For use within strings inside generated code
-        phpGlobalNamePrefixOrNamespaceEscaped = phpNamespace + '\\\\';
-    } else if (options.phpegjs.parserGlobalNamePrefix) {
-        phpGlobalNamePrefix = options.phpegjs.parserGlobalNamePrefix;
-        phpGlobalNamespacePrefix = '';
-        phpGlobalNamePrefixOrNamespaceEscaped = phpGlobalNamePrefix;
-        phpParserClass = phpGlobalNamePrefix + phpParserClass;
-    } else {
-        phpGlobalNamePrefix = '';
-        phpGlobalNamespacePrefix = '';
-        phpGlobalNamePrefixOrNamespaceEscaped = '';
-    }
 
     parts.push([
         '<?php',
@@ -748,7 +748,7 @@ module.exports = function(ast, options) {
     parts.push(indent4('$this->peg_FAILED = new ' + phpGlobalNamespacePrefix + 'stdClass;'));
     parts.push(indent4(generateTablesDefinition()));
     parts.push('');
-    
+
     startRuleFunctions = 'array( '
             + arrayUtils.map(
                     options.allowedStartRules,
