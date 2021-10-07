@@ -1,4 +1,4 @@
-var js = require( 'pegjs/lib/compiler/js' );
+var js = require( 'peggy/lib/compiler/js' );
 
 exports.quote = function( str ) {
 	return '"' + js.stringEscape( str ) + '"';

@@ -29,10 +29,9 @@
  * 
  */
 
-var js = require("pegjs/lib/compiler/js"),
-    asts = require("pegjs/lib/compiler/asts"),
-    visitor = require("pegjs/lib/compiler/visitor"),
-    op    = require("pegjs/lib/compiler/opcodes"),
+var asts = require("peggy/lib/compiler/asts"),
+    visitor = require("peggy/lib/compiler/visitor"),
+    op = require("peggy/lib/compiler/opcodes"),
     internalUtils = require("../utils");
 
 /* Generates bytecode.
@@ -220,9 +219,9 @@ var js = require("pegjs/lib/compiler/js"),
  */
 module.exports = function(ast, options) {
   var mbstringAllowed = (
-    typeof options.phpegjs.mbstringAllowed === 'undefined'
+    typeof options.phpeggy.mbstringAllowed === 'undefined'
       ? true
-      : options.phpegjs.mbstringAllowed
+      : options.phpeggy.mbstringAllowed
   );
 
   var consts = [];

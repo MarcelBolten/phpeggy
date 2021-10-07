@@ -5,8 +5,8 @@ const path = require( 'path' );
 const cp = require( 'child_process' );
 const util = require( 'util' );
 
-const pegjs = require( 'pegjs' );
-const phpegjs = require( '../src/phppegjs' );
+const peggy = require( 'peggy' );
+const phpeggy = require( '../src/phpeggy' );
 
 function getUniqueBasenames( array ) {
 	return array
@@ -105,8 +105,8 @@ grammarNames.forEach( grammarName => {
 				'utf8'
 			);
 
-			const pegjsOptions = {
-				plugins: [ phpegjs ]
+			const peggyOptions = {
+				plugins: [ phpeggy ]
 			};
 			let extraOptions = {};
 			try {
@@ -116,16 +116,16 @@ grammarNames.forEach( grammarName => {
 				) );
 			} catch ( err ) { }
 			for ( const key in extraOptions ) {
-				pegjsOptions[ key ] = extraOptions[ key ];
+				peggyOptions[ key ] = extraOptions[ key ];
 			}
 			if ( isPHP52 ) {
-				pegjsOptions.phpegjs = pegjsOptions.phpegjs || {};
-				pegjsOptions.phpegjs.parserNamespace = null;
-				pegjsOptions.phpegjs.parserGlobalNamePrefix = 'php52_compat_';
+				peggyOptions.phpeggy = peggyOptions.phpeggy || {};
+				peggyOptions.phpeggy.parserNamespace = null;
+				peggyOptions.phpeggy.parserGlobalNamePrefix = 'php52_compat_';
 			}
 
 			try {
-				phpActual = pegjs.generate( grammar, pegjsOptions );
+				phpActual = peggy.generate( grammar, peggyOptions );
 			} catch ( err ) {
 				phpActual = util.format(
 					'<?php /*\nERROR GENERATING PARSER:\n\n%s\n\n*/\n',

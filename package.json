@@ -1,8 +1,8 @@
 {
-  "name": "phpegjs",
-  "version": "1.0.0-beta7",
-  "description": "PHP target for PEG.js parser generator",
-  "main": "src/phppegjs.js",
+  "name": "phpeggy",
+  "version": "1.0.0",
+  "description": "PHP target for peggy parser generator",
+  "main": "src/phpeggy.js",
   "files": [
     "LICENSE",
     "README.md",
@@ -11,7 +11,7 @@
     "examples/javascript.pegjs",
     "examples/json.pegjs",
     "examples/digits.pegjs",
-    "src/phppegjs.js",
+    "src/phpeggy.js",
     "src/utils.js",
     "src/passes/generate-bytecode-php.js",
     "src/passes/generate-php.js",
@@ -20,33 +20,34 @@
     "test/test_index.php"
   ],
   "peerDependencies": {
-    "pegjs": "0.10.0"
+    "peggy": "1.0.0"
   },
   "devDependencies": {
-    "chai": "^4.0.2",
-    "mocha": "^3.4.2",
-    "pegjs": "0.10.0"
+    "chai": "4.0.2",
+    "mocha": "3.4.2",
+    "peggy": "1.0.0"
   },
   "scripts": {
     "test": "mocha"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/nylen/phpegjs.git"
+    "url": "https://github.com/marcelbolten/phpeggy.git"
   },
   "keywords": [
-    "pegjs",
+    "peggy",
     "plugin",
     "php",
     "parser",
     "generator"
   ],
   "contributors": [
+    "Marcel Bolten",
     "Elantcev Mikhail",
     "James Nylen <jnylen@gmail.com>"
   ],
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/nylen/phpegjs/issues"
+    "url": "https://github.com/marcelbolten/phpeggy/issues"
   }
 }
