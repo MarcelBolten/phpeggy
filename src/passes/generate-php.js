@@ -34,8 +34,8 @@ module.exports = function(ast, options) {
     if (phpNamespace) {
         phpGlobalNamePrefix = '';
         phpGlobalNamespacePrefix = '\\';
-        // For use within strings inside generated code
-        phpGlobalNamePrefixOrNamespaceEscaped = phpNamespace + '\\\\';
+        // For use within double quoted strings inside generated code, ensure there is a double backslash
+        phpGlobalNamePrefixOrNamespaceEscaped = phpNamespace.replace(/(\\)+/g, '\\\\') + '\\\\';
     } else if (options.phpeggy.parserGlobalNamePrefix) {
         phpGlobalNamePrefix = options.phpeggy.parserGlobalNamePrefix;
         phpGlobalNamespacePrefix = '';
