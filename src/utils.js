@@ -1,7 +1,7 @@
-var js = require( 'pegjs/lib/compiler/js' );
+var js = require( 'peggy/lib/compiler/js' );
 
 exports.quote = function( str ) {
-	return '"' + js.stringEscape( str ) + '"';
+  return '"' + js.stringEscape( str ) + '"';
 }
 
 // Matches: /** <?php
@@ -10,21 +10,21 @@ var regexPhpStart = /\/\*\*\s*<\?php/;
 var regexPhpEnd   = /\?>\s*\*\*\//;
 // Matches either kind of delimiter
 var regexPhpDelimiters = new RegExp(
-	'(' + regexPhpStart.source + '|' + regexPhpEnd.source + ')'
+  '(' + regexPhpStart.source + '|' + regexPhpEnd.source + ')'
 );
 
 exports.extractPhpCode = function( code ) {
-	var codePieces = code.split( regexPhpDelimiters );
-	var phpCode = '';
-	var insidePhp = false;
-	codePieces.forEach( function( piece ) {
-		if ( regexPhpStart.test( piece ) ) {
-			insidePhp = true;
-		} else if ( regexPhpEnd.test( piece ) ) {
-			insidePhp = false;
-		} else if ( insidePhp ) {
-			phpCode += piece;
-		}
-	} );
-	return phpCode ? phpCode : code;
+  var codePieces = code.split( regexPhpDelimiters );
+  var phpCode = '';
+  var insidePhp = false;
+  codePieces.forEach( function( piece ) {
+    if ( regexPhpStart.test( piece ) ) {
+      insidePhp = true;
+    } else if ( regexPhpEnd.test( piece ) ) {
+      insidePhp = false;
+    } else if ( insidePhp ) {
+      phpCode += piece;
+    }
+  } );
+  return phpCode ? phpCode : code;
 };

@@ -1,11 +1,11 @@
-/* 
+/*
  * ! This is modified version of file "pegjs/lib/compiler/passes/generate-bytecode.js"
  * to generate bytecode that would be php-compatible
  * Original copyright:
- * 
+ *
  * ------------------------------------------------------------------
  * Copyright (c) 2010-2013 David Majda
- * 
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -14,10 +14,10 @@
  * copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following
  * conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -26,14 +26,13 @@
  * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
-var js = require("pegjs/lib/compiler/js"),
-    asts = require("pegjs/lib/compiler/asts"),
-    visitor = require("pegjs/lib/compiler/visitor"),
-    op    = require("pegjs/lib/compiler/opcodes"),
-    internalUtils = require("../utils");
+var asts = require("peggy/lib/compiler/asts"),
+  visitor = require("peggy/lib/compiler/visitor"),
+  op = require("peggy/lib/compiler/opcodes"),
+  internalUtils = require("../utils");
 
 /* Generates bytecode.
  *
@@ -220,9 +219,9 @@ var js = require("pegjs/lib/compiler/js"),
  */
 module.exports = function(ast, options) {
   var mbstringAllowed = (
-    typeof options.phpegjs.mbstringAllowed === 'undefined'
+    typeof options.phpeggy.mbstringAllowed === 'undefined'
       ? true
-      : options.phpegjs.mbstringAllowed
+      : options.phpeggy.mbstringAllowed
   );
 
   var consts = [];
@@ -410,7 +409,7 @@ module.exports = function(ast, options) {
             action: node
           }),
           functionIndex  = addFunctionConst(Object.keys(env), node.code);
-  
+
       return emitCall
         ? buildSequence(
             [op.PUSH_CURR_POS],
@@ -776,6 +775,6 @@ module.exports = function(ast, options) {
       );
     }
   });
-  
+
   generate(ast);
 };
