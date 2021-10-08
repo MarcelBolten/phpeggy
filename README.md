@@ -1,7 +1,7 @@
 [![Build Status](https://app.travis-ci.com/MarcelBolten/phpeggy.svg?branch=develop)](https://app.travis-ci.com/MarcelBolten/phpeggy)
 [![npm package](http://img.shields.io/npm/v/phpeegy.svg?style=flat)](https://www.npmjs.org/package/phpeggy)
 
-# `phpeggy` (PHPeggy) 
+# PHPeggy
 
 A PHP code generation plugin for
 [Peggy](https://github.com/peggyjs/peggy).
