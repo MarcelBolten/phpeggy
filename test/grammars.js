@@ -66,7 +66,7 @@ console.log('Running tests');
 function getPHPParserTestCode( parser, input ) {
   return parser + `
 
-$input = base64_decode( '${ new Buffer( input ).toString( 'base64' ) }' );
+$input = base64_decode( '${ new Buffer.from( input ).toString( 'base64' ) }' );
 
 try {
   $parser = new Parser;
