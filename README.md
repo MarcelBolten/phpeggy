@@ -1,16 +1,36 @@
-# `phpeggy` (PHPeggy) [![Build Status](https://app.travis-ci.com/MarcelBolten/phpeggy.svg?branch=develop)](https://app.travis-ci.com/MarcelBolten/phpeggy) [![npm package](http://img.shields.io/npm/v/phpeegy.svg?style=flat)](https://www.npmjs.org/package/phpeggy)
+[![Build Status](https://app.travis-ci.com/MarcelBolten/phpeggy.svg?branch=develop)](https://app.travis-ci.com/MarcelBolten/phpeggy)
+[![npm package](http://img.shields.io/npm/v/phpeegy.svg?style=flat)](https://www.npmjs.org/package/phpeggy)
 
-
+# `phpeggy` (PHPeggy) 
 
 A PHP code generation plugin for
 [Peggy](https://github.com/peggyjs/peggy).
 
-Fork of
-[`phpegjs`](https://github.com/nylen/phpegjs).
+PHPeggy is the successor of [`phpegjs`](https://github.com/nylen/phpegjs) which had been abandoned by its maintainer.
+
+## Migrating from `phpegjs`
+
+There are a few API changes compared to the most recent `phpegjs` release.
+- Options specific to the PHPeggy have to be passed to `phpeggy` and not to `phpegjs`.
+- The support for PHP 5.2 was dropped along with the `parserGlobalNamePrefix` option.
+
+Follow these steps to upgrade:
+
+1. Follow the [migration instructions from Peggy](https://github.com/peggyjs/peggy#migrating-from-pegjs).
+2. Uninstall `phpegjs`.
+3. Replace all `require("phpegjs")` or `import ... from "phpegjs"` with `require("phpeggy")` or `import ... from "phpeggy"` as appropriate.
+4. Change the plugin name from `phpegjs` to `phpeggy` and also the [PHPeggy-specific options](#PHPeggyOptions):
+   ```js
+   var parser = peggy.generate("start = ('a' / 'b')+", {
+       plugins: [phpeggy],
+       phpeggy: { /* phpeggy-specific options */ }
+   });
+   ```
+5. That's it!
 
 ## Requirements
 
-* [peggy](https://peggyjs.org/) (known compatible with v1.0.0)
+* [Peggy](https://peggyjs.org/) (known compatible with v1.0.0)
 
 Installation
 ------------
@@ -56,7 +76,8 @@ Supported options of `peggy.generate`:
   * `allowedStartRules` — rules the parser will be allowed to start parsing from
     (default: the first rule in the grammar)
 
-You can also pass options specific to the PHP PEG.js plugin as follows:
+<a name='PHPeggyOptions'></a>
+You can also pass options specific to the PHPeggy plugin as follows:
 
 ```js
 var parser = peggy.generate("start = ('a' / 'b')+", {
