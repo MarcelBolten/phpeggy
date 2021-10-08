@@ -1,4 +1,6 @@
-# `phpeggy` (PHPeggy) [![Build status](https://img.shields.io/travis/marcelbolten/phpeggy/master.svg?style=flat)](https://travis-ci.org/marcelbolten/phpeggy) [![npm package](http://img.shields.io/npm/v/phpeegy.svg?style=flat)](https://www.npmjs.org/package/phpeggy)
+# `phpeggy` (PHPeggy) [![Build Status](https://app.travis-ci.com/MarcelBolten/phpeggy.svg?branch=develop)](https://app.travis-ci.com/MarcelBolten/phpeggy) [![npm package](http://img.shields.io/npm/v/phpeegy.svg?style=flat)](https://www.npmjs.org/package/phpeggy)
+
+
 
 A PHP code generation plugin for
 [Peggy](https://github.com/peggyjs/peggy).
