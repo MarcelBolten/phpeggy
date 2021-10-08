@@ -28,21 +28,14 @@ var asts = require("peggy/lib/compiler/asts"),
 
 /* Generates parser PHP code. */
 module.exports = function(ast, options) {
-    var phpGlobalNamePrefix, phpGlobalNamespacePrefix, phpGlobalNamePrefixOrNamespaceEscaped;
+    var phpGlobalNamespacePrefix, phpGlobalNamePrefixOrNamespaceEscaped;
     var phpNamespace = options.phpeggy.parserNamespace;
     var phpParserClass = options.phpeggy.parserClassName;
     if (phpNamespace) {
-        phpGlobalNamePrefix = '';
         phpGlobalNamespacePrefix = '\\';
         // For use within double quoted strings inside generated code, ensure there is a double backslash
         phpGlobalNamePrefixOrNamespaceEscaped = phpNamespace.replace(/(\\)+/g, '\\\\') + '\\\\';
-    } else if (options.phpeggy.parserGlobalNamePrefix) {
-        phpGlobalNamePrefix = options.phpeggy.parserGlobalNamePrefix;
-        phpGlobalNamespacePrefix = '';
-        phpGlobalNamePrefixOrNamespaceEscaped = phpGlobalNamePrefix;
-        phpParserClass = phpGlobalNamePrefix + phpParserClass;
     } else {
-        phpGlobalNamePrefix = '';
         phpGlobalNamespacePrefix = '';
         phpGlobalNamePrefixOrNamespaceEscaped = '';
     }
@@ -374,7 +367,7 @@ module.exports = function(ast, options) {
                     case op.MATCH_REGEXP:     // MATCH_REGEXP r, a, f, ...
                         if (mbstringAllowed) {
                             compileCondition(
-                                phpGlobalNamePrefix + 'peg_regex_test('
+                                'peg_regex_test('
                                 + c(bc[ip + 1]) + ', '
                                 + inputSubstr('$this->peg_currPos', 1)
                                 + ')',
@@ -382,7 +375,7 @@ module.exports = function(ast, options) {
                             );
                         } else {
                             compileCondition(
-                                phpGlobalNamePrefix + 'peg_char_class_test('
+                                'peg_char_class_test('
                                 + c(bc[ip + 1]) + ', '
                                 + inputSubstr('$this->peg_currPos', 1)
                                 + ')',
@@ -504,15 +497,15 @@ module.exports = function(ast, options) {
         '',
         '/* Useful functions: */',
         '',
-        '/* ' + phpGlobalNamePrefix + 'chr_unicode - get unicode character from its char code */',
+        '/* chr_unicode - get unicode character from its char code */',
         'if (!function_exists("' + phpGlobalNamePrefixOrNamespaceEscaped + 'chr_unicode")) {',
-        '    function ' + phpGlobalNamePrefix + 'chr_unicode($code) {',
+        '    function chr_unicode($code) {',
         '        return html_entity_decode("&#$code;", ENT_QUOTES, "UTF-8");',
         '    }',
         '}',
-        '/* ' + phpGlobalNamePrefix + 'ord_unicode - get unicode char code from string */',
+        '/* ord_unicode - get unicode char code from string */',
         'if (!function_exists("' + phpGlobalNamePrefixOrNamespaceEscaped + 'ord_unicode")) {',
-        '    function ' + phpGlobalNamePrefix + 'ord_unicode($character) {',
+        '    function ord_unicode($character) {',
         '        if (strlen($character) === 1) {',
         '            return ord($character);',
         '        }',
@@ -533,9 +526,9 @@ module.exports = function(ast, options) {
 
     if (mbstringAllowed) {
         parts.push([
-            '/* ' + phpGlobalNamePrefix + 'peg_regex_test - multibyte regex test */',
+            '/* peg_regex_test - multibyte regex test */',
             'if (!function_exists("' + phpGlobalNamePrefixOrNamespaceEscaped + 'peg_regex_test")) {',
-            '    function ' + phpGlobalNamePrefix + 'peg_regex_test($pattern, $string) {',
+            '    function peg_regex_test($pattern, $string) {',
             '        if (substr($pattern, -1) == "i") {',
             '            return mb_eregi(substr($pattern, 1, -2), $string);',
             '        } else {',
@@ -550,10 +543,10 @@ module.exports = function(ast, options) {
         // `generate-bytecode-php.js` if the `mbstringAllowed` option is set to
         // false.
         parts.push([
-            '/* ' + phpGlobalNamePrefix + 'peg_char_class_test - simple character class test */',
+            '/* peg_char_class_test - simple character class test */',
             'if (!function_exists("' + phpGlobalNamePrefixOrNamespaceEscaped + 'peg_char_class_test")) {',
-            '    function ' + phpGlobalNamePrefix + 'peg_char_class_test($class, $character) {',
-            '        $code = ' + phpGlobalNamePrefix + 'ord_unicode($character);',
+            '    function peg_char_class_test($class, $character) {',
+            '        $code = ord_unicode($character);',
             '        foreach ($class as $range) {',
             '            if ($code >= $range[0] && $code <= $range[1]) {',
             '                return true;',
@@ -569,7 +562,7 @@ module.exports = function(ast, options) {
     parts.push([
         '/* Syntax error exception */',
         'if (!class_exists("' + phpGlobalNamePrefixOrNamespaceEscaped + 'SyntaxError", false)) {',
-        '    class ' + phpGlobalNamePrefix + 'SyntaxError extends ' + phpGlobalNamespacePrefix + 'Exception {',
+        '    class SyntaxError extends ' + phpGlobalNamespacePrefix + 'Exception {',
         '        public $expected;',
         '        public $found;',
         '        public $grammarOffset;',
@@ -583,7 +576,7 @@ module.exports = function(ast, options) {
         '            $this->grammarOffset = $offset;',
         '            $this->grammarLine = $line;',
         '            $this->grammarColumn = $column;',
-        '            $this->name = "' + phpGlobalNamePrefix + 'SyntaxError";',
+        '            $this->name = "SyntaxError";',
         '        }',
         '    }',
         '}',
@@ -762,7 +755,7 @@ module.exports = function(ast, options) {
         '        $message = "Expected " . $expectedDesc . " but " . $foundDesc . " found.";',
         '      }',
         '',
-        '      return new ' + phpGlobalNamePrefix + 'SyntaxError(',
+        '      return new SyntaxError(',
         '        $message,',
         '        $expected,',
         '        $found,',

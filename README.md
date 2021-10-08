@@ -1,4 +1,4 @@
-# `phpeggy` (PHPeggy) [![Build status](https://img.shields.io/travis/nylen/phpegjs/master.svg?style=flat)](https://travis-ci.org/nylen/phpegjs) [![npm package](http://img.shields.io/npm/v/phpegjs.svg?style=flat)](https://www.npmjs.org/package/phpegjs)
+# `phpeggy` (PHPeggy) [![Build status](https://img.shields.io/travis/marcelbolten/phpeggy/master.svg?style=flat)](https://travis-ci.org/marcelbolten/phpeggy) [![npm package](http://img.shields.io/npm/v/phpeegy.svg?style=flat)](https://www.npmjs.org/package/phpeggy)
 
 A PHP code generation plugin for
 [Peggy](https://github.com/peggyjs/peggy).
@@ -66,15 +66,8 @@ var parser = peggy.generate("start = ('a' / 'b')+", {
 Here are the options available to pass this way:
 
   * `parserNamespace` - namespace of generated parser (default: `PHPeggy`). If
-    value is `''` or `null`, no namespace will be used (and the generated
-    parser will be compatible with PHP 5.2).
-  * `parserGlobalNamePrefix` - prefix to add to all globally defined names
-    including the parser, its helper functions, and the `SyntaxError` class.
-    This should only be used if PHP 5.2 compatibility is needed; otherwise the
-    `parserNamespace` option should be used instead.
+    value is `''` or `null`, no namespace will be used.
   * `parserClassName` - name of generated class for parser (default: `Parser`).
-    Note that if a `parserGlobalNamePrefix` is specified, this prefix will be
-    added to the name specified by `parserClassName`.
   * `mbstringAllowed` - whether to allow usage of PHP's `mb_*` functions which
     depend on the `mbstring` extension being installed (default: `true`).  This
     can be disabled for compatibility with a wider range of PHP configurations,
