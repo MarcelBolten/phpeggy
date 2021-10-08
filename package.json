@@ -14,7 +14,7 @@
     "src/phpeggy.js",
     "src/utils.js",
     "src/passes/generate-bytecode-php.js",
-    "src/passes/generate-php.js",
+    "src/passes/generate-php.js"
   ],
   "peerDependencies": {
     "peggy": "1.0.0"
