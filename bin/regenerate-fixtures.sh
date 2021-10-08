@@ -8,6 +8,4 @@ fi
 rm test/fixtures/*.php
 phpbrew off
 GENERATE_MISSING_FIXTURES=y npm test
-phpbrew use 5.2.17
-GENERATE_MISSING_FIXTURES=y npm test
 phpbrew off

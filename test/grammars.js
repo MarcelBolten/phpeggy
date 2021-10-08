@@ -56,16 +56,12 @@ if ( ! match ) {
 console.log( 'PHP version: ' + match[ 0 ].trim() );
 const major = +match[ 1 ];
 const minor = +match[ 2 ];
-if ( major < 5 || ( major === 5 && minor < 2 ) ) {
+if ( major < 5 || ( major === 5 && minor < 6 ) ) {
   throw new Error(
-    'This library requires at least PHP 5.2.  (Why so old?)'
+    'This library requires at least PHP 5.6.  (Why so old?)'
   );
 }
-const isPHP52 = ( major === 5 && minor === 2 );
-console.log(
-  '(Running tests in %s mode)',
-  isPHP52 ? 'PHP 5.2' : 'modern PHP'
-);
+console.log('Running tests');
 
 function getPHPParserTestCode( parser, input ) {
   return parser + `
@@ -73,10 +69,10 @@ function getPHPParserTestCode( parser, input ) {
 $input = base64_decode( '${ new Buffer( input ).toString( 'base64' ) }' );
 
 try {
-  $parser = new ${ isPHP52 ? 'php52_compat_Parser' : 'Parser' };
+  $parser = new Parser;
   $result = $parser->parse( $input );
   echo json_encode( $result );
-} catch ( ${ isPHP52 ? 'php52_compat_SyntaxError' : 'SyntaxError' } $ex ) {
+} catch ( SyntaxError $ex ) {
   echo json_encode( array(
     'error' => array(
       'message'  => $ex->getMessage(),
@@ -118,11 +114,6 @@ grammarNames.forEach( grammarName => {
       for ( const key in extraOptions ) {
         peggyOptions[ key ] = extraOptions[ key ];
       }
-      if ( isPHP52 ) {
-        peggyOptions.phpeggy = peggyOptions.phpeggy || {};
-        peggyOptions.phpeggy.parserNamespace = null;
-        peggyOptions.phpeggy.parserGlobalNamePrefix = 'php52_compat_';
-      }
 
       try {
         phpActual = peggy.generate( grammar, peggyOptions );
@@ -134,7 +125,7 @@ grammarNames.forEach( grammarName => {
       }
 
       const phpExpectedPath = fixtureFilePath(
-        grammarName + ( isPHP52 ? '.php52.php' : '.php' )
+        grammarName + '.php'
       );
       if (
         process.env.GENERATE_MISSING_FIXTURES &&
