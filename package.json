@@ -3,19 +3,6 @@
   "version": "1.0.0",
   "description": "PHP target for peggy parser generator",
   "main": "src/phpeggy.js",
-  "files": [
-    "LICENSE",
-    "README.md",
-    "examples/arithmetics.pegjs",
-    "examples/css.pegjs",
-    "examples/javascript.pegjs",
-    "examples/json.pegjs",
-    "examples/digits.pegjs",
-    "src/phpeggy.js",
-    "src/utils.js",
-    "src/passes/generate-bytecode-php.js",
-    "src/passes/generate-php.js"
-  ],
   "peerDependencies": {
     "peggy": "1.0.0"
   },
