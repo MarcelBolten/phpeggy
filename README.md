@@ -1,24 +1,47 @@
-# `phpegjs` (PHP PEG.js) [![Build status](https://img.shields.io/travis/nylen/phpegjs/master.svg?style=flat)](https://travis-ci.org/nylen/phpegjs) [![npm package](http://img.shields.io/npm/v/phpegjs.svg?style=flat)](https://www.npmjs.org/package/phpegjs)
+[![Build Status](https://app.travis-ci.com/MarcelBolten/phpeggy.svg?branch=master)](https://app.travis-ci.com/MarcelBolten/phpeggy)
+[![npm package](http://img.shields.io/npm/v/phpeegy.svg?style=flat)](https://www.npmjs.org/package/phpeggy)
+
+# PHPeggy
 
 A PHP code generation plugin for
-[PEG.js](https://github.com/dmajda/pegjs).
+[Peggy](https://github.com/peggyjs/peggy).
 
-Fork of
-[`php-pegjs`](https://github.com/Nordth/php-pegjs).
+PHPeggy is the successor of [`phpegjs`](https://github.com/nylen/phpegjs) which had been abandoned by its maintainer.
+
+## Migrating from `phpegjs`
+
+There are a few API changes compared to the most recent `phpegjs` release.
+- Options specific to the PHPeggy have to be passed to `phpeggy` and not to `phpegjs`.
+
+Follow these steps to upgrade:
+
+1. Follow the [migration instructions from Peggy](https://github.com/peggyjs/peggy#migrating-from-pegjs).
+2. Uninstall `phpegjs`.
+3. Replace all `require("phpegjs")` or `import ... from "phpegjs"` with `require("phpeggy")` or `import ... from "phpeggy"` as appropriate.
+4. [PHPeggy-specific options](#PHPeggyOptions) are now passed to `phpeggy`:
+   ```diff
+   var parser = peggy.generate("start = ('a' / 'b')+", {
+   -    plugins: [require("phpegjs")],
+   +    plugins: [require("phpeggy")],
+   -    phpegjs: { /* phpegjs-specific options */ }
+   +    phpeggy: { /* phpeggy-specific options */ }
+   });
+   ```
+5. That's it!
 
 ## Requirements
 
-* [PEG.js](http://pegjs.majda.cz/) (known compatible with v0.10.0)
+* [Peggy](https://peggyjs.org/) (known compatible with v1.0.0)
 
 Installation
 ------------
 
 ### Node.js
 
-Install PEG.js with `phpegjs` plugin
+Install Peggy with `phpeggy` plugin
 
 ```sh
-$ npm install phpegjs
+$ npm install phpeggy
 ```
 
 Usage
@@ -26,26 +49,26 @@ Usage
 
 ### Generating a Parser
 
-In Node.js, require both the PEG.js parser generator and the `phpegjs` plugin:
+In Node.js, require both the Peggy parser generator and the `phpeggy` plugin:
 
 ```js
-var pegjs = require("pegjs");
-var phpegjs = require("phpegjs");
+var peggy = require("peggy");
+var phpeggy = require("phpeggy");
 ```
 
-To generate a PHP parser, pass both the `phpegjs` plugin and your grammar to
-`pegjs.generate`:
+To generate a PHP parser, pass both the `phpeggy` plugin and your grammar to
+`peggy.generate`:
 
 ```js
-var parser = pegjs.generate("start = ('a' / 'b')+", {
-    plugins: [phpegjs]
+var parser = peggy.generate("start = ('a' / 'b')+", {
+    plugins: [phpeggy]
 });
 ```
 
 The method will return source code of generated parser as a string. Unlike
-original PEG.js, generated PHP parser will be a class, not a function.
+original Peggy, generated PHP parser will be a class, not a function.
 
-Supported options of `pegjs.generate`:
+Supported options of `peggy.generate`:
 
   * `cache` — if `true`, makes the parser cache results, avoiding exponential
     parsing time in pathological cases but making the parser slower (default:
@@ -54,18 +77,19 @@ Supported options of `pegjs.generate`:
   * `allowedStartRules` — rules the parser will be allowed to start parsing from
     (default: the first rule in the grammar)
 
-You can also pass options specific to the PHP PEG.js plugin as follows:
+<a name='PHPeggyOptions'></a>
+You can also pass options specific to the PHPeggy plugin as follows:
 
 ```js
-var parser = pegjs.generate("start = ('a' / 'b')+", {
-    plugins: [phpegjs],
-    phpegjs: { /* phpegjs-specific options */ }
+var parser = peggy.generate("start = ('a' / 'b')+", {
+    plugins: [phpeggy],
+    phpeggy: { /* phpeggy-specific options */ }
 });
 ```
 
 Here are the options available to pass this way:
 
-  * `parserNamespace` - namespace of generated parser (default: `PhpPegJs`). If
+  * `parserNamespace` - namespace of generated parser (default: `PHPeggy`). If
     value is `''` or `null`, no namespace will be used (and the generated
     parser will be compatible with PHP 5.2).
   * `parserGlobalNamePrefix` - prefix to add to all globally defined names
@@ -78,7 +102,7 @@ Here are the options available to pass this way:
   * `mbstringAllowed` - whether to allow usage of PHP's `mb_*` functions which
     depend on the `mbstring` extension being installed (default: `true`).  This
     can be disabled for compatibility with a wider range of PHP configurations,
-    but this will also disable several features of PEG.js (case-insensitive
+    but this will also disable several features of Peggy (case-insensitive
     string matching, case-insensitive character classes, and empty character
     classes).  Attempting to use these features with `mbstringAllowed: false`
     will cause `generate` to throw an error.
@@ -86,7 +110,7 @@ Here are the options available to pass this way:
 Using the Parser
 ----------------
 
-1) Save parser generated by `pegjs.generate` to a file
+1) Save parser generated by `peggy.generate` to a file
 
 2) In PHP code:
 
@@ -94,9 +118,9 @@ Using the Parser
 include "your.parser.file.php";
 
 try {
-    $parser = new PhpPegJs\Parser;
+    $parser = new PHPeggy\Parser;
     $result = $parser->parse($input);
-} catch (PhpPegJs\SyntaxError $ex) {
+} catch (PHPeggy\SyntaxError $ex) {
     // Handle parsing error
     // [...]
 }
@@ -105,7 +129,7 @@ try {
 You can use the following snippet to format parsing errors:
 
 ```php
-catch (PhpPegJs\SyntaxError $ex) {
+catch (PHPeggy\SyntaxError $ex) {
     $message = "Syntax error: " . $ex->getMessage() . ' at line ' . $ex->grammarLine . ' column ' . $ex->grammarColumn . ' offset ' . $ex->grammarOffset;
 }
 ```
@@ -120,9 +144,9 @@ array (one array element per UTF-8 character) and pass this array into
 Grammar Syntax and Semantics
 ----------------------------
 
-See documentation of [PEG.js](https://github.com/dmajda/pegjs#grammar-syntax-and-semantics) with one difference: action blocks should be written in PHP.
+See documentation of [Peggy](https://github.com/peggyjs/peggy/tree/v1.0.0#grammar-syntax-and-semantics) with one difference: action blocks should be written in PHP.
 
-Original PEG.js rule:
+Original Peggy rule:
 
 ```js
 media_list = head:medium tail:("," S* medium)* {
@@ -134,7 +158,7 @@ media_list = head:medium tail:("," S* medium)* {
 }
 ```
 
-PHP PEG.js rule:
+PHPeggy rule:
 
 ```php
 media_list = head:medium tail:("," S* medium)* {
@@ -174,7 +198,7 @@ You can also use the following utility functions in PHP action blocks:
 - `ord_unicode($code)` - return the UTF-8 code for a character (analogue of
   JavaScript's `String.prototype.charCodeAt(0)` function).
 
-Guide for converting PEG.js action blocks to PHP PEG.js
+Guide for converting Peggy action blocks to PHPeggy
 -------------------------------------------------------
 
 | Javascript code                   | PHP analogue                              |
