@@ -216,8 +216,3 @@ Guide for converting Peggy action blocks to PHPeggy
 | `some_str.length`                 | `mb_strlen(some_str, "UTF-8")`            |
 | `some_str.replace("b", "\b")`     | `str_replace("b", "\b", $some_str)`       |
 | `String.fromCharCode(2323)`       | `chr_unicode(2323)`                       |
-
-License
--------
-
-[The MIT License (MIT)](http://opensource.org/licenses/MIT)
