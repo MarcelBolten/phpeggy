@@ -1,5 +1,6 @@
 [![Build Status](https://app.travis-ci.com/MarcelBolten/phpeggy.svg?branch=master)](https://app.travis-ci.com/MarcelBolten/phpeggy)
 [![npm version](https://img.shields.io/npm/v/phpeggy)](https://www.npmjs.com/package/phpeggy)
+[![License](https://img.shields.io/badge/license-mit-blue)](https://opensource.org/licenses/MIT)
 
 # PHPeggy
 
@@ -11,7 +12,7 @@ PHPeggy is the successor of [`phpegjs`](https://github.com/nylen/phpegjs) which 
 ## Migrating from `phpegjs`
 
 There are a few API changes compared to the most recent `phpegjs` release.
-- Options specific to the PHPeggy have to be passed to `phpeggy` and not to `phpegjs`.
+- Options specific to PHPeggy have to be passed to `phpeggy` and not to `phpegjs`.
 
 Follow these steps to upgrade:
 
@@ -41,7 +42,7 @@ Installation
 Install Peggy with `phpeggy` plugin
 
 ```sh
-$ npm install phpeggy
+$ npm install peggy@1.0.0 phpeggy
 ```
 
 Usage
