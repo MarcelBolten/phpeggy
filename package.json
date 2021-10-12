@@ -1,7 +1,7 @@
 {
   "name": "phpeggy",
-  "version": "1.0.0-rc.0",
-  "description": "PHP target for peggy parser generator",
+  "version": "1.0.0-rc.1",
+  "description": "PHP target for Peggy parser generator",
   "main": "src/phpeggy.js",
   "peerDependencies": {
     "peggy": "1.0.0"
@@ -29,7 +29,7 @@
   "contributors": [
     "Elantcev Mikhail",
     "James Nylen <jnylen@gmail.com>",
-    "Marcel Bolten <mail@marcelbolten.de>"
+    "Marcel Bolten <github@marcelbolten.de>"
   ],
   "license": "MIT",
   "bugs": {

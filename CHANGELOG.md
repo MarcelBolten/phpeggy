@@ -6,7 +6,7 @@ This file documents all notable changes to PHPeggy.
 1.0.0
 -----
 
-Released: 2021-10-08
+Released: 2021-10-11
 
 ### Major Changes
 
