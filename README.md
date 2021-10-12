@@ -1,5 +1,6 @@
-[![Build Status](https://app.travis-ci.com/MarcelBolten/phpeggy.svg?branch=develop)](https://app.travis-ci.com/MarcelBolten/phpeggy)
-[![npm package](http://img.shields.io/npm/v/phpeegy.svg?style=flat)](https://www.npmjs.org/package/phpeggy)
+[![Build Status](https://app.travis-ci.com/MarcelBolten/phpeggy.svg?branch=master)](https://app.travis-ci.com/MarcelBolten/phpeggy)
+[![npm version](https://img.shields.io/npm/v/phpeggy)](https://www.npmjs.com/package/phpeggy)
+[![License](https://img.shields.io/badge/license-mit-blue)](https://opensource.org/licenses/MIT)
 
 # PHPeggy
 
@@ -19,11 +20,13 @@ Follow these steps to upgrade:
 1. Follow the [migration instructions from Peggy](https://github.com/peggyjs/peggy#migrating-from-pegjs).
 2. Uninstall `phpegjs`.
 3. Replace all `require("phpegjs")` or `import ... from "phpegjs"` with `require("phpeggy")` or `import ... from "phpeggy"` as appropriate.
-4. Change the plugin name from `phpegjs` to `phpeggy` and also the [PHPeggy-specific options](#PHPeggyOptions):
-   ```js
+4. [PHPeggy-specific options](#PHPeggyOptions) are now passed to `phpeggy`:
+   ```diff
    var parser = peggy.generate("start = ('a' / 'b')+", {
-       plugins: [phpeggy],
-       phpeggy: { /* phpeggy-specific options */ }
+   -    plugins: [require("phpegjs")],
+   +    plugins: [require("phpeggy")],
+   -    phpegjs: { /* phpegjs-specific options */ }
+   +    phpeggy: { /* phpeggy-specific options */ }
    });
    ```
 5. That's it!
@@ -40,7 +43,7 @@ Installation
 Install Peggy with `phpeggy` plugin
 
 ```sh
-$ npm install phpeggy
+$ npm install peggy@1.0.0 phpeggy
 ```
 
 Usage
@@ -207,8 +210,3 @@ Guide for converting Peggy action blocks to PHPeggy
 | `some_str.length`                 | `mb_strlen(some_str, "UTF-8")`            |
 | `some_str.replace("b", "\b")`     | `str_replace("b", "\b", $some_str)`       |
 | `String.fromCharCode(2323)`       | `chr_unicode(2323)`                       |
-
-License
--------
-
-[The MIT License (MIT)](http://opensource.org/licenses/MIT)

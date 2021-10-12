@@ -313,8 +313,8 @@ class Parser {
 
     private function peg_parseBlock_List() {
 
-      $key    = $this->peg_currPos * 17 + 0;
-          $cached = isset($this->peg_cache[$key]) ? $this->peg_cache[$key] : null;
+      $key = $this->peg_currPos * 17 + 0;
+      $cached = isset($this->peg_cache[$key]) ? $this->peg_cache[$key] : null;
 
       if ($cached) {
         $this->peg_currPos = $cached["nextPos"];
@@ -632,8 +632,8 @@ class Parser {
 
     private function peg_parseToken() {
 
-      $key    = $this->peg_currPos * 17 + 1;
-          $cached = isset($this->peg_cache[$key]) ? $this->peg_cache[$key] : null;
+      $key = $this->peg_currPos * 17 + 1;
+      $cached = isset($this->peg_cache[$key]) ? $this->peg_cache[$key] : null;
 
       if ($cached) {
         $this->peg_currPos = $cached["nextPos"];
@@ -655,8 +655,8 @@ class Parser {
 
     private function peg_parseTag_More() {
 
-      $key    = $this->peg_currPos * 17 + 2;
-          $cached = isset($this->peg_cache[$key]) ? $this->peg_cache[$key] : null;
+      $key = $this->peg_currPos * 17 + 2;
+      $cached = isset($this->peg_cache[$key]) ? $this->peg_cache[$key] : null;
 
       if ($cached) {
         $this->peg_currPos = $cached["nextPos"];
@@ -939,8 +939,8 @@ class Parser {
 
     private function peg_parseBlock_Void() {
 
-      $key    = $this->peg_currPos * 17 + 3;
-          $cached = isset($this->peg_cache[$key]) ? $this->peg_cache[$key] : null;
+      $key = $this->peg_currPos * 17 + 3;
+      $cached = isset($this->peg_cache[$key]) ? $this->peg_cache[$key] : null;
 
       if ($cached) {
         $this->peg_currPos = $cached["nextPos"];
@@ -1070,8 +1070,8 @@ class Parser {
 
     private function peg_parseBlock_Balanced() {
 
-      $key    = $this->peg_currPos * 17 + 4;
-          $cached = isset($this->peg_cache[$key]) ? $this->peg_cache[$key] : null;
+      $key = $this->peg_currPos * 17 + 4;
+      $cached = isset($this->peg_cache[$key]) ? $this->peg_cache[$key] : null;
 
       if ($cached) {
         $this->peg_currPos = $cached["nextPos"];
@@ -1193,8 +1193,8 @@ class Parser {
 
     private function peg_parseBlock_Start() {
 
-      $key    = $this->peg_currPos * 17 + 5;
-          $cached = isset($this->peg_cache[$key]) ? $this->peg_cache[$key] : null;
+      $key = $this->peg_currPos * 17 + 5;
+      $cached = isset($this->peg_cache[$key]) ? $this->peg_cache[$key] : null;
 
       if ($cached) {
         $this->peg_currPos = $cached["nextPos"];
@@ -1324,8 +1324,8 @@ class Parser {
 
     private function peg_parseBlock_End() {
 
-      $key    = $this->peg_currPos * 17 + 6;
-          $cached = isset($this->peg_cache[$key]) ? $this->peg_cache[$key] : null;
+      $key = $this->peg_currPos * 17 + 6;
+      $cached = isset($this->peg_cache[$key]) ? $this->peg_cache[$key] : null;
 
       if ($cached) {
         $this->peg_currPos = $cached["nextPos"];
@@ -1422,8 +1422,8 @@ class Parser {
 
     private function peg_parseBlock_Name() {
 
-      $key    = $this->peg_currPos * 17 + 7;
-          $cached = isset($this->peg_cache[$key]) ? $this->peg_cache[$key] : null;
+      $key = $this->peg_currPos * 17 + 7;
+      $cached = isset($this->peg_cache[$key]) ? $this->peg_cache[$key] : null;
 
       if ($cached) {
         $this->peg_currPos = $cached["nextPos"];
@@ -1442,8 +1442,8 @@ class Parser {
 
     private function peg_parseNamespaced_Block_Name() {
 
-      $key    = $this->peg_currPos * 17 + 8;
-          $cached = isset($this->peg_cache[$key]) ? $this->peg_cache[$key] : null;
+      $key = $this->peg_currPos * 17 + 8;
+      $cached = isset($this->peg_cache[$key]) ? $this->peg_cache[$key] : null;
 
       if ($cached) {
         $this->peg_currPos = $cached["nextPos"];
@@ -1493,8 +1493,8 @@ class Parser {
 
     private function peg_parseCore_Block_Name() {
 
-      $key    = $this->peg_currPos * 17 + 9;
-          $cached = isset($this->peg_cache[$key]) ? $this->peg_cache[$key] : null;
+      $key = $this->peg_currPos * 17 + 9;
+      $cached = isset($this->peg_cache[$key]) ? $this->peg_cache[$key] : null;
 
       if ($cached) {
         $this->peg_currPos = $cached["nextPos"];
@@ -1522,8 +1522,8 @@ class Parser {
 
     private function peg_parseBlock_Name_Part() {
 
-      $key    = $this->peg_currPos * 17 + 10;
-          $cached = isset($this->peg_cache[$key]) ? $this->peg_cache[$key] : null;
+      $key = $this->peg_currPos * 17 + 10;
+      $cached = isset($this->peg_cache[$key]) ? $this->peg_cache[$key] : null;
 
       if ($cached) {
         $this->peg_currPos = $cached["nextPos"];
@@ -1588,8 +1588,8 @@ class Parser {
 
     private function peg_parseBlock_Attributes() {
 
-      $key    = $this->peg_currPos * 17 + 11;
-          $cached = isset($this->peg_cache[$key]) ? $this->peg_cache[$key] : null;
+      $key = $this->peg_currPos * 17 + 11;
+      $cached = isset($this->peg_cache[$key]) ? $this->peg_cache[$key] : null;
 
       if ($cached) {
         $this->peg_currPos = $cached["nextPos"];
@@ -1856,8 +1856,8 @@ class Parser {
 
     private function peg_parseWS() {
 
-      $key    = $this->peg_currPos * 17 + 12;
-          $cached = isset($this->peg_cache[$key]) ? $this->peg_cache[$key] : null;
+      $key = $this->peg_currPos * 17 + 12;
+      $cached = isset($this->peg_cache[$key]) ? $this->peg_cache[$key] : null;
 
       if ($cached) {
         $this->peg_currPos = $cached["nextPos"];
@@ -1881,8 +1881,8 @@ class Parser {
 
     private function peg_parseNewline() {
 
-      $key    = $this->peg_currPos * 17 + 13;
-          $cached = isset($this->peg_cache[$key]) ? $this->peg_cache[$key] : null;
+      $key = $this->peg_currPos * 17 + 13;
+      $cached = isset($this->peg_cache[$key]) ? $this->peg_cache[$key] : null;
 
       if ($cached) {
         $this->peg_currPos = $cached["nextPos"];
@@ -1906,8 +1906,8 @@ class Parser {
 
     private function peg_parse_() {
 
-      $key    = $this->peg_currPos * 17 + 14;
-          $cached = isset($this->peg_cache[$key]) ? $this->peg_cache[$key] : null;
+      $key = $this->peg_currPos * 17 + 14;
+      $cached = isset($this->peg_cache[$key]) ? $this->peg_cache[$key] : null;
 
       if ($cached) {
         $this->peg_currPos = $cached["nextPos"];
@@ -1931,8 +1931,8 @@ class Parser {
 
     private function peg_parse__() {
 
-      $key    = $this->peg_currPos * 17 + 15;
-          $cached = isset($this->peg_cache[$key]) ? $this->peg_cache[$key] : null;
+      $key = $this->peg_currPos * 17 + 15;
+      $cached = isset($this->peg_cache[$key]) ? $this->peg_cache[$key] : null;
 
       if ($cached) {
         $this->peg_currPos = $cached["nextPos"];
@@ -1957,8 +1957,8 @@ class Parser {
 
     private function peg_parseAny() {
 
-      $key    = $this->peg_currPos * 17 + 16;
-          $cached = isset($this->peg_cache[$key]) ? $this->peg_cache[$key] : null;
+      $key = $this->peg_currPos * 17 + 16;
+      $cached = isset($this->peg_cache[$key]) ? $this->peg_cache[$key] : null;
 
       if ($cached) {
         $this->peg_currPos = $cached["nextPos"];

@@ -1,0 +1,6 @@
+.nvmrc
+.travis.yml
+CHANGELOG.md
+bin/
+manual-test/
+test/

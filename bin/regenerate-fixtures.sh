@@ -1,8 +1,8 @@
 #!/bin/bash
 
 if [ "$0" = "$BASH_SOURCE" ]; then
-	echo "This script must be sourced rather than executed directly."
-	exit 1
+  echo "This script must be sourced rather than executed directly."
+  exit 1
 fi
 
 rm test/fixtures/*.php
