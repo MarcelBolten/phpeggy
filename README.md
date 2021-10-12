@@ -12,7 +12,7 @@ PHPeggy is the successor of [`phpegjs`](https://github.com/nylen/phpegjs) which 
 ## Migrating from `phpegjs`
 
 There are a few API changes compared to the most recent `phpegjs` release.
-- Options specific to the PHPeggy have to be passed to `phpeggy` and not to `phpegjs`.
+- Options specific to PHPeggy have to be passed to `phpeggy` and not to `phpegjs`.
 - The support for PHP 5.2 was dropped along with the `parserGlobalNamePrefix` option.
 
 Follow these steps to upgrade:
