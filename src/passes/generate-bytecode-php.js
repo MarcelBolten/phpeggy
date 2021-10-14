@@ -29,11 +29,12 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  *
  */
+"use strict";
 
-var asts = require("peggy/lib/compiler/asts"),
-  visitor = require("peggy/lib/compiler/visitor"),
-  op = require("peggy/lib/compiler/opcodes"),
-  internalUtils = require("../utils");
+const asts = require("peggy/lib/compiler/asts");
+const visitor = require("peggy/lib/compiler/visitor");
+const op = require("peggy/lib/compiler/opcodes");
+const internalUtils = require("../utils");
 
 /* Generates bytecode.
  *
@@ -219,45 +220,45 @@ var asts = require("peggy/lib/compiler/asts"),
  *        silentFails--;
  */
 module.exports = function(ast, options) {
-  var mbstringAllowed = (
-    typeof options.phpeggy.mbstringAllowed === 'undefined'
+  const mbstringAllowed = (
+    typeof options.phpeggy.mbstringAllowed === "undefined"
       ? true
       : options.phpeggy.mbstringAllowed
   );
 
-  var consts = [];
-  var functions = [];
+  const consts = [];
+  const functions = [];
 
   function addConst(value) {
-    var index = consts.findIndex(function(c) { return c === value; });
+    const index = consts.findIndex(c => c === value);
 
     return index === -1 ? consts.push(value) - 1 : index;
   }
 
   function addFunctionConst(params, code) {
-    var value = {
-      params: '',
-      code: internalUtils.extractPhpCode( code )
+    const value = {
+      params: "",
+      code: internalUtils.extractPhpCode(code),
     };
 
-    var first = true;
-    for ( var i = 0; i < params.length; i++ ) {
-      if ( ! first ) {
-        value.params += ', ';
+    let first = true;
+    for (let i = 0; i < params.length; i++) {
+      if (!first) {
+        value.params += ", ";
       }
-      value.params += '$' + params[i];
+      value.params += "$" + params[i];
       first = false;
     }
 
-    var index = functions.findIndex(function( c ) {
-      return c.params === value.params && c.code === value.code;
-    } );
+    const index = functions.findIndex(c => (
+      c.params === value.params && c.code === value.code
+    ));
 
     return index === -1 ? functions.push(value) - 1 : index;
   }
 
   function cloneEnv(env) {
-    let clone = {};
+    const clone = {};
 
     Object.keys(env).forEach(name => {
       clone[name] = env[name];
@@ -266,8 +267,8 @@ module.exports = function(ast, options) {
     return clone;
   }
 
-  function buildSequence() {
-    return Array.prototype.concat.apply([], arguments);
+  function buildSequence(...args) {
+    return Array.prototype.concat.apply([], args);
   }
 
   function buildCondition(condCode, thenCode, elseCode) {
@@ -283,7 +284,7 @@ module.exports = function(ast, options) {
   }
 
   function buildCall(functionIndex, delta, env, sp) {
-    var params = Object.keys(env).map(function(name) { return sp - env[name]; });
+    const params = Object.keys(env).map(name => sp - env[name]);
 
     return [op.CALL, functionIndex, delta, params.length].concat(params);
   }
@@ -295,7 +296,7 @@ module.exports = function(ast, options) {
       generate(expression, {
         sp:     context.sp + 1,
         env:    cloneEnv(context.env),
-        action: null
+        action: null,
       }),
       [op.SILENT_FAILS_OFF],
       buildCondition(
@@ -315,7 +316,7 @@ module.exports = function(ast, options) {
   }
 
   function buildSemanticPredicate(code, negative, context) {
-    var functionIndex  = addFunctionConst(Object.keys(context.env), code);
+    const functionIndex  = addFunctionConst(Object.keys(context.env), code);
 
     return buildSequence(
       [op.UPDATE_SAVED_POS],
@@ -341,25 +342,25 @@ module.exports = function(ast, options) {
     );
   }
 
-  var generate = visitor.build({
-    grammar: function(node) {
+  const generate = visitor.build({
+    "grammar"(node) {
       node.rules.forEach(generate);
 
       node.consts = consts;
       node.functions = functions;
     },
 
-    rule: function(node) {
+    "rule"(node) {
       node.bytecode = generate(node.expression, {
-        sp:     -1,  // stack pointer
-        env:    { }, // mapping of label names to stack positions
-        action: null // action nodes pass themselves to children here
+        sp:     -1,  // Stack pointer
+        env:    { }, // Mapping of label names to stack positions
+        action: null, // Action nodes pass themselves to children here
       });
     },
 
-    named: function(node, context) {
-      var nameIndex = addConst(
-        'array("type" => "other", "description" => ' + internalUtils.quote(node.name) + ' )'
+    "named"(node, context) {
+      const nameIndex = addConst(
+        'array("type" => "other", "description" => ' + internalUtils.quote(node.name) + " )"
       );
 
       /*
@@ -376,23 +377,23 @@ module.exports = function(ast, options) {
       );
     },
 
-    choice: function(node, context) {
+    "choice"(node, context) {
       function buildAlternativesCode(alternatives, context) {
         return buildSequence(
           generate(alternatives[0], {
             sp:     context.sp,
             env:    cloneEnv(context.env),
-            action: null
+            action: null,
           }),
           alternatives.length > 1
             ? buildCondition(
-                [op.IF_ERROR],
-                buildSequence(
-                  [op.POP],
-                  buildAlternativesCode(alternatives.slice(1), context)
-                ),
-                []
-              )
+              [op.IF_ERROR],
+              buildSequence(
+                [op.POP],
+                buildAlternativesCode(alternatives.slice(1), context)
+              ),
+              []
+            )
             : []
         );
       }
@@ -400,37 +401,37 @@ module.exports = function(ast, options) {
       return buildAlternativesCode(node.alternatives, context);
     },
 
-    action: function(node, context) {
-      var env            = cloneEnv(context.env),
-          emitCall       = node.expression.type !== "sequence"
-                        || node.expression.elements.length === 0,
-          expressionCode = generate(node.expression, {
-            sp:     context.sp + (emitCall ? 1 : 0),
-            env:    env,
-            action: node
-          }),
-          functionIndex  = addFunctionConst(Object.keys(env), node.code);
+    "action"(node, context) {
+      const env            = cloneEnv(context.env);
+      const emitCall       = node.expression.type !== "sequence"
+                        || node.expression.elements.length === 0;
+      const expressionCode = generate(node.expression, {
+        sp:     context.sp + (emitCall ? 1 : 0),
+        env,
+        action: node,
+      });
+      const functionIndex  = addFunctionConst(Object.keys(env), node.code);
 
       return emitCall
         ? buildSequence(
-            [op.PUSH_CURR_POS],
-            expressionCode,
-            buildCondition(
-              [op.IF_NOT_ERROR],
-              buildSequence(
-                [op.LOAD_SAVED_POS, 1],
-                buildCall(functionIndex, 1, env, context.sp + 2)
-              ),
-              []
+          [op.PUSH_CURR_POS],
+          expressionCode,
+          buildCondition(
+            [op.IF_NOT_ERROR],
+            buildSequence(
+              [op.LOAD_SAVED_POS, 1],
+              buildCall(functionIndex, 1, env, context.sp + 2)
             ),
-            [op.NIP]
-          )
+            []
+          ),
+          [op.NIP]
+        )
         : expressionCode;
     },
 
-    sequence: function(node, context) {
+    "sequence"(node, context) {
       function buildElementsCode(elements, context) {
-        var processedCount, functionIndex;
+        let processedCount, functionIndex;
 
         if (elements.length > 0) {
           processedCount = node.elements.length - elements.slice(1).length;
@@ -439,14 +440,14 @@ module.exports = function(ast, options) {
             generate(elements[0], {
               sp:     context.sp,
               env:    context.env,
-              action: null
+              action: null,
             }),
             buildCondition(
               [op.IF_NOT_ERROR],
               buildElementsCode(elements.slice(1), {
                 sp:     context.sp + 1,
                 env:    context.env,
-                action: context.action
+                action: context.action,
               }),
               buildSequence(
                 processedCount > 1 ? [op.POP_N, processedCount] : [op.POP],
@@ -484,7 +485,7 @@ module.exports = function(ast, options) {
           buildElementsCode(node.elements, {
             sp:     context.sp + 1,
             env:    context.env,
-            action: context.action
+            action: context.action,
           })
         );
       } else {
@@ -492,25 +493,25 @@ module.exports = function(ast, options) {
       }
     },
 
-    labeled: function(node, context) {
-      var env = cloneEnv(context.env);
+    "labeled"(node, context) {
+      const env = cloneEnv(context.env);
 
       context.env[node.label] = context.sp + 1;
 
       return generate(node.expression, {
         sp:     context.sp,
-        env:    env,
-        action: null
+        env,
+        action: null,
       });
     },
 
-    text: function(node, context) {
+    "text"(node, context) {
       return buildSequence(
         [op.PUSH_CURR_POS],
         generate(node.expression, {
           sp:     context.sp + 1,
           env:    cloneEnv(context.env),
-          action: null
+          action: null,
         }),
         buildCondition(
           [op.IF_NOT_ERROR],
@@ -520,20 +521,20 @@ module.exports = function(ast, options) {
       );
     },
 
-    simple_and: function(node, context) {
+    "simple_and"(node, context) {
       return buildSimplePredicate(node.expression, false, context);
     },
 
-    simple_not: function(node, context) {
+    "simple_not"(node, context) {
       return buildSimplePredicate(node.expression, true, context);
     },
 
-    optional: function(node, context) {
+    "optional"(node, context) {
       return buildSequence(
         generate(node.expression, {
           sp:     context.sp,
           env:    cloneEnv(context.env),
-          action: null
+          action: null,
         }),
         buildCondition(
           [op.IF_ERROR],
@@ -543,12 +544,12 @@ module.exports = function(ast, options) {
       );
     },
 
-    zero_or_more: function(node, context) {
-      var expressionCode  = generate(node.expression, {
-            sp:     context.sp + 1,
-            env:    cloneEnv(context.env),
-            action: null
-          });
+    "zero_or_more"(node, context) {
+      const expressionCode  = generate(node.expression, {
+        sp:     context.sp + 1,
+        env:    cloneEnv(context.env),
+        action: null,
+      });
 
       return buildSequence(
         [op.PUSH_EMPTY_ARRAY],
@@ -558,12 +559,12 @@ module.exports = function(ast, options) {
       );
     },
 
-    one_or_more: function(node, context) {
-      var expressionCode  = generate(node.expression, {
-            sp:     context.sp + 1,
-            env:    cloneEnv(context.env),
-            action: null
-          });
+    "one_or_more"(node, context) {
+      const expressionCode  = generate(node.expression, {
+        sp:     context.sp + 1,
+        env:    cloneEnv(context.env),
+        action: null,
+      });
 
       return buildSequence(
         [op.PUSH_EMPTY_ARRAY],
@@ -576,49 +577,48 @@ module.exports = function(ast, options) {
       );
     },
 
-    group: function(node, context) {
+    "group"(node, context) {
       return generate(node.expression, {
         sp:     context.sp,
         env:    cloneEnv(context.env),
-        action: null
+        action: null,
       });
     },
 
-    semantic_and: function(node, context) {
+    "semantic_and"(node, context) {
       return buildSemanticPredicate(node.code, false, context);
     },
 
-    semantic_not: function(node, context) {
+    "semantic_not"(node, context) {
       return buildSemanticPredicate(node.code, true, context);
     },
 
-    rule_ref: function(node) {
+    "rule_ref"(node) {
       return [op.RULE, asts.indexOfRule(ast, node.name)];
     },
 
-    literal: function(node) {
+    "literal"(node) {
       if (node.ignoreCase && !mbstringAllowed) {
         throw new Error(
-          'Case-insensitive string matching requires the '
-          + '`mbstring` PHP extension, but it is disabled '
-          + 'via `mbstringAllowed: false`.'
+          "Case-insensitive string matching requires the "
+          + "`mbstring` PHP extension, but it is disabled "
+          + "via `mbstringAllowed: false`."
         );
       }
 
-      var stringIndex, expectedIndex;
+      let stringIndex, expectedIndex;
 
       if (node.value.length > 0) {
         stringIndex = addConst(node.ignoreCase
           ? internalUtils.quote(node.value.toLowerCase())
-          : internalUtils.quote(node.value)
-        );
+          : internalUtils.quote(node.value));
         expectedIndex = addConst([
-          'array(',
+          "array(",
           '"type" => "literal",',
-          '"value" => ' + internalUtils.quote(node.value) + ',',
+          '"value" => ' + internalUtils.quote(node.value) + ",",
           '"description" => ' + internalUtils.quote(internalUtils.quote(node.value)),
-          ')'
-        ].join(' '));
+          ")",
+        ].join(" "));
 
         /*
          * For case-sensitive strings the value must match the beginning of the
@@ -641,123 +641,121 @@ module.exports = function(ast, options) {
       }
     },
 
-    "class": function(node) {
+    "class"(node) {
       if (node.ignoreCase && !mbstringAllowed) {
         throw new Error(
-          'Case-insensitive character class matching requires the '
-          + '`mbstring` PHP extension, but it is disabled '
-          + 'via `mbstringAllowed: false`.'
+          "Case-insensitive character class matching requires the "
+          + "`mbstring` PHP extension, but it is disabled "
+          + "via `mbstringAllowed: false`."
         );
       }
 
-      var regexp, regexpIndex, expectedIndex;
+      let regexp, regexpIndex;
 
       function hex(ch) {
         return ch.charCodeAt(0).toString(16).toUpperCase();
       }
 
       function quoteForPhpRegexp(s) {
-           return s
-            .replace(/\\/g, '\\\\')  // backslash
-            .replace(/\//g, '\\/')   // closing slash
-            .replace(/\[/g, '\\[')   // opening ) bracket
-            .replace(/\]/g, '\\]')   // closing ) bracket
-            .replace(/\(/g, '\\(')   // opening ( bracket
-            .replace(/\)/g, '\\)')   // closing ( bracket
-            .replace(/\^/g, '\\^')   // caret
-            .replace(/\$/g, '\\$')   // dollar
-            .replace(/([^\[])-/g,  '$1\\-')   // dash
-            .replace(/\0/g, '\\0')   // null
-            .replace(/\t/g, '\\t')   // horizontal tab
-            .replace(/\n/g, '\\n')   // line feed
-            .replace(/\v/g, '\\x0B') // vertical tab
-            .replace(/\f/g, '\\f')   // form feed
-            .replace(/\r/g, '\\r')   // carriage return
-            .replace(/[\x00-\x0f]/g,          function(ch) { return '\\x0' + hex(ch); })
-            .replace(/[\x10-\x1f\x7f-\x9f]/g, function(ch) { return '\\x' + hex(ch); })
-            .replace(/[\xFF-\uFFFF]/g, function(ch) {
-                var hexCode = ch.charCodeAt(0).toString(16).toUpperCase();
-                hexCode = Array(4 - hexCode.length + 1).join('0') + hexCode;
-                return '\\x{' + hexCode + '}';
-              });
+        return s
+          .replace(/\\/g, "\\\\")  // Backslash
+          .replace(/\//g, "\\/")   // Closing slash
+          .replace(/\[/g, "\\[")   // Opening ) bracket
+          .replace(/\]/g, "\\]")   // Closing ) bracket
+          .replace(/\(/g, "\\(")   // Opening ( bracket
+          .replace(/\)/g, "\\)")   // Closing ( bracket
+          .replace(/\^/g, "\\^")   // Caret
+          .replace(/\$/g, "\\$")   // Dollar
+          .replace(/([^[])-/g,  "$1\\-")   // Dash
+          .replace(/\0/g, "\\0")   // Null
+          .replace(/\t/g, "\\t")   // Horizontal tab
+          .replace(/\n/g, "\\n")   // Line feed
+          .replace(/\v/g, "\\x0B") // Vertical tab
+          .replace(/\f/g, "\\f")   // Form feed
+          .replace(/\r/g, "\\r")   // Carriage return
+          .replace(/[\x00-\x0f]/g,          ch => "\\x0" + hex(ch))
+          .replace(/[\x10-\x1f\x7f-\x9f]/g, ch => "\\x" + hex(ch))
+          .replace(/[\xFF-\uFFFF]/g, ch => {
+            let hexCode = ch.charCodeAt(0).toString(16).toUpperCase();
+            hexCode = Array(4 - hexCode.length + 1).join("0") + hexCode;
+            return "\\x{" + hexCode + "}";
+          });
       }
 
       function quotePhp(s) {
-            return '"' + s
-              .replace(/\\/g, '\\\\')  // backslash
-              .replace(/"/g, '\\"')    // closing quote character
-              .replace(/\x08/g, '\\b') // backspace
-              .replace(/\t/g, '\\t')   // horizontal tab
-              .replace(/\n/g, '\\n')   // line feed
-              .replace(/\f/g, '\\f')   // form feed
-              .replace(/\r/g, '\\r')   // carriage return
-              .replace(/\$/g, '\\$')   // dollar
-              .replace(/[\x00-\x0f]/g,          function(ch) { return '\\x0' + hex(ch); })
-              .replace(/[\x10-\x1f\x7f-\x9f]/g, function(ch) { return '\\x' + hex(ch); })
-              .replace(/[\xFF-\uFFFF]/g, function(ch) {
-                  var hexCode = ch.charCodeAt(0).toString(16).toUpperCase();
-                  hexCode = Array(4 - hexCode.length + 1).join('0') + hexCode;
-                  return '\\x{' + hexCode + '}';
-                })
+        return '"' + s
+          .replace(/\\/g, "\\\\")  // Backslash
+          .replace(/"/g, '\\"')    // Closing quote character
+          .replace(/\x08/g, "\\b") // Backspace
+          .replace(/\t/g, "\\t")   // Horizontal tab
+          .replace(/\n/g, "\\n")   // Line feed
+          .replace(/\f/g, "\\f")   // Form feed
+          .replace(/\r/g, "\\r")   // Carriage return
+          .replace(/\$/g, "\\$")   // Dollar
+          .replace(/[\x00-\x0f]/g,          ch => "\\x0" + hex(ch))
+          .replace(/[\x10-\x1f\x7f-\x9f]/g, ch => "\\x" + hex(ch))
+          .replace(/[\xFF-\uFFFF]/g, ch => {
+            let hexCode = ch.charCodeAt(0).toString(16).toUpperCase();
+            hexCode = Array(4 - hexCode.length + 1).join("0") + hexCode;
+            return "\\x{" + hexCode + "}";
+          })
               + '"';
       }
 
       if (node.parts.length > 0) {
-        regexp = '/^['
-          + (node.inverted ? '^' : '')
-          + node.parts.map(function(part) {
-              return part instanceof Array
-                ? quoteForPhpRegexp(part[0])
-                  + '-'
+        regexp = "/^["
+          + (node.inverted ? "^" : "")
+          + node.parts.map(part => part instanceof Array
+            ? quoteForPhpRegexp(part[0])
+                  + "-"
                   + quoteForPhpRegexp(part[1])
-                : quoteForPhpRegexp(part);
-            }).join('')
-          + ']/' + (node.ignoreCase ? 'i' : '');
+            : quoteForPhpRegexp(part)).join("")
+          + "]/" + (node.ignoreCase ? "i" : "");
       } else {
         if (!mbstringAllowed) {
           throw new Error(
-            'Empty character class matching requires the '
-            + '`mbstring` PHP extension, but it is disabled '
-            + 'via `mbstringAllowed: false`.'
+            "Empty character class matching requires the "
+            + "`mbstring` PHP extension, but it is disabled "
+            + "via `mbstringAllowed: false`."
           );
         }
         /*
          * IE considers regexps /[]/ and /[^]/ as syntactically invalid, so we
          * translate them into euqivalents it can handle.
          */
-        regexp = node.inverted ? '/^[\\S\\s]/' : '/^(?!)/';
+        regexp = node.inverted ? "/^[\\S\\s]/" : "/^(?!)/";
       }
 
       if (mbstringAllowed) {
         regexpIndex = addConst(quotePhp(regexp));
       } else {
-        var classArray = 'array('
-          + node.parts.map(function(part) {
+        const classArray = "array("
+          + node.parts.map(part => {
             if (!(part instanceof Array)) {
               part = [part, part];
             }
-            return 'array('
-              + part[0].charCodeAt(0) + ','
-              + part[1].charCodeAt(0) + ')';
-          }).join(', ')
-          + ')';
+            return "array("
+              + part[0].charCodeAt(0) + ","
+              + part[1].charCodeAt(0) + ")";
+          }).join(", ")
+          + ")";
         regexpIndex = addConst(classArray);
       }
 
-      var rawText = '[' + node.parts.map(function(part) {
-        if ( typeof part === 'string' ) {
+      const rawText = "[" + node.parts.map(part => {
+        if (typeof part === "string") {
           return part;
         }
-        return part.join('-');
-      }).join('') + ']';
+        return part.join("-");
+      }).join("") + "]";
 
-      expectedIndex = addConst([
-        'array(',
+      const expectedIndex = addConst([
+        "array(",
         '"type" => "class",',
-        '"value" => ' + quotePhp(rawText) + ',',
+        '"value" => ' + quotePhp(rawText) + ",",
         '"description" => ' + quotePhp(rawText),
-        ')'
-      ].join(' '));
+        ")",
+      ].join(" "));
 
       return buildCondition(
         [op.MATCH_REGEXP, regexpIndex],
@@ -766,15 +764,15 @@ module.exports = function(ast, options) {
       );
     },
 
-    any: function() {
-      var expectedIndex = addConst('array("type" => "any", "description" => "any character" )');
+    "any"() {
+      const expectedIndex = addConst('array("type" => "any", "description" => "any character" )');
 
       return buildCondition(
         [op.MATCH_ANY],
         [op.ACCEPT_N, 1],
         [op.FAIL, expectedIndex]
       );
-    }
+    },
   });
 
   generate(ast);

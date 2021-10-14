@@ -21,15 +21,27 @@
  *   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  *   SOFTWARE.
  */
+"use strict";
 
-exports.use = function(config, options){
+exports.use = function(config, options) {
   config.passes.generate = [
     require("./passes/generate-bytecode-php"),
-    require("./passes/generate-php")
+    require("./passes/generate-php"),
   ];
   options.output = "source";
-  if (options.phpeggy) options.phpeggy = options.phpeggy;
-  if (!options.phpeggy) options.phpeggy = {};
-  if (options.phpeggy.parserNamespace === undefined) options.phpeggy.parserNamespace = 'PHPeggy';
-  if (options.phpeggy.parserClassName === undefined) options.phpeggy.parserClassName = 'Parser';
+  if (options.phppegjs) {
+    options.phpeggy = options.phppegjs;
+  }
+  if (options.phpegjs) {
+    options.phpeggy = options.phpegjs;
+  }
+  if (!options.phpeggy) {
+    options.phpeggy = {};
+  }
+  if (options.phpeggy.parserNamespace === undefined) {
+    options.phpeggy.parserNamespace = "PHPeggy";
+  }
+  if (options.phpeggy.parserClassName === undefined) {
+    options.phpeggy.parserClassName = "Parser";
+  }
 };
