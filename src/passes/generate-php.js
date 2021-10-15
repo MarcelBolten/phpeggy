@@ -625,7 +625,7 @@ module.exports = function(ast, options) {
     '      $this->input                = array();',
     '      $this->input_length         = 0;',
 
-           options.cache ?
+    options.cache ?
     '      $this->peg_cache = array();' : '',
 
     '    }',

@@ -28,7 +28,8 @@ exports.use = function(config, options){
     require("./passes/generate-php")
   ];
   options.output = "source";
-  if (options.phpeggy) options.phpeggy = options.phpeggy;
+  if (options.phppegjs) options.phpeggy = options.phppegjs;
+  if (options.phpegjs) options.phpeggy = options.phpegjs;
   if (!options.phpeggy) options.phpeggy = {};
   if (options.phpeggy.parserNamespace === undefined) options.phpeggy.parserNamespace = 'PHPeggy';
   if (options.phpeggy.parserClassName === undefined) options.phpeggy.parserClassName = 'Parser';
