@@ -47,19 +47,13 @@ module.exports = function(ast, options) {
   );
 
   /* These only indent non-empty lines to avoid trailing whitespace. */
-  function indent2(code) {
-    return code.replace(/^(.+)$/gm, "  $1");
-  }
   function indent4(code) {
     return code.replace(/^(.+)$/gm, "    $1");
   }
-  // Not used so far
-  // function indent8(code) {
-  //  return code.replace(/^(.+)$/gm, "        $1");
-  // }
-  // function indent10(code) {
-  //  return code.replace(/^(.+)$/gm, "          $1");
-  // }
+
+  function indent8(code) {
+    return code.replace(/^(.+)$/gm, "        $1");
+  }
 
   function generateTablesDeclaration() {
     return ast.consts.map(
@@ -76,10 +70,11 @@ module.exports = function(ast, options) {
   function generateFunctions() {
     return ast.functions.map(
       (c, i) => "private function peg_f" + i
-          + "(" + c.params + ") {"
-          + c.code
-          + "}"
-    ).join("\n");
+          + "(" + c.params + ")\n"
+          + "{\n"
+          + "    " + c.code
+          + "\n}"
+    ).join("\n\n");
   }
 
   function generateCacheHeader(ruleIndexCode) {
@@ -88,8 +83,8 @@ module.exports = function(ast, options) {
       "$cached = isset($this->peg_cache[$key]) ? $this->peg_cache[$key] : null;",
       "",
       "if ($cached) {",
-      '  $this->peg_currPos = $cached["nextPos"];',
-      '  return $cached["result"];',
+      '    $this->peg_currPos = $cached["nextPos"];',
+      '    return $cached["result"];',
       "}",
       "",
     ].join("\n");
@@ -98,7 +93,7 @@ module.exports = function(ast, options) {
   function generateCacheFooter(resultCode) {
     return [
       "",
-      '$this->peg_cache[$key] = array ("nextPos" => $this->peg_currPos, "result" => ' + resultCode + " );",
+      '$this->peg_cache[$key] = array ("nextPos" => $this->peg_currPos, "result" => ' + resultCode + ");",
     ].join("\n");
   }
 
@@ -194,10 +189,10 @@ module.exports = function(ast, options) {
         }
 
         parts.push("if (" + cond + ") {");
-        parts.push(indent2(thenCode));
+        parts.push(indent4(thenCode));
         if (elseLength > 0) {
           parts.push("} else {");
-          parts.push(indent2(elseCode));
+          parts.push(indent4(elseCode));
         }
         parts.push("}");
       }
@@ -217,7 +212,7 @@ module.exports = function(ast, options) {
         }
 
         parts.push("while (" + cond + ") {");
-        parts.push(indent2(bodyCode));
+        parts.push(indent4(bodyCode));
         parts.push("}");
       }
 
@@ -463,20 +458,20 @@ module.exports = function(ast, options) {
     ].join("\n"));
 
     if (options.cache) {
-      parts.push(indent2(
+      parts.push(indent4(
         generateCacheHeader(asts.indexOfRule(ast, rule.name))
       ));
     }
 
-    parts.push(indent2(code));
+    parts.push(indent4(code));
 
     if (options.cache) {
-      parts.push(indent2(generateCacheFooter(s(0))));
+      parts.push(indent4(generateCacheFooter(s(0))));
     }
 
     parts.push([
       "",
-      "  return " + s(0) + ";",
+      "    return " + s(0) + ";",
       "}",
     ].join("\n"));
 
@@ -535,7 +530,7 @@ module.exports = function(ast, options) {
       "/* peg_regex_test - multibyte regex test */",
       'if (!function_exists("' + phpGlobalNamePrefixOrNamespaceEscaped + 'peg_regex_test")) {',
       "    function peg_regex_test($pattern, $string) {",
-      '        if (substr($pattern, -1) == "i") {',
+      '        if (substr($pattern, -1) === "i") {',
       "            return mb_eregi(substr($pattern, 1, -2), $string);",
       "        } else {",
       "            return mb_ereg(substr($pattern, 1, -1), $string);",
@@ -568,14 +563,16 @@ module.exports = function(ast, options) {
   parts.push([
     "/* Syntax error exception */",
     'if (!class_exists("' + phpGlobalNamePrefixOrNamespaceEscaped + 'SyntaxError", false)) {',
-    "    class SyntaxError extends " + phpGlobalNamespacePrefix + "Exception {",
+    "    class SyntaxError extends " + phpGlobalNamespacePrefix + "Exception",
+    "    {",
     "        public $expected;",
     "        public $found;",
     "        public $grammarOffset;",
     "        public $grammarLine;",
     "        public $grammarColumn;",
     "        public $name;",
-    "        public function __construct($message, $expected, $found, $offset, $line, $column) {",
+    "        public function __construct($message, $expected, $found, $offset, $line, $column)",
+    "        {",
     "            parent::__construct($message, 0);",
     "            $this->expected = $expected;",
     "            $this->found = $found;",
@@ -587,147 +584,162 @@ module.exports = function(ast, options) {
     "    }",
     "}",
     "",
-    "class " + phpParserClass + " {",
+    "class " + phpParserClass,
+    "{",
   ].join("\n"));
 
-  parts.push([
-    "    private $peg_currPos          = 0;",
-    "    private $peg_reportedPos      = 0;",
-    "    private $peg_cachedPos        = 0;",
-    "    private $peg_cachedPosDetails = array('line' => 1, 'column' => 1, 'seenCR' => false );",
-    "    private $peg_maxFailPos       = 0;",
-    "    private $peg_maxFailExpected  = array();",
-    "    private $peg_silentFails      = 0;", // 0 = report failures, > 0 = silence failures
-    "    private $input                = array();",
-    "    private $input_length         = 0;",
-  ].join("\n"));
-
-  if (options.cache) {
-    parts.push("    public $peg_cache = array();");
-  }
-
-  parts.push([
-    "",
-    "    private function cleanup_state() {",
-    "      $this->peg_currPos          = 0;",
-    "      $this->peg_reportedPos      = 0;",
-    "      $this->peg_cachedPos        = 0;",
-    "      $this->peg_cachedPosDetails = array('line' => 1, 'column' => 1, 'seenCR' => false );",
-    "      $this->peg_maxFailPos       = 0;",
-    "      $this->peg_maxFailExpected  = array();",
-    "      $this->peg_silentFails      = 0;",
-    "      $this->input                = array();",
-    "      $this->input_length         = 0;",
+  parts.push(indent4([
+    "private $peg_currPos = 0;",
+    "private $peg_reportedPos = 0;",
+    "private $peg_cachedPos = 0;",
+    "private $peg_cachedPosDetails = array('line' => 1, 'column' => 1, 'seenCR' => false);",
+    "private $peg_maxFailPos = 0;",
+    "private $peg_maxFailExpected = array();",
+    "private $peg_silentFails = 0;", // 0 = report failures, > 0 = silence failures
+    "private $input = array();",
+    "private $input_length = 0;",
 
     options.cache
-      ? "      $this->peg_cache = array();"
+      ? "public $peg_cache = array();"
       : "",
 
-    "    }",
-    "",
-    "    private function input_substr($start, $length) {",
-    "      if ($length === 1 && $start < $this->input_length) {",
-    "        return $this->input[$start];",
-    "      }",
-    "      $substr = '';",
-    "      $max = min($start + $length, $this->input_length);",
-    "      for ($i = $start; $i < $max; $i++) {",
-    "        $substr .= $this->input[$i];",
-    "      }",
-    "      return $substr;",
-    "    }",
-    "",
-  ].join("\n"));
+  ].join("\n")));
 
-  parts.push([
+  parts.push(indent4([
     "",
-    "    private function text() {",
-    "      return $this->input_substr($this->peg_reportedPos, $this->peg_currPos - $this->peg_reportedPos);",
+    "private function cleanup_state()",
+    "{",
+    "    $this->peg_currPos = 0;",
+    "    $this->peg_reportedPos = 0;",
+    "    $this->peg_cachedPos = 0;",
+    "    $this->peg_cachedPosDetails = array('line' => 1, 'column' => 1, 'seenCR' => false );",
+    "    $this->peg_maxFailPos = 0;",
+    "    $this->peg_maxFailExpected = array();",
+    "    $this->peg_silentFails = 0;",
+    "    $this->input = array();",
+    "    $this->input_length = 0;",
+
+    options.cache
+      ? "  $this->peg_cache = array();"
+      : "",
+
+    "}",
+    "",
+    "private function input_substr($start, $length)",
+    "{",
+    "    if ($length === 1 && $start < $this->input_length) {",
+    "        return $this->input[$start];",
     "    }",
-    "",
-    "    private function offset() {",
-    "      return $this->peg_reportedPos;",
+    "    $substr = '';",
+    "    $max = min($start + $length, $this->input_length);",
+    "    for ($i = $start; $i < $max; $i++) {",
+    "        $substr .= $this->input[$i];",
     "    }",
+    "    return $substr;",
+    "}",
     "",
-    "    private function line() {",
-    "      $compute_pd = $this->peg_computePosDetails($this->peg_reportedPos);",
-    '      return $compute_pd["line"];',
-    "    }",
+  ].join("\n")));
+
+  parts.push(indent4([
     "",
-    "    private function column() {",
-    "      $compute_pd = $this->peg_computePosDetails($this->peg_reportedPos);",
-    '      return $compute_pd["column"];',
-    "    }",
+    "private function text()",
+    "{",
+    "    return $this->input_substr($this->peg_reportedPos, $this->peg_currPos - $this->peg_reportedPos);",
+    "}",
     "",
-    "    private function expected($description) {",
-    "      throw $this->peg_buildException(",
+    "private function offset()",
+    "{",
+    "    return $this->peg_reportedPos;",
+    "}",
+    "",
+    "private function line()",
+    "{",
+    "    $compute_pd = $this->peg_computePosDetails($this->peg_reportedPos);",
+    '    return $compute_pd["line"];',
+    "}",
+    "",
+    "private function column()",
+    "{",
+    "    $compute_pd = $this->peg_computePosDetails($this->peg_reportedPos);",
+    '    return $compute_pd["column"];',
+    "}",
+    "",
+    "private function expected($description)",
+    "{",
+    "    throw $this->peg_buildException(",
     "        null,",
     '        array(array("type" => "other", "description" => $description )),',
     "        $this->peg_reportedPos",
-    "      );",
-    "    }",
+    "    );",
+    "}",
     "",
-    "    private function error($message) {",
-    "      throw $this->peg_buildException($message, null, $this->peg_reportedPos);",
-    "    }",
+    "private function error($message)",
+    "{",
+    "    throw $this->peg_buildException($message, null, $this->peg_reportedPos);",
+    "}",
     "",
-    "    private function peg_advancePos(&$details, $startPos, $endPos) {",
-    "      for ($p = $startPos; $p < $endPos; $p++) {",
+    "private function peg_advancePos(&$details, $startPos, $endPos)",
+    "{",
+    "    for ($p = $startPos; $p < $endPos; $p++) {",
     "        $ch = $this->input_substr($p, 1);",
     '        if ($ch === "\\n") {',
-    '          if (!$details["seenCR"]) { $details["line"]++; }',
-    '          $details["column"] = 1;',
-    '          $details["seenCR"] = false;',
+    '            if (!$details["seenCR"]) { $details["line"]++; }',
+    '            $details["column"] = 1;',
+    '            $details["seenCR"] = false;',
     '        } else if ($ch === "\\r" || $ch === "\\u2028" || $ch === "\\u2029") {',
-    '          $details["line"]++;',
-    '          $details["column"] = 1;',
-    '          $details["seenCR"] = true;',
+    '            $details["line"]++;',
+    '            $details["column"] = 1;',
+    '            $details["seenCR"] = true;',
     "        } else {",
-    '          $details["column"]++;',
-    '          $details["seenCR"] = false;',
+    '            $details["column"]++;',
+    '            $details["seenCR"] = false;',
     "        }",
-    "      }",
     "    }",
+    "}",
     "",
-    "    private function peg_computePosDetails($pos) {",
-    "      if ($this->peg_cachedPos !== $pos) {",
+    "private function peg_computePosDetails($pos)",
+    "{",
+    "    if ($this->peg_cachedPos !== $pos) {",
     "        if ($this->peg_cachedPos > $pos) {",
-    "          $this->peg_cachedPos = 0;",
-    '          $this->peg_cachedPosDetails = array( "line" => 1, "column" => 1, "seenCR" => false );',
+    "            $this->peg_cachedPos = 0;",
+    '            $this->peg_cachedPosDetails = array("line" => 1, "column" => 1, "seenCR" => false);',
     "        }",
     "        $this->peg_advancePos($this->peg_cachedPosDetails, $this->peg_cachedPos, $pos);",
     "        $this->peg_cachedPos = $pos;",
-    "      }",
-    "",
-    "      return $this->peg_cachedPosDetails;",
     "    }",
     "",
-    "    private function peg_fail($expected) {",
-    "      if ($this->peg_currPos < $this->peg_maxFailPos) { return; }",
+    "    return $this->peg_cachedPosDetails;",
+    "}",
     "",
-    "      if ($this->peg_currPos > $this->peg_maxFailPos) {",
+    "private function peg_fail($expected)",
+    "{",
+    "    if ($this->peg_currPos < $this->peg_maxFailPos) { return; }",
+    "",
+    "    if ($this->peg_currPos > $this->peg_maxFailPos) {",
     "        $this->peg_maxFailPos = $this->peg_currPos;",
     "        $this->peg_maxFailExpected = array();",
-    "      }",
-    "",
-    "      $this->peg_maxFailExpected[] = $expected;",
     "    }",
     "",
-    "    private function peg_buildException_expectedComparator($a, $b) {",
-    '      if ($a["description"] < $b["description"]) {',
+    "    $this->peg_maxFailExpected[] = $expected;",
+    "}",
+    "",
+    "private function peg_buildException_expectedComparator($a, $b)",
+    "{",
+    '    if ($a["description"] < $b["description"]) {',
     "        return -1;",
-    '      } else if ($a["description"] > $b["description"]) {',
+    '    } else if ($a["description"] > $b["description"]) {',
     "        return 1;",
-    "      } else {",
+    "    } else {",
     "        return 0;",
-    "      }",
     "    }",
+    "}",
     "",
-    "    private function peg_buildException($message, $expected, $pos) {",
-    "      $posDetails = $this->peg_computePosDetails($pos);",
-    "      $found      = $pos < $this->input_length ? $this->input[$pos] : null;",
+    "private function peg_buildException($message, $expected, $pos)",
+    "{",
+    "    $posDetails = $this->peg_computePosDetails($pos);",
+    "    $found = $pos < $this->input_length ? $this->input[$pos] : null;",
     "",
-    "      if ($expected !== null) {",
+    "    if ($expected !== null) {",
     '        usort($expected, array($this, "peg_buildException_expectedComparator"));',
     "        $i = 1;",
     /*
@@ -736,43 +748,43 @@ module.exports = function(ast, options) {
      * of deeper structural comparison.
      */
     "        while ($i < count($expected)) {",
-    "          if ($expected[$i - 1] === $expected[$i]) {",
-    "            array_splice($expected, $i, 1);",
-    "          } else {",
-    "            $i++;",
-    "          }",
+    "            if ($expected[$i - 1] === $expected[$i]) {",
+    "                array_splice($expected, $i, 1);",
+    "            } else {",
+    "                $i++;",
+    "            }",
     "        }",
-    "      }",
+    "    }",
     "",
-    "      if ($message === null) {",
+    "    if ($message === null) {",
     "        $expectedDescs = array_fill(0, count($expected), null);",
     "",
     "        for ($i = 0; $i < count($expected); $i++) {",
-    '          $expectedDescs[$i] = $expected[$i]["description"];',
+    '            $expectedDescs[$i] = $expected[$i]["description"];',
     "        }",
     "",
     "        $expectedDesc = count($expected) > 1",
-    '          ? join(", ", array_slice($expectedDescs, 0, -1))',
-    '              . " or "',
-    "              . $expectedDescs[count($expected) - 1]",
-    "          : $expectedDescs[0];",
+    '            ? join(", ", array_slice($expectedDescs, 0, -1))',
+    '                . " or "',
+    "                . $expectedDescs[count($expected) - 1]",
+    "            : $expectedDescs[0];",
     "",
     '        $foundDesc = $found ? json_encode($found) : "end of input";',
     "",
     '        $message = "Expected " . $expectedDesc . " but " . $foundDesc . " found.";',
-    "      }",
+    "    }",
     "",
-    "      return new SyntaxError(",
+    "    return new SyntaxError(",
     "        $message,",
     "        $expected,",
     "        $found,",
     "        $pos,",
     '        $posDetails["line"],',
     '        $posDetails["column"]',
-    "      );",
-    "    }",
+    "    );",
+    "}",
     "",
-  ].join("\n"));
+  ].join("\n")));
 
   parts.push("    private $peg_FAILED;");
   parts.push(indent4(generateTablesDeclaration()));
@@ -785,8 +797,9 @@ module.exports = function(ast, options) {
     parts.push("");
   });
 
-  parts.push([
-    "  public function parse($input) {",
+  parts.push(indent4([
+    "public function parse($input)",
+    "{",
     "    $arguments = func_get_args();",
     "    $options = count($arguments) > 1 ? $arguments[1] : array();",
     "    $this->cleanup_state();",
@@ -799,84 +812,89 @@ module.exports = function(ast, options) {
     "    }",
     "    $this->input_length = count($this->input);",
     "",
-  ].join("\n"));
+  ].join("\n")));
 
   if (mbstringAllowed) {
-    parts.push([
-      "    $old_regex_encoding = mb_regex_encoding();",
-      '    mb_regex_encoding("UTF-8");',
+    parts.push(indent8([
+      "$old_regex_encoding = mb_regex_encoding();",
+      'mb_regex_encoding("UTF-8");',
       "",
-    ].join("\n"));
+    ].join("\n"))));
   }
 
-  parts.push(indent4("$this->peg_FAILED = new " + phpGlobalNamespacePrefix + "stdClass;"));
-  parts.push(indent4(generateTablesDefinition()));
+  parts.push(indent8("$this->peg_FAILED = new " + phpGlobalNamespacePrefix + "stdClass;"));
+  parts.push(indent8(generateTablesDefinition()));
   parts.push("");
 
-  const startRuleFunctions = "array( "
+  const startRuleFunctions = "array("
     + options.allowedStartRules.map(
       r => "'" + r + '\' => array($this, "peg_parse' + r + '")'
     ).join(", ")
-    + " )";
+    + ")";
   const startRuleFunction = 'array($this, "peg_parse' + options.allowedStartRules[0] + '")';
 
-  parts.push([
-    "    $peg_startRuleFunctions = " + startRuleFunctions + ";",
-    "    $peg_startRuleFunction  = " + startRuleFunction + ";",
-  ].join("\n"));
+  parts.push(indent8([
+    "$peg_startRuleFunctions = " + startRuleFunctions + ";",
+    "$peg_startRuleFunction = " + startRuleFunction + ";",
+  ].join("\n")));
 
-  parts.push([
-    '    if (isset($options["startRule"])) {',
-    '      if (!(isset($peg_startRuleFunctions[$options["startRule"]]))) {',
+  parts.push(indent8([
+    'if (isset($options["startRule"])) {',
+    '    if (!(isset($peg_startRuleFunctions[$options["startRule"]]))) {',
     "        throw new " + phpGlobalNamespacePrefix + 'Exception("Can\'t start parsing from rule \\"" + $options["startRule"] + "\\".");',
-    "      }",
-    "",
-    '      $peg_startRuleFunction = $peg_startRuleFunctions[$options["startRule"]];',
     "    }",
-  ].join("\n"));
+    "",
+    '    $peg_startRuleFunction = $peg_startRuleFunctions[$options["startRule"]];',
+    "}",
+  ].join("\n")));
 
   if (ast.initializer) {
     parts.push("");
-    parts.push(indent4("/* BEGIN initializer code */"));
-    parts.push(indent4(
+    parts.push(indent8("/* BEGIN initializer code */"));
+    parts.push(indent8(
       internalUtils.extractPhpCode(ast.initializer.code)
     ));
-    parts.push(indent4("/* END initializer code */"));
+    parts.push(indent8("/* END initializer code */"));
     parts.push("");
   }
 
-  parts.push("    $peg_result = call_user_func($peg_startRuleFunction);");
+  parts.push(indent8("$peg_result = call_user_func($peg_startRuleFunction);"));
 
   if (options.cache) {
     parts.push("");
-    parts.push("    $this->peg_cache = array();");
+    parts.push(indent8("$this->peg_cache = array();"));
   }
 
   if (mbstringAllowed) {
-    parts.push([
+    parts.push(indent8[
       "",
-      "    mb_regex_encoding($old_regex_encoding);",
-    ].join("\n"));
+      "mb_regex_encoding($old_regex_encoding);",
+    ].join("\n")));
   }
 
-  parts.push([
+  parts.push(indent8([
     "",
-    "    if ($peg_result !== $this->peg_FAILED && $this->peg_currPos === $this->input_length) {",
-    "      $this->cleanup_state(); // Free up memory",
-    "      return $peg_result;",
-    "    } else {",
-    "      if ($peg_result !== $this->peg_FAILED && $this->peg_currPos < $this->input_length) {",
-    '        $this->peg_fail(array("type" => "end", "description" => "end of input" ));',
-    "      }",
-    "",
-    "      $exception = $this->peg_buildException(null, $this->peg_maxFailExpected, $this->peg_maxFailPos);",
-    "      $this->cleanup_state(); // Free up memory",
-    "      throw $exception;",
+    "if ($peg_result !== $this->peg_FAILED && $this->peg_currPos === $this->input_length) {",
+    "    // Free up memory",
+    "    $this->cleanup_state();",
+    "    return $peg_result;",
+    "} else {",
+    "    if ($peg_result !== $this->peg_FAILED && $this->peg_currPos < $this->input_length) {",
+    '        $this->peg_fail(array("type" => "end", "description" => "end of input"));',
     "    }",
-    "  }",
     "",
+    "    $exception = $this->peg_buildException(null, $this->peg_maxFailExpected, $this->peg_maxFailPos);",
+    "    // Free up memory",
+    "    $this->cleanup_state();",
+    "    throw $exception;",
+    "}",
+  ].join("\n")));
+
+  parts.push([
+    "    }",
     "};",
-  ].join("\n"));
+    "",
+  ].join("\n")));
 
   ast.code = parts.join("\n");
 };

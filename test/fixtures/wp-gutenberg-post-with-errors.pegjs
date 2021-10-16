@@ -5,9 +5,9 @@
 // are the same as `json_decode`
 ?> **/
 
-function maybeJSON( s ) {
+function maybeJSON(s) {
 	try {
-		return JSON.parse( s );
+		return JSON.parse(s);
 	} catch (e) {
 		return null;
 	}
@@ -109,7 +109,7 @@ WP_Block_Name
 WP_Block_Attributes
   = attrs:$("{" (!("}" WS+ """/"? "-->") .)* "}")
   {
-    /** <?php return json_decode( $attrs, true ); ?> **/
+    /** <?php return json_decode($attrs, true); ?> **/
     return maybeJSON( attrs );
   }
 

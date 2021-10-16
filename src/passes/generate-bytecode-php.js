@@ -294,8 +294,8 @@ module.exports = function(ast, options) {
       [op.PUSH_CURR_POS],
       [op.SILENT_FAILS_ON],
       generate(expression, {
-        sp:     context.sp + 1,
-        env:    cloneEnv(context.env),
+        sp: context.sp + 1,
+        env: cloneEnv(context.env),
         action: null,
       }),
       [op.SILENT_FAILS_OFF],
@@ -316,7 +316,7 @@ module.exports = function(ast, options) {
   }
 
   function buildSemanticPredicate(code, negative, context) {
-    const functionIndex  = addFunctionConst(Object.keys(context.env), code);
+    const functionIndex = addFunctionConst(Object.keys(context.env), code);
 
     return buildSequence(
       [op.UPDATE_SAVED_POS],
@@ -352,15 +352,15 @@ module.exports = function(ast, options) {
 
     "rule"(node) {
       node.bytecode = generate(node.expression, {
-        sp:     -1,  // Stack pointer
-        env:    { }, // Mapping of label names to stack positions
+        sp: -1,       // Stack pointer
+        env: {},      // Mapping of label names to stack positions
         action: null, // Action nodes pass themselves to children here
       });
     },
 
     "named"(node, context) {
       const nameIndex = addConst(
-        'array("type" => "other", "description" => ' + internalUtils.quote(node.name) + " )"
+        'array("type" => "other", "description" => ' + internalUtils.quote(node.name) + ")"
       );
 
       /*
@@ -381,8 +381,8 @@ module.exports = function(ast, options) {
       function buildAlternativesCode(alternatives, context) {
         return buildSequence(
           generate(alternatives[0], {
-            sp:     context.sp,
-            env:    cloneEnv(context.env),
+            sp: context.sp,
+            env: cloneEnv(context.env),
             action: null,
           }),
           alternatives.length > 1
@@ -402,15 +402,15 @@ module.exports = function(ast, options) {
     },
 
     "action"(node, context) {
-      const env            = cloneEnv(context.env);
-      const emitCall       = node.expression.type !== "sequence"
-                        || node.expression.elements.length === 0;
+      const env = cloneEnv(context.env);
+      const emitCall = node.expression.type !== "sequence"
+        || node.expression.elements.length === 0;
       const expressionCode = generate(node.expression, {
-        sp:     context.sp + (emitCall ? 1 : 0),
+        sp: context.sp + (emitCall ? 1 : 0),
         env,
         action: node,
       });
-      const functionIndex  = addFunctionConst(Object.keys(env), node.code);
+      const functionIndex = addFunctionConst(Object.keys(env), node.code);
 
       return emitCall
         ? buildSequence(
@@ -438,15 +438,15 @@ module.exports = function(ast, options) {
 
           return buildSequence(
             generate(elements[0], {
-              sp:     context.sp,
-              env:    context.env,
+              sp: context.sp,
+              env: context.env,
               action: null,
             }),
             buildCondition(
               [op.IF_NOT_ERROR],
               buildElementsCode(elements.slice(1), {
-                sp:     context.sp + 1,
-                env:    context.env,
+                sp: context.sp + 1,
+                env: context.env,
                 action: context.action,
               }),
               buildSequence(
@@ -483,8 +483,8 @@ module.exports = function(ast, options) {
         return buildSequence(
           [op.PUSH_CURR_POS],
           buildElementsCode(node.elements, {
-            sp:     context.sp + 1,
-            env:    context.env,
+            sp: context.sp + 1,
+            env: context.env,
             action: context.action,
           })
         );
@@ -499,7 +499,7 @@ module.exports = function(ast, options) {
       context.env[node.label] = context.sp + 1;
 
       return generate(node.expression, {
-        sp:     context.sp,
+        sp: context.sp,
         env,
         action: null,
       });
@@ -509,8 +509,8 @@ module.exports = function(ast, options) {
       return buildSequence(
         [op.PUSH_CURR_POS],
         generate(node.expression, {
-          sp:     context.sp + 1,
-          env:    cloneEnv(context.env),
+          sp: context.sp + 1,
+          env: cloneEnv(context.env),
           action: null,
         }),
         buildCondition(
@@ -532,8 +532,8 @@ module.exports = function(ast, options) {
     "optional"(node, context) {
       return buildSequence(
         generate(node.expression, {
-          sp:     context.sp,
-          env:    cloneEnv(context.env),
+          sp: context.sp,
+          env: cloneEnv(context.env),
           action: null,
         }),
         buildCondition(
@@ -545,9 +545,9 @@ module.exports = function(ast, options) {
     },
 
     "zero_or_more"(node, context) {
-      const expressionCode  = generate(node.expression, {
-        sp:     context.sp + 1,
-        env:    cloneEnv(context.env),
+      const expressionCode = generate(node.expression, {
+        sp: context.sp + 1,
+        env: cloneEnv(context.env),
         action: null,
       });
 
@@ -560,9 +560,9 @@ module.exports = function(ast, options) {
     },
 
     "one_or_more"(node, context) {
-      const expressionCode  = generate(node.expression, {
-        sp:     context.sp + 1,
-        env:    cloneEnv(context.env),
+      const expressionCode = generate(node.expression, {
+        sp: context.sp + 1,
+        env: cloneEnv(context.env),
         action: null,
       });
 
@@ -579,8 +579,8 @@ module.exports = function(ast, options) {
 
     "group"(node, context) {
       return generate(node.expression, {
-        sp:     context.sp,
-        env:    cloneEnv(context.env),
+        sp: context.sp,
+        env: cloneEnv(context.env),
         action: null,
       });
     },
@@ -612,13 +612,11 @@ module.exports = function(ast, options) {
         stringIndex = addConst(node.ignoreCase
           ? internalUtils.quote(node.value.toLowerCase())
           : internalUtils.quote(node.value));
-        expectedIndex = addConst([
-          "array(",
+        expectedIndex = addConst("array(" + [
           '"type" => "literal",',
           '"value" => ' + internalUtils.quote(node.value) + ",",
           '"description" => ' + internalUtils.quote(internalUtils.quote(node.value)),
-          ")",
-        ].join(" "));
+        ].join(" ") + ")");
 
         /*
          * For case-sensitive strings the value must match the beginning of the
@@ -658,22 +656,22 @@ module.exports = function(ast, options) {
 
       function quoteForPhpRegexp(s) {
         return s
-          .replace(/\\/g, "\\\\")  // Backslash
-          .replace(/\//g, "\\/")   // Closing slash
-          .replace(/\[/g, "\\[")   // Opening ) bracket
-          .replace(/\]/g, "\\]")   // Closing ) bracket
-          .replace(/\(/g, "\\(")   // Opening ( bracket
-          .replace(/\)/g, "\\)")   // Closing ( bracket
-          .replace(/\^/g, "\\^")   // Caret
-          .replace(/\$/g, "\\$")   // Dollar
-          .replace(/([^[])-/g,  "$1\\-")   // Dash
-          .replace(/\0/g, "\\0")   // Null
-          .replace(/\t/g, "\\t")   // Horizontal tab
-          .replace(/\n/g, "\\n")   // Line feed
-          .replace(/\v/g, "\\x0B") // Vertical tab
-          .replace(/\f/g, "\\f")   // Form feed
-          .replace(/\r/g, "\\r")   // Carriage return
-          .replace(/[\x00-\x0f]/g,          ch => "\\x0" + hex(ch))
+          .replace(/\\/g, "\\\\")        // Backslash
+          .replace(/\//g, "\\/")         // Closing slash
+          .replace(/\[/g, "\\[")         // Opening ) bracket
+          .replace(/\]/g, "\\]")         // Closing ) bracket
+          .replace(/\(/g, "\\(")         // Opening ( bracket
+          .replace(/\)/g, "\\)")         // Closing ( bracket
+          .replace(/\^/g, "\\^")         // Caret
+          .replace(/\$/g, "\\$")         // Dollar
+          .replace(/([^[])-/g,  "$1\\-") // Dash
+          .replace(/\0/g, "\\0")         // Null
+          .replace(/\t/g, "\\t")         // Horizontal tab
+          .replace(/\n/g, "\\n")         // Line feed
+          .replace(/\v/g, "\\x0B")       // Vertical tab
+          .replace(/\f/g, "\\f")         // Form feed
+          .replace(/\r/g, "\\r")         // Carriage return
+          .replace(/[\x00-\x0f]/g, ch => "\\x0" + hex(ch))
           .replace(/[\x10-\x1f\x7f-\x9f]/g, ch => "\\x" + hex(ch))
           .replace(/[\xFF-\uFFFF]/g, ch => {
             let hexCode = ch.charCodeAt(0).toString(16).toUpperCase();
@@ -747,15 +745,14 @@ module.exports = function(ast, options) {
           return part;
         }
         return part.join("-");
-      }).join("") + "]";
+      }).join("")
+      + "]";
 
-      const expectedIndex = addConst([
-        "array(",
+      const expectedIndex = addConst("array(" + [
         '"type" => "class",',
         '"value" => ' + quotePhp(rawText) + ",",
         '"description" => ' + quotePhp(rawText),
-        ")",
-      ].join(" "));
+      ].join(" ") + ")");
 
       return buildCondition(
         [op.MATCH_REGEXP, regexpIndex],
@@ -765,7 +762,7 @@ module.exports = function(ast, options) {
     },
 
     "any"() {
-      const expectedIndex = addConst('array("type" => "any", "description" => "any character" )');
+      const expectedIndex = addConst('array("type" => "any", "description" => "any character")');
 
       return buildCondition(
         [op.MATCH_ANY],

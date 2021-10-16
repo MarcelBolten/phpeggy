@@ -3,5 +3,5 @@ Document
 
 Nothing
 	= a:[] {
-		return array( 'rule' => 'Nothing' );
+		return array('rule' => 'Nothing');
 	}

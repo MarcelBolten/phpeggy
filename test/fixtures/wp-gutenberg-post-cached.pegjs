@@ -51,41 +51,41 @@
 // are the same as `json_decode`
 
 // array arguments are backwards because of PHP
-if ( ! function_exists( 'peg_array_partition' ) ) {
-    function peg_array_partition( $array, $predicate ) {
+if (!function_exists('peg_array_partition')) {
+    function peg_array_partition($array, $predicate) {
         $truthy = array();
         $falsey = array();
 
-        foreach ( $array as $item ) {
-            call_user_func( $predicate, $item )
+        foreach ($array as $item) {
+            call_user_func($predicate, $item)
                 ? $truthy[] = $item
                 : $falsey[] = $item;
         }
 
-        return array( $truthy, $falsey );
+        return array($truthy, $falsey);
     }
 }
 
-if ( ! function_exists( 'peg_join_blocks' ) ) {
-    function peg_join_blocks( $pre, $tokens, $post ) {
+if (!function_exists('peg_join_blocks')) {
+    function peg_join_blocks($pre, $tokens, $post) {
         $blocks = array();
 
-        if ( ! empty( $pre ) ) {
-            $blocks[] = array( 'attrs' => array(), 'innerHTML' => $pre );
+        if (!empty($pre)) {
+            $blocks[] = array('attrs' => array(), 'innerHTML' => $pre);
         }
 
-        foreach ( $tokens as $token ) {
-            list( $token, $html ) = $token;
+        foreach ($tokens as $token) {
+            list($token, $html) = $token;
 
             $blocks[] = $token;
 
-            if ( ! empty( $html ) ) {
-                $blocks[] = array( 'attrs' => array(), 'innerHTML' => $html );
+            if (!empty($html)) {
+                $blocks[] = array('attrs' => array(), 'innerHTML' => $html);
             }
         }
 
-        if ( ! empty( $post ) ) {
-            $blocks[] = array( 'attrs' => array(), 'innerHTML' => $post );
+        if (!empty($post)) {
+            $blocks[] = array('attrs' => array(), 'innerHTML' => $post);
         }
 
         return $blocks;
@@ -162,9 +162,9 @@ function partition( predicate, list ) {
 
 Block_List
   = pre:$(!Token .)*
-    ts:(t:Token html:$((!Token .)*) { /** <?php return array( $t, $html ); ?> **/ return [ t, html ] })*
+    ts:(t:Token html:$((!Token .)*) { /** <?php return array($t, $html); ?> **/ return [ t, html ] })*
     post:$(.*)
-  { /** <?php return peg_join_blocks( $pre, $ts, $post ); ?> **/
+  { /** <?php return peg_join_blocks($pre, $ts, $post); ?> **/
     return joinBlocks( pre, ts, post );
   }
 
@@ -176,8 +176,8 @@ Token
 Tag_More
   = "<!--" WS* "more" customText:(WS+ text:$((!(WS* "-->") .)+) { /** <?php return $text; ?> **/ return text })? WS* "-->" noTeaser:(WS* "<!--noteaser-->")?
   { /** <?php
-    $attrs = array( 'noTeaser' => (bool) $noTeaser );
-    if ( ! empty( $customText ) ) {
+    $attrs = array('noTeaser' => (bool) $noTeaser);
+    if (!empty($customText)) {
       $attrs['customText'] = $customText;
     }
     return array(
@@ -206,8 +206,8 @@ Block_Void
   {
     /** <?php
     return array(
-      'blockName'  => $blockName,
-      'attrs'      => $attrs,
+      'blockName' => $blockName,
+      'attrs' => $attrs,
       'innerBlocks' => array(),
       'innerHTML' => '',
       'outerHTML' => $this->text(),
@@ -227,13 +227,13 @@ Block_Balanced
   = s:Block_Start children:(Token / $(!Block_End .))* e:Block_End
   {
     /** <?php
-    list( $innerHTML, $innerBlocks ) = peg_array_partition( $children, 'is_string' );
+    list($innerHTML, $innerBlocks) = peg_array_partition($children, 'is_string');
 
     return array(
-      'blockName'  => $s['blockName'],
-      'attrs'      => $s['attrs'],
-      'innerBlocks'  => $innerBlocks,
-      'innerHTML'  => implode( '', $innerHTML ),
+      'blockName' => $s['blockName'],
+      'attrs' => $s['attrs'],
+      'innerBlocks' => $innerBlocks,
+      'innerHTML' => implode('', $innerHTML),
       'outerHTML' => $this->text(),
     );
     ?> **/
@@ -260,7 +260,7 @@ Block_Start
     /** <?php
     return array(
       'blockName' => $blockName,
-      'attrs'     => $attrs,
+      'attrs' => $attrs,
     );
     ?> **/
 
@@ -304,7 +304,7 @@ Block_Name_Part
 Block_Attributes
   = attrs:$("{" (!("}" WS+ """/"? "-->") .)* "}")
   {
-    /** <?php return json_decode( $attrs, true ); ?> **/
+    /** <?php return json_decode($attrs, true); ?> **/
     return maybeJSON( attrs );
   }
 
