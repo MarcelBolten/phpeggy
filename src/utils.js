@@ -9,7 +9,7 @@ exports.quote = function(str) {
 // Matches: /** <?php
 const regexPhpStart = /\/\*\*\s*<\?php/;
 // Matches: ?> **/
-const regexPhpEnd   = /\?>\s*\*\*\//;
+const regexPhpEnd = /\?>\s*\*\*\//;
 // Matches either kind of delimiter
 const regexPhpDelimiters = new RegExp(
   "(" + regexPhpStart.source + "|" + regexPhpEnd.source + ")"

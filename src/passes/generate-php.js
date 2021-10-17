@@ -454,9 +454,9 @@ module.exports = function(ast, options) {
     ].join("\n"));
 
     if (options.cache) {
-      parts.push(indent(4,
-        generateCacheHeader(asts.indexOfRule(ast, rule.name))
-      ));
+      parts.push(indent(4, generateCacheHeader(
+        asts.indexOfRule(ast, rule.name)
+      )));
     }
 
     parts.push(indent(4, code));
@@ -817,7 +817,7 @@ module.exports = function(ast, options) {
       "$old_regex_encoding = mb_regex_encoding();",
       'mb_regex_encoding("UTF-8");',
       "",
-    ].join("\n"))));
+    ].join("\n")));
   }
 
   parts.push(indent(8, "$this->peg_FAILED = new " + phpGlobalNamespacePrefix + "stdClass;"));
@@ -849,16 +849,12 @@ module.exports = function(ast, options) {
   if (ast.initializer) {
     parts.push("");
     parts.push(indent(8, "/* BEGIN initializer code */"));
-    parts.push(indent(8,
-      internalUtils.extractPhpCode(ast.initializer.code)
-    ));
+    parts.push(indent(8, internalUtils.extractPhpCode(ast.initializer.code)));
     parts.push(indent(8, "/* END initializer code */"));
     parts.push("");
   }
 
-  parts.push(indent(8,
-    "$peg_result = call_user_func($peg_startRuleFunction);"
-  ));
+  parts.push(indent(8, "$peg_result = call_user_func($peg_startRuleFunction);"));
 
   if (options.cache) {
     parts.push("");
@@ -894,7 +890,7 @@ module.exports = function(ast, options) {
     "    }",
     "};",
     "",
-  ].join("\n")));
+  ].join("\n"));
 
   ast.code = parts.join("\n");
 };
