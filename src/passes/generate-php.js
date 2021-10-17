@@ -46,13 +46,9 @@ module.exports = function(ast, options) {
       : options.phpeggy.mbstringAllowed
   );
 
-  /* These only indent non-empty lines to avoid trailing whitespace. */
-  function indent4(code) {
-    return code.replace(/^(.+)$/gm, "    $1");
-  }
-
-  function indent8(code) {
-    return code.replace(/^(.+)$/gm, "        $1");
+  /* Only indent non-empty lines to avoid trailing whitespace. */
+  function indent(numberOfSpaces, code) {
+    return code.replace(/^(.+)$/gm, " ".repeat(numberOfSpaces) + "$1");
   }
 
   function generateTablesDeclaration() {
@@ -189,10 +185,10 @@ module.exports = function(ast, options) {
         }
 
         parts.push("if (" + cond + ") {");
-        parts.push(indent4(thenCode));
+        parts.push(indent(4, thenCode));
         if (elseLength > 0) {
           parts.push("} else {");
-          parts.push(indent4(elseCode));
+          parts.push(indent(4, elseCode));
         }
         parts.push("}");
       }
@@ -212,7 +208,7 @@ module.exports = function(ast, options) {
         }
 
         parts.push("while (" + cond + ") {");
-        parts.push(indent4(bodyCode));
+        parts.push(indent(4, bodyCode));
         parts.push("}");
       }
 
@@ -458,15 +454,15 @@ module.exports = function(ast, options) {
     ].join("\n"));
 
     if (options.cache) {
-      parts.push(indent4(
+      parts.push(indent(4,
         generateCacheHeader(asts.indexOfRule(ast, rule.name))
       ));
     }
 
-    parts.push(indent4(code));
+    parts.push(indent(4, code));
 
     if (options.cache) {
-      parts.push(indent4(generateCacheFooter(s(0))));
+      parts.push(indent(4, generateCacheFooter(s(0))));
     }
 
     parts.push([
@@ -504,6 +500,7 @@ module.exports = function(ast, options) {
     '        return html_entity_decode("&#$code;", ENT_QUOTES, "UTF-8");',
     "    }",
     "}",
+    "",
     "/* ord_unicode - get unicode char code from string */",
     'if (!function_exists("' + phpGlobalNamePrefixOrNamespaceEscaped + 'ord_unicode")) {',
     "    function ord_unicode($character) {",
@@ -523,6 +520,7 @@ module.exports = function(ast, options) {
     "        }",
     "    }",
     "}",
+    "",
   ].join("\n"));
 
   if (mbstringAllowed) {
@@ -588,7 +586,7 @@ module.exports = function(ast, options) {
     "{",
   ].join("\n"));
 
-  parts.push(indent4([
+  parts.push(indent(4, [
     "private $peg_currPos = 0;",
     "private $peg_reportedPos = 0;",
     "private $peg_cachedPos = 0;",
@@ -605,7 +603,7 @@ module.exports = function(ast, options) {
 
   ].join("\n")));
 
-  parts.push(indent4([
+  parts.push(indent(4, [
     "",
     "private function cleanup_state()",
     "{",
@@ -640,7 +638,7 @@ module.exports = function(ast, options) {
     "",
   ].join("\n")));
 
-  parts.push(indent4([
+  parts.push(indent(4, [
     "",
     "private function text()",
     "{",
@@ -787,17 +785,17 @@ module.exports = function(ast, options) {
   ].join("\n")));
 
   parts.push("    private $peg_FAILED;");
-  parts.push(indent4(generateTablesDeclaration()));
+  parts.push(indent(4, generateTablesDeclaration()));
   parts.push("");
-  parts.push(indent4(generateFunctions()));
+  parts.push(indent(4, generateFunctions()));
   parts.push("");
 
   ast.rules.forEach(rule => {
-    parts.push(indent4(generateRuleFunction(rule)));
+    parts.push(indent(4, generateRuleFunction(rule)));
     parts.push("");
   });
 
-  parts.push(indent4([
+  parts.push(indent(4, [
     "public function parse($input)",
     "{",
     "    $arguments = func_get_args();",
@@ -815,15 +813,15 @@ module.exports = function(ast, options) {
   ].join("\n")));
 
   if (mbstringAllowed) {
-    parts.push(indent8([
+    parts.push(indent(8, [
       "$old_regex_encoding = mb_regex_encoding();",
       'mb_regex_encoding("UTF-8");',
       "",
     ].join("\n"))));
   }
 
-  parts.push(indent8("$this->peg_FAILED = new " + phpGlobalNamespacePrefix + "stdClass;"));
-  parts.push(indent8(generateTablesDefinition()));
+  parts.push(indent(8, "$this->peg_FAILED = new " + phpGlobalNamespacePrefix + "stdClass;"));
+  parts.push(indent(8, generateTablesDefinition()));
   parts.push("");
 
   const startRuleFunctions = "array("
@@ -833,12 +831,12 @@ module.exports = function(ast, options) {
     + ")";
   const startRuleFunction = 'array($this, "peg_parse' + options.allowedStartRules[0] + '")';
 
-  parts.push(indent8([
+  parts.push(indent(8, [
     "$peg_startRuleFunctions = " + startRuleFunctions + ";",
     "$peg_startRuleFunction = " + startRuleFunction + ";",
   ].join("\n")));
 
-  parts.push(indent8([
+  parts.push(indent(8, [
     'if (isset($options["startRule"])) {',
     '    if (!(isset($peg_startRuleFunctions[$options["startRule"]]))) {',
     "        throw new " + phpGlobalNamespacePrefix + 'Exception("Can\'t start parsing from rule \\"" + $options["startRule"] + "\\".");',
@@ -850,29 +848,31 @@ module.exports = function(ast, options) {
 
   if (ast.initializer) {
     parts.push("");
-    parts.push(indent8("/* BEGIN initializer code */"));
-    parts.push(indent8(
+    parts.push(indent(8, "/* BEGIN initializer code */"));
+    parts.push(indent(8,
       internalUtils.extractPhpCode(ast.initializer.code)
     ));
-    parts.push(indent8("/* END initializer code */"));
+    parts.push(indent(8, "/* END initializer code */"));
     parts.push("");
   }
 
-  parts.push(indent8("$peg_result = call_user_func($peg_startRuleFunction);"));
+  parts.push(indent(8,
+    "$peg_result = call_user_func($peg_startRuleFunction);"
+  ));
 
   if (options.cache) {
     parts.push("");
-    parts.push(indent8("$this->peg_cache = array();"));
+    parts.push(indent(8, "$this->peg_cache = array();"));
   }
 
   if (mbstringAllowed) {
-    parts.push(indent8[
+    parts.push(indent(8, [
       "",
       "mb_regex_encoding($old_regex_encoding);",
     ].join("\n")));
   }
 
-  parts.push(indent8([
+  parts.push(indent(8, [
     "",
     "if ($peg_result !== $this->peg_FAILED && $this->peg_currPos === $this->input_length) {",
     "    // Free up memory",
