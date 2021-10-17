@@ -658,10 +658,10 @@ module.exports = function(ast, options) {
         return s
           .replace(/\\/g, "\\\\")        // Backslash
           .replace(/\//g, "\\/")         // Closing slash
-          .replace(/\[/g, "\\[")         // Opening ) bracket
-          .replace(/\]/g, "\\]")         // Closing ) bracket
+          .replace(/\[/g, "\\[")         // Opening [ bracket
+          .replace(/\]/g, "\\]")         // Closing ] bracket
           .replace(/\(/g, "\\(")         // Opening ( bracket
-          .replace(/\)/g, "\\)")         // Closing ( bracket
+          .replace(/\)/g, "\\)")         // Closing ) bracket
           .replace(/\^/g, "\\^")         // Caret
           .replace(/\$/g, "\\$")         // Dollar
           .replace(/([^[])-/g,  "$1\\-") // Dash

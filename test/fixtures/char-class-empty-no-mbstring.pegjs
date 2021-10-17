@@ -1,7 +1,7 @@
 Document
-	= Nothing+
+  = Nothing+
 
 Nothing
-	= a:[] {
-		return array('rule' => 'Nothing');
-	}
+  = a:[] {
+    return array('rule' => 'Nothing');
+  }

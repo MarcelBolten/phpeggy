@@ -68,7 +68,7 @@ module.exports = function(ast, options) {
       (c, i) => "private function peg_f" + i
           + "(" + c.params + ")\n"
           + "{\n"
-          + "    " + c.code
+          + "    " + c.code.trim()
           + "\n}"
     ).join("\n\n");
   }
@@ -449,8 +449,8 @@ module.exports = function(ast, options) {
     const code = compile(rule.bytecode);
 
     parts.push([
-      "private function peg_parse" + rule.name + "() {",
-      "",
+      "private function peg_parse" + rule.name + "()",
+      "{",
     ].join("\n"));
 
     if (options.cache) {
@@ -569,6 +569,7 @@ module.exports = function(ast, options) {
     "        public $grammarLine;",
     "        public $grammarColumn;",
     "        public $name;",
+    "",
     "        public function __construct($message, $expected, $found, $offset, $line, $column)",
     "        {",
     "            parent::__construct($message, 0);",
@@ -587,40 +588,43 @@ module.exports = function(ast, options) {
   ].join("\n"));
 
   parts.push(indent(4, [
+    ...options.cache
+      ? ["public $peg_cache = array();"]
+      : [],
+
     "private $peg_currPos = 0;",
     "private $peg_reportedPos = 0;",
     "private $peg_cachedPos = 0;",
-    "private $peg_cachedPosDetails = array('line' => 1, 'column' => 1, 'seenCR' => false);",
+    'private $peg_cachedPosDetails = array("line" => 1, "column" => 1, "seenCR" => false);',
     "private $peg_maxFailPos = 0;",
     "private $peg_maxFailExpected = array();",
     "private $peg_silentFails = 0;", // 0 = report failures, > 0 = silence failures
     "private $input = array();",
     "private $input_length = 0;",
-
-    options.cache
-      ? "public $peg_cache = array();"
-      : "",
-
   ].join("\n")));
 
+  parts.push("");
+  parts.push("    private $peg_FAILED;");
+  parts.push(indent(4, generateTablesDeclaration()));
+  parts.push("");
+
   parts.push(indent(4, [
-    "",
     "private function cleanup_state()",
     "{",
+
+    ...options.cache
+      ? ["    $this->peg_cache = array();"]
+      : [],
+
     "    $this->peg_currPos = 0;",
     "    $this->peg_reportedPos = 0;",
     "    $this->peg_cachedPos = 0;",
-    "    $this->peg_cachedPosDetails = array('line' => 1, 'column' => 1, 'seenCR' => false );",
+    '    $this->peg_cachedPosDetails = array("line" => 1, "column" => 1, "seenCR" => false);',
     "    $this->peg_maxFailPos = 0;",
     "    $this->peg_maxFailExpected = array();",
     "    $this->peg_silentFails = 0;",
     "    $this->input = array();",
     "    $this->input_length = 0;",
-
-    options.cache
-      ? "  $this->peg_cache = array();"
-      : "",
-
     "}",
     "",
     "private function input_substr($start, $length)",
@@ -639,7 +643,6 @@ module.exports = function(ast, options) {
   ].join("\n")));
 
   parts.push(indent(4, [
-    "",
     "private function text()",
     "{",
     "    return $this->input_substr($this->peg_reportedPos, $this->peg_currPos - $this->peg_reportedPos);",
@@ -666,7 +669,7 @@ module.exports = function(ast, options) {
     "{",
     "    throw $this->peg_buildException(",
     "        null,",
-    '        array(array("type" => "other", "description" => $description )),',
+    '        array(array("type" => "other", "description" => $description)),',
     "        $this->peg_reportedPos",
     "    );",
     "}",
@@ -784,9 +787,6 @@ module.exports = function(ast, options) {
     "",
   ].join("\n")));
 
-  parts.push("    private $peg_FAILED;");
-  parts.push(indent(4, generateTablesDeclaration()));
-  parts.push("");
   parts.push(indent(4, generateFunctions()));
   parts.push("");
 
@@ -874,16 +874,15 @@ module.exports = function(ast, options) {
     "    // Free up memory",
     "    $this->cleanup_state();",
     "    return $peg_result;",
-    "} else {",
-    "    if ($peg_result !== $this->peg_FAILED && $this->peg_currPos < $this->input_length) {",
-    '        $this->peg_fail(array("type" => "end", "description" => "end of input"));',
-    "    }",
-    "",
-    "    $exception = $this->peg_buildException(null, $this->peg_maxFailExpected, $this->peg_maxFailPos);",
-    "    // Free up memory",
-    "    $this->cleanup_state();",
-    "    throw $exception;",
     "}",
+    "if ($peg_result !== $this->peg_FAILED && $this->peg_currPos < $this->input_length) {",
+    '    $this->peg_fail(array("type" => "end", "description" => "end of input"));',
+    "}",
+    "",
+    "$exception = $this->peg_buildException(null, $this->peg_maxFailExpected, $this->peg_maxFailPos);",
+    "// Free up memory",
+    "$this->cleanup_state();",
+    "throw $exception;",
   ].join("\n")));
 
   parts.push([

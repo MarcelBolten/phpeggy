@@ -6,11 +6,11 @@
 ?> **/
 
 function maybeJSON(s) {
-	try {
-		return JSON.parse(s);
-	} catch (e) {
-		return null;
-	}
+  try {
+    return JSON.parse(s);
+  } catch (e) {
+    return null;
+  }
 }
 
 }
@@ -33,9 +33,9 @@ WP_Block_Void
   {
     /** <?php
     return array(
-      'blockName'  => $blockName,
-      'attrs'      => $attrs,
-      'rawContent' => '',
+        'blockName' => $blockName,
+        'attrs' => $attrs,
+        'rawContent' => '',
     );
     ?> **/
 
@@ -57,16 +57,16 @@ WP_Block_Balanced
   {
     /** <?php
     return array(
-      'blockName'  => $s['blockName'],
-      'attrs'      => $s['attrs'],
-      'rawContent' => implode( '', $ts ),
+        'blockName' => $s['blockName'],
+        'attrs' => $s['attrs'],
+        'rawContent' => implode('', $ts),
     );
     ?> **/
 
     return {
       blockName: s.blockName,
       attrs: s.attrs,
-      rawContent: ts.join( '' )
+      rawContent: ts.join('')
     };
   }
 
@@ -78,8 +78,8 @@ WP_Block_Start
   {
     /** <?php
     return array(
-      'blockName' => $blockName,
-      'attrs'     => $attrs,
+        'blockName' => $blockName,
+        'attrs' => $attrs,
     );
     ?> **/
 
@@ -94,7 +94,7 @@ WP_Block_End
   {
     /** <?php
     return array(
-      'blockName' => $blockName,
+        'blockName' => $blockName,
     );
     ?> **/
 
@@ -110,7 +110,7 @@ WP_Block_Attributes
   = attrs:$("{" (!("}" WS+ """/"? "-->") .)* "}")
   {
     /** <?php return json_decode($attrs, true); ?> **/
-    return maybeJSON( attrs );
+    return maybeJSON(attrs);
   }
 
 ASCII_AlphaNumeric

@@ -95,61 +95,61 @@ if (!function_exists('peg_join_blocks')) {
 ?> **/
 
 function freeform( s ) {
-    return s.length && {
-        attrs: {},
-        innerHTML: s
-    };
+  return s.length && {
+    attrs: {},
+    innerHTML: s
+  };
 }
 
 function joinBlocks( pre, tokens, post ) {
-    var blocks = [], i, l, html, item, token;
+  var blocks = [], i, l, html, item, token;
 
-    if ( pre.length ) {
-        blocks.push( freeform( pre ) );
+  if ( pre.length ) {
+    blocks.push( freeform( pre ) );
+  }
+
+  for ( i = 0, l = tokens.length; i < l; i++ ) {
+    item = tokens[ i ];
+    token = item[ 0 ];
+    html = item[ 1 ];
+
+    blocks.push( token );
+    if ( html.length ) {
+      blocks.push( freeform( html ) );
     }
+  }
 
-    for ( i = 0, l = tokens.length; i < l; i++ ) {
-        item = tokens[ i ];
-        token = item[ 0 ];
-        html = item[ 1 ];
+  if ( post.length ) {
+    blocks.push( freeform( post ) );
+  }
 
-        blocks.push( token );
-        if ( html.length ) {
-            blocks.push( freeform( html ) );
-        }
-    }
-
-    if ( post.length ) {
-        blocks.push( freeform( post ) );
-    }
-
-    return blocks;
+  return blocks;
 }
 
 function maybeJSON( s ) {
-    try {
-        return JSON.parse( s );
-    } catch (e) {
-        return null;
-    }
+  try {
+    return JSON.parse( s );
+  } catch (e) {
+    return null;
+  }
 }
 
 function partition( predicate, list ) {
-    var i, l, item;
-    var truthy = [];
-    var falsey = [];
+  var i, l, item;
+  var truthy = [];
+  var falsey = [];
 
-    // nod to performance over a simpler reduce
-    // and clone model we could have taken here
-    for ( i = 0, l = list.length; i < l; i++ ) {
-        item = list[ i ];
+  // nod to performance over a simpler reduce
+  // and clone model we could have taken here
+  for ( i = 0, l = list.length; i < l; i++ ) {
+    item = list[ i ];
 
-        predicate( item )
-            ? truthy.push( item )
-            : falsey.push( item )
-    };
+    predicate( item )
+      ? truthy.push( item )
+      : falsey.push( item )
+  };
 
-    return [ truthy, falsey ];
+  return [ truthy, falsey ];
 }
 
 }
@@ -178,13 +178,13 @@ Tag_More
   { /** <?php
     $attrs = array('noTeaser' => (bool) $noTeaser);
     if (!empty($customText)) {
-      $attrs['customText'] = $customText;
+        $attrs['customText'] = $customText;
     }
     return array(
-       'blockName' => 'core/more',
-       'attrs' => $attrs,
-       'innerHTML' => '',
-       'outerHTML' => $this->text(),
+        'blockName' => 'core/more',
+        'attrs' => $attrs,
+        'innerHTML' => '',
+        'outerHTML' => $this->text(),
     );
     ?> **/
     return {
@@ -206,11 +206,11 @@ Block_Void
   {
     /** <?php
     return array(
-      'blockName' => $blockName,
-      'attrs' => $attrs,
-      'innerBlocks' => array(),
-      'innerHTML' => '',
-      'outerHTML' => $this->text(),
+        'blockName' => $blockName,
+        'attrs' => $attrs,
+        'innerBlocks' => array(),
+        'innerHTML' => '',
+        'outerHTML' => $this->text(),
     );
     ?> **/
 
@@ -230,11 +230,11 @@ Block_Balanced
     list($innerHTML, $innerBlocks) = peg_array_partition($children, 'is_string');
 
     return array(
-      'blockName' => $s['blockName'],
-      'attrs' => $s['attrs'],
-      'innerBlocks' => $innerBlocks,
-      'innerHTML' => implode('', $innerHTML),
-      'outerHTML' => $this->text(),
+        'blockName' => $s['blockName'],
+        'attrs' => $s['attrs'],
+        'innerBlocks' => $innerBlocks,
+        'innerHTML' => implode('', $innerHTML),
+        'outerHTML' => $this->text(),
     );
     ?> **/
 
@@ -259,8 +259,8 @@ Block_Start
   {
     /** <?php
     return array(
-      'blockName' => $blockName,
-      'attrs' => $attrs,
+        'blockName' => $blockName,
+        'attrs' => $attrs,
     );
     ?> **/
 
@@ -275,7 +275,7 @@ Block_End
   {
     /** <?php
     return array(
-      'blockName' => $blockName,
+        'blockName' => $blockName,
     );
     ?> **/
 
