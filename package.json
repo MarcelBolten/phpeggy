@@ -14,7 +14,8 @@
     "peggy": "1.0.0"
   },
   "scripts": {
-    "test": "mocha"
+    "test": "mocha",
+    "lint": "eslint ."
   },
   "repository": {
     "type": "git",

@@ -44,7 +44,7 @@ if (isset($_POST['code'], $_POST['parser']) && isset($examples[$_POST['parser']]
              body {
                 margin: 0px;
                 padding: 0px;
-                font:  12px "Segoe UI", "Helvetica Neue", Frutiger, "Frutiger Linotype", "Dejavu Sans", Arial, sans-serif;
+                font: 12px "Segoe UI", "Helvetica Neue", Frutiger, "Frutiger Linotype", "Dejavu Sans", Arial, sans-serif;
              }
             .cols2_holder:after{
                 content:"";

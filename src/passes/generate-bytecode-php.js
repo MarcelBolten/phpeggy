@@ -33,7 +33,7 @@
 
 const asts = require("peggy/lib/compiler/asts");
 const visitor = require("peggy/lib/compiler/visitor");
-const op = require("peggy/lib/compiler/opcodes");
+const op = require("../opcodes");
 const internalUtils = require("../utils");
 
 /* Generates bytecode.
@@ -100,6 +100,15 @@ const internalUtils = require("../utils");
  * [12] TEXT
  *
  *        stack.push(input.substring(stack.pop(), currPos));
+ *
+ * [36] PLUCK n, k, p1, ..., pK
+ *
+ *        value = [stack[p1], ..., stack[pK]]; // when k != 1
+ *        -or-
+ *        value = stack[p1];                   // when k == 1
+ *
+ *        stack.pop(n);
+ *        stack.push(value);
  *
  * Conditions and Loops
  * --------------------
@@ -267,8 +276,8 @@ module.exports = function(ast, options) {
     return clone;
   }
 
-  function buildSequence(...args) {
-    return Array.prototype.concat.apply([], args);
+  function buildSequence(first, ...args) {
+    return first.concat(...args);
   }
 
   function buildCondition(condCode, thenCode, elseCode) {
@@ -354,6 +363,7 @@ module.exports = function(ast, options) {
       node.bytecode = generate(node.expression, {
         sp: -1,       // Stack pointer
         env: {},      // Mapping of label names to stack positions
+        pluck: [],    // Fields that have been picked
         action: null, // Action nodes pass themselves to children here
       });
     },
@@ -440,6 +450,7 @@ module.exports = function(ast, options) {
             generate(elements[0], {
               sp: context.sp,
               env: context.env,
+              pluck: context.pluck,
               action: null,
             }),
             buildCondition(
@@ -447,6 +458,7 @@ module.exports = function(ast, options) {
               buildElementsCode(elements.slice(1), {
                 sp: context.sp + 1,
                 env: context.env,
+                pluck: context.pluck,
                 action: context.action,
               }),
               buildSequence(
@@ -457,6 +469,13 @@ module.exports = function(ast, options) {
             )
           );
         } else {
+          if (context.pluck.length > 0) {
+            return buildSequence(
+              [op.PLUCK, node.elements.length + 1, context.pluck.length],
+              context.pluck.map(eSP => context.sp - eSP)
+            );
+          }
+
           if (context.action) {
             functionIndex = addFunctionConst(
               Object.keys(context.env),
@@ -485,6 +504,7 @@ module.exports = function(ast, options) {
           buildElementsCode(node.elements, {
             sp: context.sp + 1,
             env: context.env,
+            pluck: [],
             action: context.action,
           })
         );
@@ -494,9 +514,18 @@ module.exports = function(ast, options) {
     },
 
     "labeled"(node, context) {
-      const env = cloneEnv(context.env);
+      let env = context.env;
+      const label = node.label;
+      const sp = context.sp + 1;
 
-      context.env[node.label] = context.sp + 1;
+      if (label) {
+        env = cloneEnv(context.env);
+        context.env[node.label] = sp;
+      }
+
+      if (node.pick) {
+        context.pluck.push(sp);
+      }
 
       return generate(node.expression, {
         sp: context.sp,
@@ -664,7 +693,7 @@ module.exports = function(ast, options) {
           .replace(/\)/g, "\\)")         // Closing ) bracket
           .replace(/\^/g, "\\^")         // Caret
           .replace(/\$/g, "\\$")         // Dollar
-          .replace(/([^[])-/g,  "$1\\-") // Dash
+          .replace(/([^[])-/g, "$1\\-")  // Dash
           .replace(/\0/g, "\\0")         // Null
           .replace(/\t/g, "\\t")         // Horizontal tab
           .replace(/\n/g, "\\n")         // Line feed
@@ -690,7 +719,7 @@ module.exports = function(ast, options) {
           .replace(/\f/g, "\\f")   // Form feed
           .replace(/\r/g, "\\r")   // Carriage return
           .replace(/\$/g, "\\$")   // Dollar
-          .replace(/[\x00-\x0f]/g,          ch => "\\x0" + hex(ch))
+          .replace(/[\x00-\x0f]/g, ch => "\\x0" + hex(ch))
           .replace(/[\x10-\x1f\x7f-\x9f]/g, ch => "\\x" + hex(ch))
           .replace(/[\xFF-\uFFFF]/g, ch => {
             let hexCode = ch.charCodeAt(0).toString(16).toUpperCase();

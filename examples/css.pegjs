@@ -157,7 +157,7 @@ selector
 simple_selector
   = element:element_name
     qualifiers:(
-        id:HASH { return array("type" => "ID selector", "id" => substr($id, 1));  }
+        id:HASH { return array("type" => "ID selector", "id" => substr($id, 1)); }
       / class
       / attrib
       / pseudo

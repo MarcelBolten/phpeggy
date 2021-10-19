@@ -179,7 +179,7 @@ grammarNames.forEach(grammarName => {
         try {
           outputActual = JSON.parse(result.stdout);
         } catch (err) {
-          throw new Error("JSON.parse failed:  " + result.stdout);
+          throw new Error("JSON.parse failed: " + result.stdout);
         }
 
         const outputExpectedPath = fixtureFilePath([

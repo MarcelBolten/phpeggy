@@ -24,7 +24,7 @@
 "use strict";
 
 const asts = require("peggy/lib/compiler/asts");
-const op = require("peggy/lib/compiler/opcodes");
+const op = require("../opcodes");
 const internalUtils = require("../utils");
 const phpeggyVersion = require("../../package.json").version;
 const peggyVersion = require("peggy/package.json").version;
@@ -225,7 +225,7 @@ module.exports = function(ast, options) {
         );
         let value = f(bc[ip + 1]) + "(";
         if (params.length > 0) {
-          value +=  params.map(stackIndex).join(", ");
+          value += params.map(stackIndex).join(", ");
         }
         value += ")";
         stack.pop(bc[ip + 2]);
@@ -318,6 +318,22 @@ module.exports = function(ast, options) {
             ));
             ip++;
             break;
+
+          case op.PLUCK: {          // PLUCK n, k, p1, ..., pK
+            const baseLength = 3;
+            const paramsLength = bc[ip + baseLength - 1];
+            const n = baseLength + paramsLength;
+            value = bc.slice(ip + baseLength, ip + n);
+            value = paramsLength === 1
+              ? stack.index(value[0])
+              : `[ ${
+                value.map(p => stackIndex(p)).join(", ")
+              } ]`;
+            stack.pop(bc[ip + 1]);
+            parts.push(stack.push(value));
+            ip += n;
+            break;
+          }
 
           case op.IF:               // IF t, f
             compileCondition(stack.top(), 0);
@@ -563,7 +579,9 @@ module.exports = function(ast, options) {
 
   if (ast.topLevelInitializer) {
     parts.push(indent(8, "/* BEGIN global initializer code */"));
-    parts.push(indent(8, internalUtils.extractPhpCode(ast.topLevelInitializer.code)));
+    parts.push(indent(8, internalUtils.extractPhpCode(
+      ast.topLevelInitializer.code
+    )));
     parts.push(indent(8, "/* END global initializer code */"));
     parts.push("");
   }
