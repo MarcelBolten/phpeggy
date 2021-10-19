@@ -26,7 +26,7 @@ exports.extractPhpCode = function(code) {
       phpCode += piece;
     }
   });
-  return phpCode ? phpCode : code;
+  return phpCode ? phpCode.trim() : code;
 };
 
 /* eslint-disable no-control-regex */

@@ -1,5 +1,3 @@
-{
-
 /*
  *
  *    _____       _             _
@@ -46,12 +44,14 @@
  *
  */
 
+{{
+
 /** <?php
 // The `maybeJSON` function is not needed in PHP because its return semantics
 // are the same as `json_decode`
 
 // array arguments are backwards because of PHP
-if (!function_exists(__NAMESPACE__ . "\\\\peg_array_partition")) {
+if (!function_exists(__NAMESPACE__ . "\\peg_array_partition")) {
     function peg_array_partition($array, $predicate) {
         $truthy = array();
         $falsey = array();
@@ -66,7 +66,7 @@ if (!function_exists(__NAMESPACE__ . "\\\\peg_array_partition")) {
     }
 }
 
-if (!function_exists('__NAMESPACE__ . "\\\\peg_join_blocks')) {
+if (!function_exists(__NAMESPACE__ . "\\peg_join_blocks")) {
     function peg_join_blocks($pre, $tokens, $post) {
         $blocks = array();
 
@@ -91,7 +91,11 @@ if (!function_exists('__NAMESPACE__ . "\\\\peg_join_blocks')) {
         return $blocks;
     }
 }
+?> **/
 
+}}
+{
+/** <?php
 ?> **/
 
 function freeform( s ) {
@@ -199,10 +203,7 @@ Tag_More
   }
 
 Block_Void
-  = "<!--" WS+ "wp:" blockName:Block_Name WS+ attrs:(a:Block_Attributes WS+ {
-    /** <?php return $a; ?> **/
-    return a;
-  })? "/-->"
+  = "<!--" WS+ "wp:" blockName:Block_Name WS+ attrs:(@Block_Attributes WS+)? "/-->"
   {
     /** <?php
     return array(
@@ -252,10 +253,7 @@ Block_Balanced
   }
 
 Block_Start
-  = "<!--" WS+ "wp:" blockName:Block_Name WS+ attrs:(a:Block_Attributes WS+ {
-    /** <?php return $a; ?> **/
-    return a;
-  })? "-->"
+  = "<!--" WS+ "wp:" blockName:Block_Name WS+ attrs:(@Block_Attributes WS+)? "-->"
   {
     /** <?php
     return array(

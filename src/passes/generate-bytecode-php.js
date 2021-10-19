@@ -683,6 +683,12 @@ module.exports = function(ast, options) {
         return ch.charCodeAt(0).toString(16).toUpperCase();
       }
 
+      function hex1(ch) {
+        let hexCode = hex(ch);
+        hexCode = "0".repeat(4 - hexCode.length + 1) + hexCode;
+        return "\\x{" + hexCode + "}";
+      }
+
       function quoteForPhpRegexp(s) {
         return s
           .replace(/\\/g, "\\\\")        // Backslash
@@ -700,13 +706,9 @@ module.exports = function(ast, options) {
           .replace(/\v/g, "\\x0B")       // Vertical tab
           .replace(/\f/g, "\\f")         // Form feed
           .replace(/\r/g, "\\r")         // Carriage return
-          .replace(/[\x00-\x0f]/g, ch => "\\x0" + hex(ch))
-          .replace(/[\x10-\x1f\x7f-\x9f]/g, ch => "\\x" + hex(ch))
-          .replace(/[\xFF-\uFFFF]/g, ch => {
-            let hexCode = ch.charCodeAt(0).toString(16).toUpperCase();
-            hexCode = Array(4 - hexCode.length + 1).join("0") + hexCode;
-            return "\\x{" + hexCode + "}";
-          });
+          .replace(/[\x00-\x0F]/g, ch => "\\x0" + hex(ch))
+          .replace(/[\x10-\x1F\x7F-\x9F]/g, ch => "\\x" + hex(ch))
+          .replace(/[\xFF-\uFFFF]/g, ch => hex1(ch));
       }
 
       function quotePhp(s) {
@@ -719,14 +721,10 @@ module.exports = function(ast, options) {
           .replace(/\f/g, "\\f")   // Form feed
           .replace(/\r/g, "\\r")   // Carriage return
           .replace(/\$/g, "\\$")   // Dollar
-          .replace(/[\x00-\x0f]/g, ch => "\\x0" + hex(ch))
-          .replace(/[\x10-\x1f\x7f-\x9f]/g, ch => "\\x" + hex(ch))
-          .replace(/[\xFF-\uFFFF]/g, ch => {
-            let hexCode = ch.charCodeAt(0).toString(16).toUpperCase();
-            hexCode = Array(4 - hexCode.length + 1).join("0") + hexCode;
-            return "\\x{" + hexCode + "}";
-          })
-              + '"';
+          .replace(/[\x00-\x0F]/g, ch => "\\x0" + hex(ch))
+          .replace(/[\x10-\x1F\x7F-\x9F]/g, ch => "\\x" + hex(ch))
+          .replace(/[\xFF-\uFFFF]/g, ch => hex1(ch))
+          + '"';
       }
 
       if (node.parts.length > 0) {
@@ -780,6 +778,7 @@ module.exports = function(ast, options) {
       const expectedIndex = addConst("array(" + [
         '"type" => "class",',
         '"value" => ' + quotePhp(rawText) + ",",
+        // What shall I do with the description -> \n will not be displayed properly after output. Should be \\n here
         '"description" => ' + quotePhp(rawText),
       ].join(" ") + ")");
 

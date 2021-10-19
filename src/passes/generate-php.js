@@ -493,6 +493,9 @@ module.exports = function(ast, options) {
     return parts.join("\n");
   }
 
+  //
+  // Start collection of code for parser output
+  //
   const parts = [];
 
   parts.push([
@@ -511,8 +514,7 @@ module.exports = function(ast, options) {
 
   parts.push([
     "",
-    "/* Useful functions: */",
-    "",
+    "/* BEGIN Useful functions */",
     "/* chr_unicode - get unicode character from its char code */",
     'if (!function_exists("' + phpGlobalNamePrefixOrNamespaceEscaped + 'chr_unicode")) {',
     "    function chr_unicode($code) {",
@@ -573,17 +575,21 @@ module.exports = function(ast, options) {
       "        return false;",
       "    }",
       "}",
+      "/* END Useful functions */",
       "",
     ].join("\n"));
   }
 
   if (ast.topLevelInitializer) {
-    parts.push(indent(8, "/* BEGIN global initializer code */"));
-    parts.push(indent(8, internalUtils.extractPhpCode(
-      ast.topLevelInitializer.code
-    )));
-    parts.push(indent(8, "/* END global initializer code */"));
-    parts.push("");
+    const topLevelInitializerCode = internalUtils.extractPhpCode(
+      ast.topLevelInitializer.code.trim()
+    );
+    if (topLevelInitializerCode !== "") {
+      parts.push("/* BEGIN global initializer code */");
+      parts.push(topLevelInitializerCode);
+      parts.push("/* END global initializer code */");
+      parts.push("");
+    }
   }
 
   parts.push([
@@ -635,6 +641,108 @@ module.exports = function(ast, options) {
   parts.push("    private $peg_FAILED;");
   parts.push(indent(4, generateTablesDeclaration()));
   parts.push("");
+
+  // START public function parse
+  parts.push(indent(4, [
+    "public function parse($input)",
+    "{",
+    "    $arguments = func_get_args();",
+    "    $options = count($arguments) > 1 ? $arguments[1] : array();",
+    "    $this->cleanup_state();",
+    "",
+    "    if (is_array($input)) {",
+    "        $this->input = $input;",
+    "    } else {",
+    '        preg_match_all("/./us", $input, $match);',
+    "        $this->input = $match[0];",
+    "    }",
+    "    $this->input_length = count($this->input);",
+    "",
+  ].join("\n")));
+
+  if (mbstringAllowed) {
+    parts.push(indent(8, [
+      "$old_regex_encoding = mb_regex_encoding();",
+      'mb_regex_encoding("UTF-8");',
+      "",
+    ].join("\n")));
+  }
+
+  parts.push(indent(8, "$this->peg_FAILED = new " + phpGlobalNamespacePrefix + "stdClass;"));
+  parts.push(indent(8, generateTablesDefinition()));
+  parts.push("");
+
+  const startRuleFunctions = "array("
+    + options.allowedStartRules.map(
+      r => "'" + r + '\' => array($this, "peg_parse' + r + '")'
+    ).join(", ")
+    + ")";
+  const startRuleFunction = 'array($this, "peg_parse' + options.allowedStartRules[0] + '")';
+
+  parts.push(indent(8, [
+    "$peg_startRuleFunctions = " + startRuleFunctions + ";",
+    "$peg_startRuleFunction = " + startRuleFunction + ";",
+  ].join("\n")));
+
+  parts.push(indent(8, [
+    'if (isset($options["startRule"])) {',
+    '    if (!(isset($peg_startRuleFunctions[$options["startRule"]]))) {',
+    "        throw new " + phpGlobalNamespacePrefix + 'Exception("Can\'t start parsing from rule \\"" + $options["startRule"] + "\\".");',
+    "    }",
+    "",
+    '    $peg_startRuleFunction = $peg_startRuleFunctions[$options["startRule"]];',
+    "}",
+  ].join("\n")));
+
+  if (ast.initializer) {
+    const initializerCode = internalUtils.extractPhpCode(
+      ast.initializer.code.trim()
+    );
+    if (initializerCode !== "") {
+      parts.push("");
+      parts.push(indent(8, "/* BEGIN initializer code */"));
+      parts.push(indent(8, initializerCode));
+      parts.push(indent(8, "/* END initializer code */"));
+    }
+  }
+
+  parts.push("");
+  parts.push(indent(8, "$peg_result = call_user_func($peg_startRuleFunction);"));
+
+  if (options.cache) {
+    parts.push("");
+    parts.push(indent(8, "$this->peg_cache = array();"));
+  }
+
+  if (mbstringAllowed) {
+    parts.push(indent(8, [
+      "",
+      "mb_regex_encoding($old_regex_encoding);",
+    ].join("\n")));
+  }
+
+  parts.push(indent(8, [
+    "",
+    "if ($peg_result !== $this->peg_FAILED && $this->peg_currPos === $this->input_length) {",
+    "    // Free up memory",
+    "    $this->cleanup_state();",
+    "    return $peg_result;",
+    "}",
+    "if ($peg_result !== $this->peg_FAILED && $this->peg_currPos < $this->input_length) {",
+    '    $this->peg_fail(array("type" => "end", "description" => "end of input"));',
+    "}",
+    "",
+    "$exception = $this->peg_buildException(null, $this->peg_maxFailExpected, $this->peg_maxFailPos);",
+    "// Free up memory",
+    "$this->cleanup_state();",
+    "throw $exception;",
+  ].join("\n")));
+
+  parts.push([
+    "    }",
+    "",
+  ].join("\n"));
+  // END public function parse
 
   parts.push(indent(4, [
     "private function cleanup_state()",
@@ -823,98 +931,7 @@ module.exports = function(ast, options) {
     parts.push("");
   });
 
-  parts.push(indent(4, [
-    "public function parse($input)",
-    "{",
-    "    $arguments = func_get_args();",
-    "    $options = count($arguments) > 1 ? $arguments[1] : array();",
-    "    $this->cleanup_state();",
-    "",
-    "    if (is_array($input)) {",
-    "        $this->input = $input;",
-    "    } else {",
-    '        preg_match_all("/./us", $input, $match);',
-    "        $this->input = $match[0];",
-    "    }",
-    "    $this->input_length = count($this->input);",
-    "",
-  ].join("\n")));
-
-  if (mbstringAllowed) {
-    parts.push(indent(8, [
-      "$old_regex_encoding = mb_regex_encoding();",
-      'mb_regex_encoding("UTF-8");',
-      "",
-    ].join("\n")));
-  }
-
-  parts.push(indent(8, "$this->peg_FAILED = new " + phpGlobalNamespacePrefix + "stdClass;"));
-  parts.push(indent(8, generateTablesDefinition()));
-  parts.push("");
-
-  const startRuleFunctions = "array("
-    + options.allowedStartRules.map(
-      r => "'" + r + '\' => array($this, "peg_parse' + r + '")'
-    ).join(", ")
-    + ")";
-  const startRuleFunction = 'array($this, "peg_parse' + options.allowedStartRules[0] + '")';
-
-  parts.push(indent(8, [
-    "$peg_startRuleFunctions = " + startRuleFunctions + ";",
-    "$peg_startRuleFunction = " + startRuleFunction + ";",
-  ].join("\n")));
-
-  parts.push(indent(8, [
-    'if (isset($options["startRule"])) {',
-    '    if (!(isset($peg_startRuleFunctions[$options["startRule"]]))) {',
-    "        throw new " + phpGlobalNamespacePrefix + 'Exception("Can\'t start parsing from rule \\"" + $options["startRule"] + "\\".");',
-    "    }",
-    "",
-    '    $peg_startRuleFunction = $peg_startRuleFunctions[$options["startRule"]];',
-    "}",
-  ].join("\n")));
-
-  if (ast.initializer) {
-    parts.push("");
-    parts.push(indent(8, "/* BEGIN initializer code */"));
-    parts.push(indent(8, internalUtils.extractPhpCode(ast.initializer.code)));
-    parts.push(indent(8, "/* END initializer code */"));
-    parts.push("");
-  }
-
-  parts.push(indent(8, "$peg_result = call_user_func($peg_startRuleFunction);"));
-
-  if (options.cache) {
-    parts.push("");
-    parts.push(indent(8, "$this->peg_cache = array();"));
-  }
-
-  if (mbstringAllowed) {
-    parts.push(indent(8, [
-      "",
-      "mb_regex_encoding($old_regex_encoding);",
-    ].join("\n")));
-  }
-
-  parts.push(indent(8, [
-    "",
-    "if ($peg_result !== $this->peg_FAILED && $this->peg_currPos === $this->input_length) {",
-    "    // Free up memory",
-    "    $this->cleanup_state();",
-    "    return $peg_result;",
-    "}",
-    "if ($peg_result !== $this->peg_FAILED && $this->peg_currPos < $this->input_length) {",
-    '    $this->peg_fail(array("type" => "end", "description" => "end of input"));',
-    "}",
-    "",
-    "$exception = $this->peg_buildException(null, $this->peg_maxFailExpected, $this->peg_maxFailPos);",
-    "// Free up memory",
-    "$this->cleanup_state();",
-    "throw $exception;",
-  ].join("\n")));
-
   parts.push([
-    "    }",
     "};",
     "",
   ].join("\n"));
