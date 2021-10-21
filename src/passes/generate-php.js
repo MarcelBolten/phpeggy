@@ -930,7 +930,9 @@ module.exports = function(ast, options) {
     parts.push(indent(4, generateRuleFunction(rule)));
     parts.push("");
   });
-
+  // Remove empty line
+  parts.pop();
+  
   parts.push([
     "};",
     "",

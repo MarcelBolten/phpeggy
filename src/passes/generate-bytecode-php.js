@@ -716,10 +716,10 @@ module.exports = function(ast, options) {
           .replace(/\\/g, "\\\\")  // Backslash
           .replace(/"/g, '\\"')    // Closing quote character
           .replace(/\x08/g, "\\b") // Backspace
-          .replace(/\t/g, "\\t")   // Horizontal tab
-          .replace(/\n/g, "\\n")   // Line feed
-          .replace(/\f/g, "\\f")   // Form feed
-          .replace(/\r/g, "\\r")   // Carriage return
+          .replace(/\t/g, "\\\\t")   // Horizontal tab
+          .replace(/\n/g, "\\\\n")   // Line feed
+          .replace(/\f/g, "\\\\f")   // Form feed
+          .replace(/\r/g, "\\\\r")   // Carriage return
           .replace(/\$/g, "\\$")   // Dollar
           .replace(/[\x00-\x0F]/g, ch => "\\x0" + hex(ch))
           .replace(/[\x10-\x1F\x7F-\x9F]/g, ch => "\\x" + hex(ch))

@@ -116,9 +116,9 @@ class Parser
         $this->peg_c4 = "//";
         $this->peg_c5 = array("type" => "literal", "value" => "//", "description" => "\"//\"");
         $this->peg_c6 = "/^[^\\r\\n]/";
-        $this->peg_c7 = array("type" => "class", "value" => "[\r\n]", "description" => "[\r\n]");
+        $this->peg_c7 = array("type" => "class", "value" => "[\\r\\n]", "description" => "[\\r\\n]");
         $this->peg_c8 = "/^[ \\t\\r\\n]/";
-        $this->peg_c9 = array("type" => "class", "value" => "[ \t\r\n]", "description" => "[ \t\r\n]");
+        $this->peg_c9 = array("type" => "class", "value" => "[ \\t\\r\\n]", "description" => "[ \\t\\r\\n]");
 
         $peg_startRuleFunctions = array('Document' => array($this, "peg_parseDocument"));
         $peg_startRuleFunction = array($this, "peg_parseDocument");
@@ -503,5 +503,4 @@ class Parser
 
         return $s0;
     }
-
 };

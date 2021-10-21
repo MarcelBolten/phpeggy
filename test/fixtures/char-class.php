@@ -126,7 +126,7 @@ class Parser
         $this->peg_c10 = "/^[\\x{0DCA9}]/";
         $this->peg_c11 = array("type" => "class", "value" => "[\x{0DCA9}]", "description" => "[\x{0DCA9}]");
         $this->peg_c12 = "/^[ \\t\\r\\n]/";
-        $this->peg_c13 = array("type" => "class", "value" => "[ \t\r\n]", "description" => "[ \t\r\n]");
+        $this->peg_c13 = array("type" => "class", "value" => "[ \\t\\r\\n]", "description" => "[ \\t\\r\\n]");
 
         $peg_startRuleFunctions = array('Document' => array($this, "peg_parseDocument"));
         $peg_startRuleFunction = array($this, "peg_parseDocument");
@@ -547,5 +547,4 @@ class Parser
 
         return $s0;
     }
-
 };

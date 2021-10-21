@@ -158,11 +158,11 @@ class Parser
         $this->peg_c24 = array("type" => "literal", "value" => "}", "description" => "\"}\"");
         $this->peg_c25 = "";
         $this->peg_c26 = array(array(32,32), array(9,9), array(13,13), array(10,10));
-        $this->peg_c27 = array("type" => "class", "value" => "[ \t\r\n]", "description" => "[ \t\r\n]");
+        $this->peg_c27 = array("type" => "class", "value" => "[ \\t\\r\\n]", "description" => "[ \\t\\r\\n]");
         $this->peg_c28 = array(array(13,13), array(10,10));
-        $this->peg_c29 = array("type" => "class", "value" => "[\r\n]", "description" => "[\r\n]");
+        $this->peg_c29 = array("type" => "class", "value" => "[\\r\\n]", "description" => "[\\r\\n]");
         $this->peg_c30 = array(array(32,32), array(9,9));
-        $this->peg_c31 = array("type" => "class", "value" => "[ \t]", "description" => "[ \t]");
+        $this->peg_c31 = array("type" => "class", "value" => "[ \\t]", "description" => "[ \\t]");
 
         $peg_startRuleFunctions = array('Block_List' => array($this, "peg_parseBlock_List"));
         $peg_startRuleFunction = array($this, "peg_parseBlock_List");
@@ -1982,5 +1982,4 @@ class Parser
 
         return $s0;
     }
-
 };
