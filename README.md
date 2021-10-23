@@ -33,7 +33,7 @@ Follow these steps to upgrade:
 
 ## Requirements
 
-* [Peggy](https://peggyjs.org/) (known compatible with v1.0.0)
+* [Peggy](https://peggyjs.org/) (known compatible with v1.2.0)
 
 Installation
 ------------
@@ -43,7 +43,7 @@ Installation
 Install Peggy with `phpeggy` plugin
 
 ```sh
-$ npm install peggy@1.0.0 phpeggy
+$ npm install peggy@1.2.0 phpeggy
 ```
 
 Usage
@@ -139,7 +139,7 @@ array (one array element per UTF-8 character) and pass this array into
 Grammar Syntax and Semantics
 ----------------------------
 
-See documentation of [Peggy](https://github.com/peggyjs/peggy/tree/v1.0.0#grammar-syntax-and-semantics) with one difference: action blocks should be written in PHP.
+See documentation of [Peggy](https://github.com/peggyjs/peggy/tree/v1.2.0#grammar-syntax-and-semantics) with one difference: action blocks should be written in PHP.
 
 Original Peggy rule:
 
