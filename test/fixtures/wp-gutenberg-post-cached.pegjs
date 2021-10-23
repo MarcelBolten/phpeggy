@@ -1,5 +1,3 @@
-{
-
 /*
  *
  *    _____       _             _
@@ -46,114 +44,111 @@
  *
  */
 
+{{
+
 /** <?php
 // The `maybeJSON` function is not needed in PHP because its return semantics
 // are the same as `json_decode`
 
 // array arguments are backwards because of PHP
-if ( ! function_exists( 'peg_array_partition' ) ) {
-    function peg_array_partition( $array, $predicate ) {
+if (!function_exists(__NAMESPACE__ . "\\peg_array_partition")) {
+    function peg_array_partition($array, $predicate) {
         $truthy = array();
         $falsey = array();
 
-        foreach ( $array as $item ) {
-            call_user_func( $predicate, $item )
+        foreach ($array as $item) {
+            call_user_func($predicate, $item)
                 ? $truthy[] = $item
                 : $falsey[] = $item;
         }
 
-        return array( $truthy, $falsey );
+        return array($truthy, $falsey);
     }
 }
 
-if ( ! function_exists( 'peg_join_blocks' ) ) {
-    function peg_join_blocks( $pre, $tokens, $post ) {
+if (!function_exists(__NAMESPACE__ . "\\peg_join_blocks")) {
+    function peg_join_blocks($pre, $tokens, $post) {
         $blocks = array();
 
-        if ( ! empty( $pre ) ) {
-            $blocks[] = array( 'attrs' => array(), 'innerHTML' => $pre );
+        if (!empty($pre)) {
+            $blocks[] = array('attrs' => array(), 'innerHTML' => $pre);
         }
 
-        foreach ( $tokens as $token ) {
-            list( $token, $html ) = $token;
+        foreach ($tokens as $token) {
+            list($token, $html) = $token;
 
             $blocks[] = $token;
 
-            if ( ! empty( $html ) ) {
-                $blocks[] = array( 'attrs' => array(), 'innerHTML' => $html );
+            if (!empty($html)) {
+                $blocks[] = array('attrs' => array(), 'innerHTML' => $html);
             }
         }
 
-        if ( ! empty( $post ) ) {
-            $blocks[] = array( 'attrs' => array(), 'innerHTML' => $post );
+        if (!empty($post)) {
+            $blocks[] = array('attrs' => array(), 'innerHTML' => $post);
         }
 
         return $blocks;
     }
 }
-
 ?> **/
 
 function freeform( s ) {
-    return s.length && {
-        attrs: {},
-        innerHTML: s
-    };
+  return s.length && {
+    attrs: {},
+    innerHTML: s
+  };
 }
 
 function joinBlocks( pre, tokens, post ) {
-    var blocks = [], i, l, html, item, token;
+  var blocks = [], i, l, html, item, token;
 
-    if ( pre.length ) {
-        blocks.push( freeform( pre ) );
+  if ( pre.length ) {
+    blocks.push( freeform( pre ) );
+  }
+
+  for ( i = 0, l = tokens.length; i < l; i++ ) {
+    item = tokens[ i ];
+    token = item[ 0 ];
+    html = item[ 1 ];
+
+    blocks.push( token );
+    if ( html.length ) {
+      blocks.push( freeform( html ) );
     }
+  }
 
-    for ( i = 0, l = tokens.length; i < l; i++ ) {
-        item = tokens[ i ];
-        token = item[ 0 ];
-        html = item[ 1 ];
+  if ( post.length ) {
+    blocks.push( freeform( post ) );
+  }
 
-        blocks.push( token );
-        if ( html.length ) {
-            blocks.push( freeform( html ) );
-        }
-    }
-
-    if ( post.length ) {
-        blocks.push( freeform( post ) );
-    }
-
-    return blocks;
+  return blocks;
 }
 
 function maybeJSON( s ) {
-    try {
-        return JSON.parse( s );
-    } catch (e) {
-        return null;
-    }
+  try {
+    return JSON.parse( s );
+  } catch (e) {
+    return null;
+  }
 }
 
 function partition( predicate, list ) {
-    var i, l, item;
-    var truthy = [];
-    var falsey = [];
+  var i, l, item;
+  var truthy = [];
+  var falsey = [];
 
-    // nod to performance over a simpler reduce
-    // and clone model we could have taken here
-    for ( i = 0, l = list.length; i < l; i++ ) {
-        item = list[ i ];
+  // nod to performance over a simpler reduce
+  // and clone model we could have taken here
+  for ( i = 0, l = list.length; i < l; i++ ) {
+    item = list[ i ];
+    predicate( item ) ? truthy.push( item ) : falsey.push( item );
+  };
 
-        predicate( item )
-            ? truthy.push( item )
-            : falsey.push( item )
-    };
-
-    return [ truthy, falsey ];
+  return [ truthy, falsey ];
 }
 
-}
-
+}}
 //////////////////////////////////////////////////////
 //
 //   Here starts the grammar proper!
@@ -162,9 +157,9 @@ function partition( predicate, list ) {
 
 Block_List
   = pre:$(!Token .)*
-    ts:(t:Token html:$((!Token .)*) { /** <?php return array( $t, $html ); ?> **/ return [ t, html ] })*
+    ts:(t:Token html:$((!Token .)*) { /** <?php return array($t, $html); ?> **/ return [ t, html ] })*
     post:$(.*)
-  { /** <?php return peg_join_blocks( $pre, $ts, $post ); ?> **/
+  { /** <?php return peg_join_blocks($pre, $ts, $post); ?> **/
     return joinBlocks( pre, ts, post );
   }
 
@@ -174,17 +169,17 @@ Token
   / Block_Balanced
 
 Tag_More
-  = "<!--" WS* "more" customText:(WS+ text:$((!(WS* "-->") .)+) { /** <?php return $text; ?> **/ return text })? WS* "-->" noTeaser:(WS* "<!--noteaser-->")?
+  = "<!--" WS* "more"i customText:(WS+ text:$((!(WS* "-->") .)+) { /** <?php return $text; ?> **/ return text })? WS* "-->" noTeaser:(WS* "<!--noteaser-->")?
   { /** <?php
-    $attrs = array( 'noTeaser' => (bool) $noTeaser );
-    if ( ! empty( $customText ) ) {
-      $attrs['customText'] = $customText;
+    $attrs = array('noTeaser' => (bool) $noTeaser);
+    if (!empty($customText)) {
+        $attrs['customText'] = $customText;
     }
     return array(
-       'blockName' => 'core/more',
-       'attrs' => $attrs,
-       'innerHTML' => '',
-       'outerHTML' => $this->text(),
+        'blockName' => 'core/more',
+        'attrs' => $attrs,
+        'innerHTML' => '',
+        'outerHTML' => $this->text(),
     );
     ?> **/
     return {
@@ -199,24 +194,21 @@ Tag_More
   }
 
 Block_Void
-  = "<!--" WS+ "wp:" blockName:Block_Name WS+ attrs:(a:Block_Attributes WS+ {
-    /** <?php return $a; ?> **/
-    return a;
-  })? "/-->"
+  = "<!--" WS+ "wp:" blockName:Block_Name WS+ attrs:(@Block_Attributes WS+)? "/-->"
   {
     /** <?php
     return array(
-      'blockName'  => $blockName,
-      'attrs'      => $attrs,
-      'innerBlocks' => array(),
-      'innerHTML' => '',
-      'outerHTML' => $this->text(),
+        'blockName' => $blockName,
+        'attrs' => $attrs,
+        'innerBlocks' => array(),
+        'innerHTML' => '',
+        'outerHTML' => $this->text(),
     );
     ?> **/
 
     return {
-      blockName: blockName,
-      attrs: attrs,
+      blockName,
+      attrs,
       innerBlocks: [],
       innerHTML: '',
       outerHTML: text()
@@ -227,14 +219,14 @@ Block_Balanced
   = s:Block_Start children:(Token / $(!Block_End .))* e:Block_End
   {
     /** <?php
-    list( $innerHTML, $innerBlocks ) = peg_array_partition( $children, 'is_string' );
+    list($innerHTML, $innerBlocks) = peg_array_partition($children, 'is_string');
 
     return array(
-      'blockName'  => $s['blockName'],
-      'attrs'      => $s['attrs'],
-      'innerBlocks'  => $innerBlocks,
-      'innerHTML'  => implode( '', $innerHTML ),
-      'outerHTML' => $this->text(),
+        'blockName' => $s['blockName'],
+        'attrs' => $s['attrs'],
+        'innerBlocks' => $innerBlocks,
+        'innerHTML' => implode('', $innerHTML),
+        'outerHTML' => $this->text(),
     );
     ?> **/
 
@@ -245,28 +237,25 @@ Block_Balanced
     return {
       blockName: s.blockName,
       attrs: s.attrs,
-      innerBlocks: innerBlocks,
+      innerBlocks,
       innerHTML: innerHTML.join( '' ),
       outerHTML: text()
     };
   }
 
 Block_Start
-  = "<!--" WS+ "wp:" blockName:Block_Name WS+ attrs:(a:Block_Attributes WS+ {
-    /** <?php return $a; ?> **/
-    return a;
-  })? "-->"
+  = "<!--" WS+ "wp:" blockName:Block_Name WS+ attrs:(@Block_Attributes WS+)? "-->"
   {
     /** <?php
     return array(
-      'blockName' => $blockName,
-      'attrs'     => $attrs,
+        'blockName' => $blockName,
+        'attrs' => $attrs,
     );
     ?> **/
 
     return {
-      blockName: blockName,
-      attrs: attrs
+      blockName,
+      attrs
     };
   }
 
@@ -275,12 +264,12 @@ Block_End
   {
     /** <?php
     return array(
-      'blockName' => $blockName,
+        'blockName' => $blockName,
     );
     ?> **/
 
     return {
-      blockName: blockName
+      blockName
     };
   }
 
@@ -299,12 +288,12 @@ Core_Block_Name
   }
 
 Block_Name_Part
-  = $( [a-z][a-z0-9_-]* )
+  = $( [a-z]i[a-z0-9_-]* )
 
 Block_Attributes
   = attrs:$("{" (!("}" WS+ """/"? "-->") .)* "}")
   {
-    /** <?php return json_decode( $attrs, true ); ?> **/
+    /** <?php return json_decode($attrs, true); ?> **/
     return maybeJSON( attrs );
   }
 

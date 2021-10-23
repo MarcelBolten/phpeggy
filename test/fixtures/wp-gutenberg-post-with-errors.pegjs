@@ -1,19 +1,19 @@
-{
+{{
 
 /** <?php
 // The `maybeJSON` function is not needed in PHP because its return semantics
 // are the same as `json_decode`
 ?> **/
 
-function maybeJSON( s ) {
-	try {
-		return JSON.parse( s );
-	} catch (e) {
-		return null;
-	}
+function maybeJSON(s) {
+  try {
+    return JSON.parse(s);
+  } catch (e) {
+    return null;
+  }
 }
 
-}
+}}
 
 Document
   = WP_Block_List
@@ -33,15 +33,15 @@ WP_Block_Void
   {
     /** <?php
     return array(
-      'blockName'  => $blockName,
-      'attrs'      => $attrs,
-      'rawContent' => '',
+        'blockName' => $blockName,
+        'attrs' => $attrs,
+        'rawContent' => '',
     );
     ?> **/
 
     return {
-      blockName: blockName,
-      attrs: attrs,
+      blockName,
+      attrs,
       rawContent: ''
     };
   }
@@ -57,16 +57,16 @@ WP_Block_Balanced
   {
     /** <?php
     return array(
-      'blockName'  => $s['blockName'],
-      'attrs'      => $s['attrs'],
-      'rawContent' => implode( '', $ts ),
+        'blockName' => $s['blockName'],
+        'attrs' => $s['attrs'],
+        'rawContent' => implode('', $ts),
     );
     ?> **/
 
     return {
       blockName: s.blockName,
       attrs: s.attrs,
-      rawContent: ts.join( '' )
+      rawContent: ts.join('')
     };
   }
 
@@ -78,14 +78,14 @@ WP_Block_Start
   {
     /** <?php
     return array(
-      'blockName' => $blockName,
-      'attrs'     => $attrs,
+        'blockName' => $blockName,
+        'attrs' => $attrs,
     );
     ?> **/
 
     return {
-      blockName: blockName,
-      attrs: attrs
+      blockName,
+      attrs
     };
   }
 
@@ -94,12 +94,12 @@ WP_Block_End
   {
     /** <?php
     return array(
-      'blockName' => $blockName,
+        'blockName' => $blockName,
     );
     ?> **/
 
     return {
-      blockName: blockName
+      blockName
     };
   }
 
@@ -109,8 +109,8 @@ WP_Block_Name
 WP_Block_Attributes
   = attrs:$("{" (!("}" WS+ """/"? "-->") .)* "}")
   {
-    /** <?php return json_decode( $attrs, true ); ?> **/
-    return maybeJSON( attrs );
+    /** <?php return json_decode($attrs, true); ?> **/
+    return maybeJSON(attrs);
   }
 
 ASCII_AlphaNumeric

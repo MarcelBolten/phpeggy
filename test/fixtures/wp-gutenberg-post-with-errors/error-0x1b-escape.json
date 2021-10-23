@@ -5,7 +5,8 @@
             {
                 "type": "literal",
                 "value": "<!--",
-                "description": "\"<!--\""
+                "description": "\"<!--\"",
+                "ignoreCase": "false"
             },
             {
                 "type": "end",

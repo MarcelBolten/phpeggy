@@ -180,13 +180,13 @@ Literal
   / BooleanLiteral
   / value:NumericLiteral {
       return array(
-        "type" =>  "NumericLiteral",
+        "type" => "NumericLiteral",
         "value" => $value
       );
     }
   / value:StringLiteral {
       return array(
-        "type" =>  "StringLiteral",
+        "type" => "StringLiteral",
         "value" => $value
       );
     }
@@ -196,7 +196,7 @@ NullLiteral
   = NullToken { return array("type" => "NullLiteral" ); }
 
 BooleanLiteral
-  = TrueToken  { return array("type" => "BooleanLiteral", "value" => true  ); }
+  = TrueToken { return array("type" => "BooleanLiteral", "value" => true  ); }
   / FalseToken { return array("type" => "BooleanLiteral", "value" => false ); }
 
 NumericLiteral "number"
@@ -715,7 +715,7 @@ UnaryOperator
   / "+"
   / "-"
   / "~"
-  /  "!"
+  / "!"
 
 MultiplicativeExpression
   = head:UnaryExpression
@@ -1295,10 +1295,10 @@ ForInStatement
     statement:Statement
     {
       return array(
-        "type" =>       "ForInStatement",
-        "iterator" =>   $iterator,
+        "type" => "ForInStatement",
+        "iterator" => $iterator,
         "collection" => $collection,
-        "statement" =>  $statement
+        "statement" => $statement
       );
     }
 
@@ -1306,7 +1306,7 @@ ContinueStatement
   = ContinueToken _
     label:(
         identifier:Identifier EOS { return $identifier; }
-      / EOSNoLineTerminator       { return "";         }
+      / EOSNoLineTerminator { return ""; }
     ) {
       return array(
         "type" => "ContinueStatement",
@@ -1318,7 +1318,7 @@ BreakStatement
   = BreakToken _
     label:(
         identifier:Identifier EOS { return $identifier; }
-      / EOSNoLineTerminator       { return ""; }
+      / EOSNoLineTerminator { return ""; }
     ) {
       return array(
         "type" => "BreakStatement",
@@ -1330,10 +1330,10 @@ ReturnStatement
   = ReturnToken _
     value:(
         expression:Expression EOS { return $expression; }
-      / EOSNoLineTerminator       { return ""; }
+      / EOSNoLineTerminator { return ""; }
     ) {
       return array(
-        "type" =>  "ReturnStatement",
+        "type" => "ReturnStatement",
         "value" => $value !== "" ? $value : null
       );
     }
