@@ -93,11 +93,6 @@ if (!function_exists(__NAMESPACE__ . "\\peg_join_blocks")) {
 }
 ?> **/
 
-}}
-{
-/** <?php
-?> **/
-
 function freeform( s ) {
   return s.length && {
     attrs: {},
@@ -147,17 +142,13 @@ function partition( predicate, list ) {
   // and clone model we could have taken here
   for ( i = 0, l = list.length; i < l; i++ ) {
     item = list[ i ];
-
-    predicate( item )
-      ? truthy.push( item )
-      : falsey.push( item )
+    predicate( item ) ? truthy.push( item ) : falsey.push( item );
   };
 
   return [ truthy, falsey ];
 }
 
-}
-
+}}
 //////////////////////////////////////////////////////
 //
 //   Here starts the grammar proper!
@@ -178,7 +169,7 @@ Token
   / Block_Balanced
 
 Tag_More
-  = "<!--" WS* "more" customText:(WS+ text:$((!(WS* "-->") .)+) { /** <?php return $text; ?> **/ return text })? WS* "-->" noTeaser:(WS* "<!--noteaser-->")?
+  = "<!--" WS* "more"i customText:(WS+ text:$((!(WS* "-->") .)+) { /** <?php return $text; ?> **/ return text })? WS* "-->" noTeaser:(WS* "<!--noteaser-->")?
   { /** <?php
     $attrs = array('noTeaser' => (bool) $noTeaser);
     if (!empty($customText)) {
@@ -216,8 +207,8 @@ Block_Void
     ?> **/
 
     return {
-      blockName: blockName,
-      attrs: attrs,
+      blockName,
+      attrs,
       innerBlocks: [],
       innerHTML: '',
       outerHTML: text()
@@ -246,7 +237,7 @@ Block_Balanced
     return {
       blockName: s.blockName,
       attrs: s.attrs,
-      innerBlocks: innerBlocks,
+      innerBlocks,
       innerHTML: innerHTML.join( '' ),
       outerHTML: text()
     };
@@ -263,8 +254,8 @@ Block_Start
     ?> **/
 
     return {
-      blockName: blockName,
-      attrs: attrs
+      blockName,
+      attrs
     };
   }
 
@@ -278,7 +269,7 @@ Block_End
     ?> **/
 
     return {
-      blockName: blockName
+      blockName
     };
   }
 
@@ -297,7 +288,7 @@ Core_Block_Name
   }
 
 Block_Name_Part
-  = $( [a-z][a-z0-9_-]* )
+  = $( [a-z]i[a-z0-9_-]* )
 
 Block_Attributes
   = attrs:$("{" (!("}" WS+ """/"? "-->") .)* "}")

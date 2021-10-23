@@ -1,5 +1,3 @@
-{
-
 /*
  *
  *    _____       _             _
@@ -46,12 +44,14 @@
  *
  */
 
+{{
+
 /** <?php
 // The `maybeJSON` function is not needed in PHP because its return semantics
 // are the same as `json_decode`
 
 // array arguments are backwards because of PHP
-if (!function_exists('peg_array_partition')) {
+if (!function_exists(__NAMESPACE__ . "\\peg_array_partition")) {
     function peg_array_partition($array, $predicate) {
         $truthy = array();
         $falsey = array();
@@ -66,7 +66,7 @@ if (!function_exists('peg_array_partition')) {
     }
 }
 
-if (!function_exists('peg_join_blocks')) {
+if (!function_exists(__NAMESPACE__ . "\\peg_join_blocks")) {
     function peg_join_blocks($pre, $tokens, $post) {
         $blocks = array();
 
@@ -91,9 +91,7 @@ if (!function_exists('peg_join_blocks')) {
         return $blocks;
     }
 }
-
 ?> **/
-
 function freeform(s) {
   return s.length && {
     attrs: {},
@@ -143,17 +141,13 @@ function partition(predicate, list) {
   // and clone model we could have taken here
   for (i = 0, l = list.length; i < l; i++) {
     item = list[ i ];
-
-    predicate(item)
-      ? truthy.push(item)
-      : falsey.push(item)
+    predicate(item) ? truthy.push(item) : falsey.push(item);
   };
 
   return [ truthy, falsey ];
 }
 
-}
-
+}}
 //////////////////////////////////////////////////////
 //
 //   Here starts the grammar proper!
@@ -215,8 +209,8 @@ Block_Void
     ?> **/
 
     return {
-      blockName: blockName,
-      attrs: attrs,
+      blockName,
+      attrs,
       innerBlocks: [],
       innerHTML: '',
       outerHTML: text()
@@ -245,7 +239,7 @@ Block_Balanced
     return {
       blockName: s.blockName,
       attrs: s.attrs,
-      innerBlocks: innerBlocks,
+      innerBlocks,
       innerHTML: innerHTML.join(''),
       outerHTML: text()
     };
@@ -265,8 +259,8 @@ Block_Start
     ?> **/
 
     return {
-      blockName: blockName,
-      attrs: attrs
+      blockName,
+      attrs
     };
   }
 
@@ -280,7 +274,7 @@ Block_End
     ?> **/
 
     return {
-      blockName: blockName
+      blockName
     };
   }
 

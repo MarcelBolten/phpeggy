@@ -1,4 +1,4 @@
-{
+{{
 
 /** <?php
 // The `maybeJSON` function is not needed in PHP because its return semantics
@@ -13,7 +13,7 @@ function maybeJSON(s) {
   }
 }
 
-}
+}}
 
 Document
   = WP_Block_List
@@ -40,8 +40,8 @@ WP_Block_Void
     ?> **/
 
     return {
-      blockName: blockName,
-      attrs: attrs,
+      blockName,
+      attrs,
       rawContent: ''
     };
   }
@@ -84,8 +84,8 @@ WP_Block_Start
     ?> **/
 
     return {
-      blockName: blockName,
-      attrs: attrs
+      blockName,
+      attrs
     };
   }
 
@@ -99,7 +99,7 @@ WP_Block_End
     ?> **/
 
     return {
-      blockName: blockName
+      blockName
     };
   }
 

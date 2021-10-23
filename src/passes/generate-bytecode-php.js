@@ -1,7 +1,10 @@
 /*
- * ! This is modified version of file "pegjs/lib/compiler/passes/generate-bytecode.js"
+ * ! This is modified version of file "peggy/lib/compiler/passes/generate-bytecode.js"
  * to generate bytecode that would be php-compatible
  * Original copyright:
+ *
+ * MIT License
+ * Copyright (c) 2010-2021 The Peggy AUTHORS
  *
  * ------------------------------------------------------------------
  * Copyright (c) 2010-2013 David Majda
@@ -34,7 +37,6 @@
 const asts = require("peggy/lib/compiler/asts");
 const visitor = require("peggy/lib/compiler/visitor");
 const op = require("../opcodes");
-const internalUtils = require("../utils");
 
 /* Generates bytecode.
  *
@@ -44,9 +46,9 @@ const internalUtils = require("../utils");
  * Stack Manipulation
  * ------------------
  *
- *  [0] PUSH c
+ *  [35] PUSH_EMPTY_STRING
  *
- *        stack.push(consts[c]);
+ *        stack.push("");
  *
  *  [1] PUSH_UNDEFINED
  *
@@ -156,7 +158,7 @@ const internalUtils = require("../utils");
  *
  * [18] MATCH_STRING s, a, f, ...
  *
- *        if (input.substr(currPos, consts[s].length) === consts[s]) {
+ *        if (input.substr(currPos, literals[s].length) === literals[s]) {
  *          interpret(ip + 4, ip + 4 + a);
  *        } else {
  *          interpret(ip + 4 + a, ip + 4 + a + f);
@@ -164,15 +166,15 @@ const internalUtils = require("../utils");
  *
  * [19] MATCH_STRING_IC s, a, f, ...
  *
- *        if (input.substr(currPos, consts[s].length).toLowerCase() === consts[s]) {
+ *        if (input.substr(currPos, literals[s].length).toLowerCase() === literals[s]) {
  *          interpret(ip + 4, ip + 4 + a);
  *        } else {
  *          interpret(ip + 4 + a, ip + 4 + a + f);
  *        }
  *
- * [20] MATCH_REGEXP r, a, f, ...
+ * [20] MATCH_CHAR_CLASS c, a, f, ...
  *
- *        if (consts[r].test(input.charAt(currPos))) {
+ *        if (classes[c].test(input.charAt(currPos))) {
  *          interpret(ip + 4, ip + 4 + a);
  *        } else {
  *          interpret(ip + 4 + a, ip + 4 + a + f);
@@ -185,13 +187,13 @@ const internalUtils = require("../utils");
  *
  * [22] ACCEPT_STRING s
  *
- *        stack.push(consts[s]);
- *        currPos += consts[s].length;
+ *        stack.push(literals[s]);
+ *        currPos += literals[s].length;
  *
  * [23] FAIL e
  *
  *        stack.push(FAILED);
- *        fail(consts[e]);
+ *        fail(expectations[e]);
  *
  * Calls
  * -----
@@ -206,7 +208,7 @@ const internalUtils = require("../utils");
  *
  * [26] CALL f, n, pc, p1, p2, ..., pN
  *
- *        value = consts[f](stack[p1], ..., stack[pN]);
+ *        value = functions[f](stack[p1], ..., stack[pN]);
  *        stack.pop(n);
  *        stack.push(value);
  *
@@ -227,43 +229,75 @@ const internalUtils = require("../utils");
  * [29] SILENT_FAILS_OFF
  *
  *        silentFails--;
+ *
+ * This pass can use the results of other previous passes, each of which can
+ * change the AST (and, as consequence, the bytecode).
+ *
+ * In particular, if the pass |inferenceMatchResult| has been run before this pass,
+ * then each AST node will contain a |match| property, which represents a possible
+ * match result of the node:
+ * - `<0` - node is never matched, for example, `!('a'*)` (negation of the always
+ *          matched node). Generator can put |FAILED| to the stack immediately
+ * - `=0` - sometimes node matched, sometimes not. This is the same behavior
+ *          when |match| is missed
+ * - `>0` - node is always matched, for example, `'a'*` (because result is an
+ *          empty array, or an array with some elements). The generator does not
+ *          need to add a check for |FAILED|, because it is impossible
+ *
+ * To handle the situation, when the |inferenceMatchResult| has not run (that
+ * happens, for example, in tests), the |match| value extracted using the
+ * `|0` trick, which performing cast of any value to an integer with value `0`
+ * that is equivalent of an unknown match result and signals the generator that
+ * runtime check for the |FAILED| is required. Trick is explained on the
+ * Wikipedia page (https://en.wikipedia.org/wiki/Asm.js#Code_generation)
  */
 module.exports = function(ast, options) {
+  const ALWAYS_MATCH = 1;
+  const SOMETIMES_MATCH = 0;
+  const NEVER_MATCH = -1;
+
+  const literals = [];
+  const classes = [];
+  const expectations = [];
+  const functions = [];
+
   const mbstringAllowed = (
     typeof options.phpeggy.mbstringAllowed === "undefined"
       ? true
       : options.phpeggy.mbstringAllowed
   );
 
-  const consts = [];
-  const functions = [];
+  function addLiteralConst(value) {
+    const index = literals.indexOf(value);
 
-  function addConst(value) {
-    const index = consts.findIndex(c => c === value);
-
-    return index === -1 ? consts.push(value) - 1 : index;
+    return index === -1 ? literals.push(value) - 1 : index;
   }
 
-  function addFunctionConst(params, code) {
-    const value = {
-      params: "",
-      code: internalUtils.extractPhpCode(code),
+  function addClassConst(node) {
+    const cls = {
+      value: node.parts,
+      inverted: node.inverted,
+      ignoreCase: node.ignoreCase,
     };
+    const pattern = JSON.stringify(cls);
+    const index = classes.findIndex(c => JSON.stringify(c) === pattern);
 
-    let first = true;
-    for (let i = 0; i < params.length; i++) {
-      if (!first) {
-        value.params += ", ";
-      }
-      value.params += "$" + params[i];
-      first = false;
-    }
+    return index === -1 ? classes.push(cls) - 1 : index;
+  }
 
-    const index = functions.findIndex(c => (
-      c.params === value.params && c.code === value.code
-    ));
+  function addExpectedConst(expected) {
+    const pattern = JSON.stringify(expected);
+    const index = expectations.findIndex(e => JSON.stringify(e) === pattern);
 
-    return index === -1 ? functions.push(value) - 1 : index;
+    return index === -1 ? expectations.push(expected) - 1 : index;
+  }
+
+  function addFunctionConst(predicate, params, code) {
+    const func = { predicate, params, body: code };
+    const pattern = JSON.stringify(func);
+    const index = functions.findIndex(f => JSON.stringify(f) === pattern);
+
+    return index === -1 ? functions.push(func) - 1 : index;
   }
 
   function cloneEnv(env) {
@@ -280,7 +314,10 @@ module.exports = function(ast, options) {
     return first.concat(...args);
   }
 
-  function buildCondition(condCode, thenCode, elseCode) {
+  function buildCondition(match, condCode, thenCode, elseCode) {
+    if (match === ALWAYS_MATCH) { return thenCode; }
+    if (match === NEVER_MATCH)  { return elseCode; }
+
     return condCode.concat(
       [thenCode.length, elseCode.length],
       thenCode,
@@ -299,6 +336,8 @@ module.exports = function(ast, options) {
   }
 
   function buildSimplePredicate(expression, negative, context) {
+    const match = expression.match | 0;
+
     return buildSequence(
       [op.PUSH_CURR_POS],
       [op.SILENT_FAILS_ON],
@@ -309,11 +348,12 @@ module.exports = function(ast, options) {
       }),
       [op.SILENT_FAILS_OFF],
       buildCondition(
+        negative ? -match : match,
         [negative ? op.IF_ERROR : op.IF_NOT_ERROR],
         buildSequence(
           [op.POP],
           [negative ? op.POP : op.POP_CURR_POS],
-          [op.PUSH_NULL]
+          [op.PUSH_UNDEFINED]
         ),
         buildSequence(
           [op.POP],
@@ -324,21 +364,24 @@ module.exports = function(ast, options) {
     );
   }
 
-  function buildSemanticPredicate(code, negative, context) {
-    const functionIndex = addFunctionConst(Object.keys(context.env), code);
+  function buildSemanticPredicate(node, negative, context) {
+    const functionIndex = addFunctionConst(
+      true, Object.keys(context.env), node.code
+    );
 
     return buildSequence(
       [op.UPDATE_SAVED_POS],
       buildCall(functionIndex, 0, context.env, context.sp),
       buildCondition(
+        node.match | 0,
         [op.IF],
         buildSequence(
           [op.POP],
-          negative ? [op.PUSH_FAILED] : [op.PUSH_NULL]
+          negative ? [op.PUSH_FAILED] : [op.PUSH_UNDEFINED]
         ),
         buildSequence(
           [op.POP],
-          negative ? [op.PUSH_NULL] : [op.PUSH_FAILED]
+          negative ? [op.PUSH_UNDEFINED] : [op.PUSH_FAILED]
         )
       )
     );
@@ -352,14 +395,16 @@ module.exports = function(ast, options) {
   }
 
   const generate = visitor.build({
-    "grammar"(node) {
+    grammar(node) {
       node.rules.forEach(generate);
 
-      node.consts = consts;
+      node.literals = literals;
+      node.classes = classes;
+      node.expectations = expectations;
       node.functions = functions;
     },
 
-    "rule"(node) {
+    rule(node) {
       node.bytecode = generate(node.expression, {
         sp: -1,       // Stack pointer
         env: {},      // Mapping of label names to stack positions
@@ -368,10 +413,14 @@ module.exports = function(ast, options) {
       });
     },
 
-    "named"(node, context) {
-      const nameIndex = addConst(
-        'array("type" => "other", "description" => ' + internalUtils.quote(node.name) + ")"
-      );
+    named(node, context) {
+      const match = node.match | 0;
+      // Expectation not required if node always fail
+      const nameIndex = match === NEVER_MATCH
+        ? null
+        : addExpectedConst(
+          { type: "rule", value: node.name }
+        );
 
       /*
        * The code generated below is slightly suboptimal because |FAIL| pushes
@@ -383,20 +432,34 @@ module.exports = function(ast, options) {
         [op.SILENT_FAILS_ON],
         generate(node.expression, context),
         [op.SILENT_FAILS_OFF],
-        buildCondition([op.IF_ERROR], [op.FAIL, nameIndex], [])
+        buildCondition(match, [op.IF_ERROR], [op.FAIL, nameIndex], [])
       );
     },
 
-    "choice"(node, context) {
+    choice(node, context) {
       function buildAlternativesCode(alternatives, context) {
+        const match = alternatives[0].match | 0;
+        const first = generate(alternatives[0], {
+          sp: context.sp,
+          env: cloneEnv(context.env),
+          action: null,
+        });
+        // If an alternative always match, no need to generate code for the next
+        // alternatives. Because their will never tried to match, any side-effects
+        // from next alternatives is impossible so we can skip their generation
+        if (match === ALWAYS_MATCH) {
+          return first;
+        }
+
+        // Even if an alternative never match it can have side-effects from
+        // a semantic predicates or an actions, so we can not skip generation
+        // of the first alternative.
+        // We can do that when analysis for possible side-effects will be introduced
         return buildSequence(
-          generate(alternatives[0], {
-            sp: context.sp,
-            env: cloneEnv(context.env),
-            action: null,
-          }),
+          first,
           alternatives.length > 1
             ? buildCondition(
+              SOMETIMES_MATCH,
               [op.IF_ERROR],
               buildSequence(
                 [op.POP],
@@ -411,7 +474,7 @@ module.exports = function(ast, options) {
       return buildAlternativesCode(node.alternatives, context);
     },
 
-    "action"(node, context) {
+    action(node, context) {
       const env = cloneEnv(context.env);
       const emitCall = node.expression.type !== "sequence"
         || node.expression.elements.length === 0;
@@ -420,13 +483,18 @@ module.exports = function(ast, options) {
         env,
         action: node,
       });
-      const functionIndex = addFunctionConst(Object.keys(env), node.code);
+      const match = node.expression.match | 0;
+      // Function only required if expression can match
+      const functionIndex = emitCall && match !== NEVER_MATCH
+        ? addFunctionConst(false, Object.keys(env), node.code)
+        : null;
 
       return emitCall
         ? buildSequence(
           [op.PUSH_CURR_POS],
           expressionCode,
           buildCondition(
+            match,
             [op.IF_NOT_ERROR],
             buildSequence(
               [op.LOAD_SAVED_POS, 1],
@@ -439,12 +507,11 @@ module.exports = function(ast, options) {
         : expressionCode;
     },
 
-    "sequence"(node, context) {
+    sequence(node, context) {
       function buildElementsCode(elements, context) {
-        let processedCount, functionIndex;
-
         if (elements.length > 0) {
-          processedCount = node.elements.length - elements.slice(1).length;
+          const processedCount
+            = node.elements.length - elements.slice(1).length;
 
           return buildSequence(
             generate(elements[0], {
@@ -454,6 +521,7 @@ module.exports = function(ast, options) {
               action: null,
             }),
             buildCondition(
+              elements[0].match | 0,
               [op.IF_NOT_ERROR],
               buildElementsCode(elements.slice(1), {
                 sp: context.sp + 1,
@@ -477,7 +545,8 @@ module.exports = function(ast, options) {
           }
 
           if (context.action) {
-            functionIndex = addFunctionConst(
+            const functionIndex = addFunctionConst(
+              false,
               Object.keys(context.env),
               context.action.code
             );
@@ -486,11 +555,10 @@ module.exports = function(ast, options) {
               [op.LOAD_SAVED_POS, node.elements.length],
               buildCall(
                 functionIndex,
-                node.elements.length,
+                node.elements.length + 1,
                 context.env,
                 context.sp
-              ),
-              [op.NIP]
+              )
             );
           } else {
             return buildSequence([op.WRAP, node.elements.length], [op.NIP]);
@@ -513,7 +581,7 @@ module.exports = function(ast, options) {
       }
     },
 
-    "labeled"(node, context) {
+    labeled(node, context) {
       let env = context.env;
       const label = node.label;
       const sp = context.sp + 1;
@@ -534,7 +602,7 @@ module.exports = function(ast, options) {
       });
     },
 
-    "text"(node, context) {
+    text(node, context) {
       return buildSequence(
         [op.PUSH_CURR_POS],
         generate(node.expression, {
@@ -543,6 +611,7 @@ module.exports = function(ast, options) {
           action: null,
         }),
         buildCondition(
+          node.match | 0,
           [op.IF_NOT_ERROR],
           buildSequence([op.POP], [op.TEXT]),
           [op.NIP]
@@ -550,15 +619,15 @@ module.exports = function(ast, options) {
       );
     },
 
-    "simple_and"(node, context) {
+    simple_and(node, context) {
       return buildSimplePredicate(node.expression, false, context);
     },
 
-    "simple_not"(node, context) {
+    simple_not(node, context) {
       return buildSimplePredicate(node.expression, true, context);
     },
 
-    "optional"(node, context) {
+    optional(node, context) {
       return buildSequence(
         generate(node.expression, {
           sp: context.sp,
@@ -566,6 +635,10 @@ module.exports = function(ast, options) {
           action: null,
         }),
         buildCondition(
+          // Check expression match, not the node match
+          // If expression always match, no need to replace FAILED to NULL,
+          // because FAILED will never appeared
+          -(node.expression.match | 0),
           [op.IF_ERROR],
           buildSequence([op.POP], [op.PUSH_NULL]),
           []
@@ -573,7 +646,7 @@ module.exports = function(ast, options) {
       );
     },
 
-    "zero_or_more"(node, context) {
+    zero_or_more(node, context) {
       const expressionCode = generate(node.expression, {
         sp: context.sp + 1,
         env: cloneEnv(context.env),
@@ -588,7 +661,7 @@ module.exports = function(ast, options) {
       );
     },
 
-    "one_or_more"(node, context) {
+    one_or_more(node, context) {
       const expressionCode = generate(node.expression, {
         sp: context.sp + 1,
         env: cloneEnv(context.env),
@@ -599,6 +672,8 @@ module.exports = function(ast, options) {
         [op.PUSH_EMPTY_ARRAY],
         expressionCode,
         buildCondition(
+          // Condition depends on the expression match, not the node match
+          node.expression.match | 0,
           [op.IF_NOT_ERROR],
           buildSequence(buildAppendLoop(expressionCode), [op.POP]),
           buildSequence([op.POP], [op.POP], [op.PUSH_FAILED])
@@ -606,7 +681,7 @@ module.exports = function(ast, options) {
       );
     },
 
-    "group"(node, context) {
+    group(node, context) {
       return generate(node.expression, {
         sp: context.sp,
         env: cloneEnv(context.env),
@@ -614,38 +689,40 @@ module.exports = function(ast, options) {
       });
     },
 
-    "semantic_and"(node, context) {
-      return buildSemanticPredicate(node.code, false, context);
+    semantic_and(node, context) {
+      return buildSemanticPredicate(node, false, context);
     },
 
-    "semantic_not"(node, context) {
-      return buildSemanticPredicate(node.code, true, context);
+    semantic_not(node, context) {
+      return buildSemanticPredicate(node, true, context);
     },
 
-    "rule_ref"(node) {
+    rule_ref(node) {
       return [op.RULE, asts.indexOfRule(ast, node.name)];
     },
 
-    "literal"(node) {
-      if (node.ignoreCase && !mbstringAllowed) {
-        throw new Error(
-          "Case-insensitive string matching requires the "
-          + "`mbstring` PHP extension, but it is disabled "
-          + "via `mbstringAllowed: false`."
-        );
-      }
-
-      let stringIndex, expectedIndex;
-
+    literal(node) {
       if (node.value.length > 0) {
-        stringIndex = addConst(node.ignoreCase
-          ? internalUtils.quote(node.value.toLowerCase())
-          : internalUtils.quote(node.value));
-        expectedIndex = addConst("array(" + [
-          '"type" => "literal",',
-          '"value" => ' + internalUtils.quote(node.value) + ",",
-          '"description" => ' + internalUtils.quote(internalUtils.quote(node.value)),
-        ].join(" ") + ")");
+        const match = node.match | 0;
+        // String only required if condition is generated or string is
+        // case-sensitive and node always match
+        const needConst = match === SOMETIMES_MATCH
+          || (match === ALWAYS_MATCH && !node.ignoreCase);
+        const stringIndex = needConst
+          ? addLiteralConst(
+            node.ignoreCase
+              ? node.value.toLowerCase()
+              : node.value
+          )
+          : null;
+        // Expectation not required if node always match
+        const expectedIndex = match !== ALWAYS_MATCH
+          ? addExpectedConst({
+            type: "literal",
+            value: node.value,
+            ignoreCase: node.ignoreCase,
+          })
+          : null;
 
         /*
          * For case-sensitive strings the value must match the beginning of the
@@ -653,6 +730,7 @@ module.exports = function(ast, options) {
          * save one |substr| call that would be needed if we used |ACCEPT_N|.
          */
         return buildCondition(
+          match,
           node.ignoreCase
             ? [op.MATCH_STRING_IC, stringIndex]
             : [op.MATCH_STRING, stringIndex],
@@ -661,138 +739,54 @@ module.exports = function(ast, options) {
             : [op.ACCEPT_STRING, stringIndex],
           [op.FAIL, expectedIndex]
         );
-      } else {
-        stringIndex = addConst('""');
-
-        return [op.PUSH, stringIndex];
       }
+
+      return [op.PUSH_EMPTY_STRING];
     },
 
-    "class"(node) {
-      if (node.ignoreCase && !mbstringAllowed) {
+    class(node) {
+      if (node.parts.length === 0 && !mbstringAllowed) {
         throw new Error(
-          "Case-insensitive character class matching requires the "
+          "Empty character class matching requires the "
           + "`mbstring` PHP extension, but it is disabled "
           + "via `mbstringAllowed: false`."
         );
       }
 
-      let regexp, regexpIndex;
-
-      function hex(ch) {
-        return ch.charCodeAt(0).toString(16).toUpperCase();
-      }
-
-      function hex1(ch) {
-        let hexCode = hex(ch);
-        hexCode = "0".repeat(4 - hexCode.length + 1) + hexCode;
-        return "\\x{" + hexCode + "}";
-      }
-
-      function quoteForPhpRegexp(s) {
-        return s
-          .replace(/\\/g, "\\\\")        // Backslash
-          .replace(/\//g, "\\/")         // Closing slash
-          .replace(/\[/g, "\\[")         // Opening [ bracket
-          .replace(/\]/g, "\\]")         // Closing ] bracket
-          .replace(/\(/g, "\\(")         // Opening ( bracket
-          .replace(/\)/g, "\\)")         // Closing ) bracket
-          .replace(/\^/g, "\\^")         // Caret
-          .replace(/\$/g, "\\$")         // Dollar
-          .replace(/([^[])-/g, "$1\\-")  // Dash
-          .replace(/\0/g, "\\0")         // Null
-          .replace(/\t/g, "\\t")         // Horizontal tab
-          .replace(/\n/g, "\\n")         // Line feed
-          .replace(/\v/g, "\\x0B")       // Vertical tab
-          .replace(/\f/g, "\\f")         // Form feed
-          .replace(/\r/g, "\\r")         // Carriage return
-          .replace(/[\x00-\x0F]/g, ch => "\\x0" + hex(ch))
-          .replace(/[\x10-\x1F\x7F-\x9F]/g, ch => "\\x" + hex(ch))
-          .replace(/[\xFF-\uFFFF]/g, ch => hex1(ch));
-      }
-
-      function quotePhp(s) {
-        return '"' + s
-          .replace(/\\/g, "\\\\")  // Backslash
-          .replace(/"/g, '\\"')    // Closing quote character
-          .replace(/\x08/g, "\\b") // Backspace
-          .replace(/\t/g, "\\\\t")   // Horizontal tab
-          .replace(/\n/g, "\\\\n")   // Line feed
-          .replace(/\f/g, "\\\\f")   // Form feed
-          .replace(/\r/g, "\\\\r")   // Carriage return
-          .replace(/\$/g, "\\$")   // Dollar
-          .replace(/[\x00-\x0F]/g, ch => "\\x0" + hex(ch))
-          .replace(/[\x10-\x1F\x7F-\x9F]/g, ch => "\\x" + hex(ch))
-          .replace(/[\xFF-\uFFFF]/g, ch => hex1(ch))
-          + '"';
-      }
-
-      if (node.parts.length > 0) {
-        regexp = "/^["
-          + (node.inverted ? "^" : "")
-          + node.parts.map(part => part instanceof Array
-            ? quoteForPhpRegexp(part[0])
-                  + "-"
-                  + quoteForPhpRegexp(part[1])
-            : quoteForPhpRegexp(part)).join("")
-          + "]/" + (node.ignoreCase ? "i" : "");
-      } else {
-        if (!mbstringAllowed) {
-          throw new Error(
-            "Empty character class matching requires the "
-            + "`mbstring` PHP extension, but it is disabled "
-            + "via `mbstringAllowed: false`."
-          );
-        }
-        /*
-         * IE considers regexps /[]/ and /[^]/ as syntactically invalid, so we
-         * translate them into euqivalents it can handle.
-         */
-        regexp = node.inverted ? "/^[\\S\\s]/" : "/^(?!)/";
-      }
-
-      if (mbstringAllowed) {
-        regexpIndex = addConst(quotePhp(regexp));
-      } else {
-        const classArray = "array("
-          + node.parts.map(part => {
-            if (!(part instanceof Array)) {
-              part = [part, part];
-            }
-            return "array("
-              + part[0].charCodeAt(0) + ","
-              + part[1].charCodeAt(0) + ")";
-          }).join(", ")
-          + ")";
-        regexpIndex = addConst(classArray);
-      }
-
-      const rawText = "[" + node.parts.map(part => {
-        if (typeof part === "string") {
-          return part;
-        }
-        return part.join("-");
-      }).join("")
-      + "]";
-
-      const expectedIndex = addConst("array(" + [
-        '"type" => "class",',
-        '"value" => ' + quotePhp(rawText) + ",",
-        // What shall I do with the description -> \n will not be displayed properly after output. Should be \\n here
-        '"description" => ' + quotePhp(rawText),
-      ].join(" ") + ")");
+      const match = node.match | 0;
+      // Character class constant only required if condition is generated
+      const classIndex = match === SOMETIMES_MATCH
+        ? addClassConst(node)
+        : null;
+      // Expectation not required if node always match
+      const expectedIndex = match !== ALWAYS_MATCH
+        ? addExpectedConst({
+          type: "class",
+          value: node.parts,
+          inverted: node.inverted,
+          ignoreCase: node.ignoreCase,
+        })
+        : null;
 
       return buildCondition(
-        [op.MATCH_REGEXP, regexpIndex],
+        match,
+        [op.MATCH_CHAR_CLASS, classIndex],
         [op.ACCEPT_N, 1],
         [op.FAIL, expectedIndex]
       );
     },
 
-    "any"() {
-      const expectedIndex = addConst('array("type" => "any", "description" => "any character")');
+    any(node) {
+      const match = node.match | 0;
+      // Expectation not required if node always match
+      const expectedIndex = match !== ALWAYS_MATCH
+        ? addExpectedConst({
+          type: "any",
+        })
+        : null;
 
       return buildCondition(
+        match,
         [op.MATCH_ANY],
         [op.ACCEPT_N, 1],
         [op.FAIL, expectedIndex]

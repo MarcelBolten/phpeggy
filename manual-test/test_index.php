@@ -1,11 +1,10 @@
 <?php
-
 $examples = array(
-    'Digits'      => 'output/digits.php',
-    'Arithmetics' => 'output/arithmetics.php',
-    'Json'        => 'output/json.php',
-    'Css'         => 'output/css.php',
-    'Javascript'  => 'output/javascript.php'
+    "Digits"      => "output/digits.php",
+    "Arithmetics" => "output/arithmetics.php",
+    "Json"        => "output/json.php",
+    "Css"         => "output/css.php",
+    "Javascript"  => "output/javascript.php"
 );
 
 $output = null;
@@ -13,30 +12,24 @@ $classname = null;
 $parsing_time = null;
 $error = null;
 
-if (isset($_POST['code'], $_POST['parser']) && isset($examples[$_POST['parser']]))
-{
-    $classname = $_POST['parser'];
+if (isset($_POST["code"], $_POST["parser"]) && isset($examples[$_POST["parser"]])) {
+    $classname = $_POST["parser"];
     $parser_file = $examples[$classname];
-    if (file_exists($parser_file))
-    {
+    if (file_exists($parser_file)) {
         include $parser_file;
         $start = microtime(true);
-        try
-        {
+        try {
             $full_classname = "Parser\\" . $classname;
             $parser = new $full_classname();
-            $output = $parser->parse($_POST['code']);
-        }
-        catch (Parser\SyntaxError $ex)
-        {
-            $error = "Syntax error: " . $ex->getMessage() . ' At line ' . $ex->grammarLine . ' column ' . $ex->grammarColumn . ' offset ' . $ex->grammarOffset;
+            $output = $parser->parse($_POST["code"]);
+        } catch (Parser\SyntaxError $ex) {
+            $error = "Syntax error: " . $ex->getMessage() . " At line " . $ex->grammarLine . " column " . $ex->grammarColumn . " offset " . $ex->grammarOffset;
         }
         $parsing_time = microtime(true) - $start;
+    } else {
+      $error = "Parser " . $parser_file . " does not exist.";
     }
-    else $error = "Parser " . $parser_file . ' is not exist';
 }
-
-
 ?><!doctype html>
 <html xmlns ="http://www.w3.org/1999/xhtml">
     <head>
@@ -87,20 +80,19 @@ if (isset($_POST['code'], $_POST['parser']) && isset($examples[$_POST['parser']]
                     <h2>Parser:</h2>
                     <div>
                         <select name="parser"><?php
-                            foreach ($examples as $cl => $file)
-                            {
+                            foreach ($examples as $cl => $file) {
                                 echo "<option ";
                                 if ($classname == $cl) echo "selected ";
-                                echo "value='" . htmlspecialchars($cl) . "'";
-                                echo ">" . htmlspecialchars($cl) . ' (' .htmlspecialchars($file) . ')';
-                                echo '</option>';
+                                echo "value=\"" . htmlspecialchars($cl) . "\"";
+                                echo ">" . htmlspecialchars($cl) . " (" .htmlspecialchars($file) . ")";
+                                echo "</option>";
                             }
                         ?></select>
                     </div>
                     <h2>Input string:</h2>
                     <div>
                         <textarea name="code" style="height: 250px"><?php
-                            if (isset($_POST['code'])) echo htmlspecialchars($_POST['code']);
+                            if (isset($_POST["code"])) echo htmlspecialchars($_POST["code"]);
                         ?></textarea>
                     </div>
                     <div><input type="submit" value="Test"></div>
@@ -112,9 +104,8 @@ if (isset($_POST['code'], $_POST['parser']) && isset($examples[$_POST['parser']]
                     echo htmlspecialchars(var_export($output, true));
                 ?></div>
                 <?php
-                    if ($error) echo "<div class='error'>" . htmlspecialchars($error) . "</div>";
-                    if ($parsing_time !== null)
-                    {
+                    if ($error) echo "<div class=\"error\">" . htmlspecialchars($error) . "</div>";
+                    if ($parsing_time !== null) {
                         echo "<h2>Parsing time</h2>";
                         echo "<div>" . htmlspecialchars($parsing_time) . " s.</div>";
                     }

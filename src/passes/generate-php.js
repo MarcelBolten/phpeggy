@@ -55,25 +55,131 @@ module.exports = function(ast, options) {
   }
 
   function generateTablesDeclaration() {
-    return ast.consts.map(
+    return ast.literals.map(
+      (l, i) => "private $peg_l" + i + ";"
+    ).concat("", ast.classes.map(
       (c, i) => "private $peg_c" + i + ";"
-    ).join("\n");
+    )).concat("", ast.expectations.map(
+      (e, i) => "private $peg_e" + i + ";"
+    )).join("\n");
   }
 
   function generateTablesDefinition() {
-    return ast.consts.map(
-      (c, i) => "$this->peg_c" + i + " = " + c + ";"
-    ).join("\n");
+    function buildLiteral(literal) {
+      return internalUtils.quote(literal);
+    }
+
+    function buildRegexp(cls) {
+      if (cls.ignoreCase && !mbstringAllowed) {
+        throw new Error(
+          "Case-insensitive character class matching requires the "
+          + "`mbstring` PHP extension, but it is disabled "
+          + "via `mbstringAllowed: false`."
+        );
+      }
+
+      let regexp, classIndex;
+
+      if (cls.value.length > 0) {
+        regexp = "/^["
+          + (cls.inverted ? "^" : "")
+          + cls.value.map(part => Array.isArray(part)
+            ? internalUtils.quoteForPhpRegexp(part[0])
+              + "-"
+              + internalUtils.quoteForPhpRegexp(part[1])
+            : internalUtils.quoteForPhpRegexp(part)).join("")
+          + "]/" + (cls.ignoreCase ? "i" : "");
+      } else {
+        if (!mbstringAllowed) {
+          throw new Error(
+            "Empty character class matching requires the "
+            + "`mbstring` PHP extension, but it is disabled "
+            + "via `mbstringAllowed: false`."
+          );
+        }
+        /*
+         * IE considers regexps /[]/ and /[^]/ as syntactically invalid, so we
+         * translate them into euqivalents it can handle.
+         */
+        regexp = cls.inverted ? "/^[\\S\\s]/" : "/^(?!)/";
+      }
+
+      if (mbstringAllowed) {
+        classIndex = internalUtils.quotePhp(regexp);
+      } else {
+        const classArray = "array("
+          + cls.value.map(part => {
+            if (!(part instanceof Array)) {
+              part = [part, part];
+            }
+            return "array("
+              + part[0].charCodeAt(0) + ","
+              + part[1].charCodeAt(0) + ")";
+          }).join(", ")
+          + ")";
+        classIndex = classArray;
+      }
+      return classIndex;
+    }
+
+    function buildExpectation(e) {
+      switch (e.type) {
+        case "rule": {
+          return 'array("type" => "other", "description" => ' + internalUtils.quote(e.value) + ")";
+        }
+
+        case "literal": {
+          return "array("
+            + ['"type" => "literal",',
+              '"value" => ' + internalUtils.quote(e.value) + ",",
+              '"description" => ' + internalUtils.quote(internalUtils.quote(e.value)) + ",",
+              '"ignoreCase" => ' + internalUtils.quote(e.ignoreCase.toString())].join(" ")
+            + ")";
+        }
+
+        case "class": {
+          const rawText = "[" + e.value.map(part => {
+            if (typeof part === "string") {
+              return part;
+            }
+            return part.join("-");
+          }).join("")
+          + "]";
+
+          return "array("
+            + ['"type" => "class",',
+              '"value" => ' + internalUtils.quotePhp(rawText) + ",",
+              '"description" => ' + internalUtils.quotePhp(rawText) + ",",
+              '"ignoreCase" => ' + internalUtils.quote(e.ignoreCase.toString())].join(" ")
+            + ")";
+        }
+
+        case "any":
+          return 'array("type" => "any", "description" => "any character")';
+
+        default: throw new Error("Unknown expectation type (" + JSON.stringify(e) + ")");
+      }
+    }
+
+    return ast.literals.map(
+      (l, i) => "$this->peg_l" + i + " = " + buildLiteral(l) + ";"
+    ).concat("", ast.classes.map(
+      (c, i) => "$this->peg_c" + i + " = " + buildRegexp(c) + ";"
+    )).concat("", ast.expectations.map(
+      (e, i) => "$this->peg_e" + i + " = " + buildExpectation(e) + ";"
+    )).join("\n");
   }
 
   function generateFunctions() {
     return ast.functions.map(
-      (c, i) => "private function peg_f" + i
-          + "(" + c.params + ")\n"
-          + "{\n"
-          + "    " + c.code.trim()
-          + "\n}"
-    ).join("\n\n");
+      (f, i) => "private function peg_f" + i
+      + "("
+      + f.params.map(param => "$" + param).join(", ")
+      + ")\n"
+      + "{\n"
+      + "    " + internalUtils.extractPhpCode(f.body).trim()
+      + "\n}\n"
+    ).join("\n");
   }
 
   function generateCacheHeader(ruleIndexCode) {
@@ -99,12 +205,22 @@ module.exports = function(ast, options) {
   function generateRuleFunction(rule) {
     const parts = [];
 
-    // |consts[i]| of the abstract machine
+    // |literals[i]| of the abstract machine
+    function l(i) {
+      return "$this->peg_l" + i;
+    }
+
+    // |classes[i]| of the abstract machine
     function c(i) {
       return "$this->peg_c" + i;
     }
 
-    // |functions[i]| of the abstract machine
+    // |expectations[i]| of the abstract machine
+    function e(i) {
+      return "$this->peg_e" + i;
+    }
+
+    // |actions[i]| of the abstract machine
     function f(i) {
       return "$this->peg_f" + i;
     }
@@ -243,72 +359,72 @@ module.exports = function(ast, options) {
 
       while (ip < end) {
         switch (bc[ip]) {
-          case op.PUSH:             // PUSH c
-            parts.push(stack.push(c(bc[ip + 1])));
-            ip += 2;
+          case op.PUSH_EMPTY_STRING: // PUSH_EMPTY_STRING
+            parts.push(stack.push("\"\""));
+            ip++;
             break;
 
-          case op.PUSH_UNDEFINED:   // PUSH_UNDEFINED
+          case op.PUSH_UNDEFINED:    // PUSH_UNDEFINED
             parts.push(stack.push("null"));
             ip++;
             break;
 
-          case op.PUSH_NULL:        // PUSH_NULL
+          case op.PUSH_NULL:         // PUSH_NULL
             parts.push(stack.push("null"));
             ip++;
             break;
 
-          case op.PUSH_FAILED:      // PUSH_FAILED
+          case op.PUSH_FAILED:       // PUSH_FAILED
             parts.push(stack.push("$this->peg_FAILED"));
             ip++;
             break;
 
-          case op.PUSH_EMPTY_ARRAY: // PUSH_EMPTY_ARRAY
+          case op.PUSH_EMPTY_ARRAY:  // PUSH_EMPTY_ARRAY
             parts.push(stack.push("array()"));
             ip++;
             break;
 
-          case op.PUSH_CURR_POS:    // PUSH_CURR_POS
+          case op.PUSH_CURR_POS:     // PUSH_CURR_POS
             parts.push(stack.push("$this->peg_currPos"));
             ip++;
             break;
 
-          case op.POP:              // POP
+          case op.POP:               // POP
             stack.pop();
             ip++;
             break;
 
-          case op.POP_CURR_POS:     // POP_CURR_POS
+          case op.POP_CURR_POS:      // POP_CURR_POS
             parts.push("$this->peg_currPos = " + stack.pop() + ";");
             ip++;
             break;
 
-          case op.POP_N:            // POP_N n
+          case op.POP_N:             // POP_N n
             stack.pop(bc[ip + 1]);
             ip += 2;
             break;
 
-          case op.NIP:              // NIP
+          case op.NIP:               // NIP
             value = stack.pop();
             stack.pop();
             parts.push(stack.push(value));
             ip++;
             break;
 
-          case op.APPEND:           // APPEND
+          case op.APPEND:            // APPEND
             value = stack.pop();
             parts.push(stack.top() + "[] = " + value + ";");
             ip++;
             break;
 
-          case op.WRAP:             // WRAP n
+          case op.WRAP:              // WRAP n
             parts.push(
               stack.push("array(" + stack.pop(bc[ip + 1]).join(", ") + ")")
             );
             ip += 2;
             break;
 
-          case op.TEXT:             // TEXT
+          case op.TEXT:              // TEXT
             stackTop = stack.pop();
             parts.push(stack.push(
               inputSubstr(
@@ -319,7 +435,7 @@ module.exports = function(ast, options) {
             ip++;
             break;
 
-          case op.PLUCK: {          // PLUCK n, k, p1, ..., pK
+          case op.PLUCK: {           // PLUCK n, k, p1, ..., pK
             const baseLength = 3;
             const paramsLength = bc[ip + baseLength - 1];
             const n = baseLength + paramsLength;
@@ -335,50 +451,55 @@ module.exports = function(ast, options) {
             break;
           }
 
-          case op.IF:               // IF t, f
+          case op.IF:                // IF t, f
             compileCondition(stack.top(), 0);
             break;
 
-          case op.IF_ERROR:         // IF_ERROR t, f
+          case op.IF_ERROR:          // IF_ERROR t, f
             compileCondition(stack.top() + " === $this->peg_FAILED", 0);
             break;
 
-          case op.IF_NOT_ERROR:     // IF_NOT_ERROR t, f
+          case op.IF_NOT_ERROR:      // IF_NOT_ERROR t, f
             compileCondition(stack.top() + " !== $this->peg_FAILED", 0);
             break;
 
-          case op.WHILE_NOT_ERROR:  // WHILE_NOT_ERROR b
+          case op.WHILE_NOT_ERROR:   // WHILE_NOT_ERROR b
             compileLoop(stack.top() + " !== $this->peg_FAILED", 0);
             break;
 
-          case op.MATCH_ANY:        // MATCH_ANY a, f, ...
+          case op.MATCH_ANY:         // MATCH_ANY a, f, ...
             compileCondition("$this->input_length > $this->peg_currPos", 0);
             break;
 
-          case op.MATCH_STRING:     // MATCH_STRING s, a, f, ...
+          case op.MATCH_STRING:      // MATCH_STRING s, a, f, ...
             compileCondition(
               inputSubstr(
                 "$this->peg_currPos",
-                eval(ast.consts[bc[ip + 1]]).length
-              ) + " === " + c(bc[ip + 1]),
+                ast.literals[bc[ip + 1]].length
+              ) + " === " + l(bc[ip + 1]),
               1
             );
             break;
 
-          case op.MATCH_STRING_IC:  // MATCH_STRING_IC s, a, f, ...
-            // Disallowed in `generate-bytecode-php.js` if the
-            // `mbstringAllowed` option is set to false.
+          case op.MATCH_STRING_IC:   // MATCH_STRING_IC s, a, f, ...
+            if (!mbstringAllowed) {
+              throw new Error(
+                "Case-insensitive string matching requires the "
+                + "`mbstring` PHP extension, but it is disabled "
+                + "via `mbstringAllowed: false`."
+              );
+            }
             compileCondition(
               "mb_strtolower("
               + inputSubstr(
                 "$this->peg_currPos",
-                eval(ast.consts[bc[ip + 1]]).length
-              ) + ', "UTF-8") === ' + c(bc[ip + 1]),
+                ast.literals[bc[ip + 1]].length
+              ) + ', "UTF-8") === ' + l(bc[ip + 1]),
               1
             );
             break;
 
-          case op.MATCH_REGEXP:     // MATCH_REGEXP r, a, f, ...
+          case op.MATCH_CHAR_CLASS:  // MATCH_CHAR_CLASS c, a, f, ...
             if (mbstringAllowed) {
               compileCondition(
                 "peg_regex_test("
@@ -398,7 +519,7 @@ module.exports = function(ast, options) {
             }
             break;
 
-          case op.ACCEPT_N:         // ACCEPT_N n
+          case op.ACCEPT_N:          // ACCEPT_N n
             parts.push(stack.push(
               inputSubstr("$this->peg_currPos", bc[ip + 1])
             ));
@@ -410,49 +531,49 @@ module.exports = function(ast, options) {
             ip += 2;
             break;
 
-          case op.ACCEPT_STRING:    // ACCEPT_STRING s
-            parts.push(stack.push(c(bc[ip + 1])));
+          case op.ACCEPT_STRING:     // ACCEPT_STRING s
+            parts.push(stack.push(l(bc[ip + 1])));
             parts.push(
-              eval(ast.consts[bc[ip + 1]]).length > 1
-                ? "$this->peg_currPos += " + eval(ast.consts[bc[ip + 1]]).length + ";"
+              ast.literals[bc[ip + 1]].length > 1
+                ? "$this->peg_currPos += " + ast.literals[bc[ip + 1]].length + ";"
                 : "$this->peg_currPos++;"
             );
             ip += 2;
             break;
 
-          case op.FAIL:             // FAIL e
+          case op.FAIL:              // FAIL e
             parts.push(stack.push("$this->peg_FAILED"));
             parts.push("if ($this->peg_silentFails === 0) {");
-            parts.push("    $this->peg_fail(" + c(bc[ip + 1]) + ");");
+            parts.push("    $this->peg_fail(" + e(bc[ip + 1]) + ");");
             parts.push("}");
             ip += 2;
             break;
 
-          case op.LOAD_SAVED_POS:   // LOAD_SAVED_POS p
+          case op.LOAD_SAVED_POS:    // LOAD_SAVED_POS p
             parts.push("$this->peg_reportedPos = " + stack.index(bc[ip + 1]) + ";");
             ip += 2;
             break;
 
-          case op.UPDATE_SAVED_POS: // UPDATE_SAVED_POS
+          case op.UPDATE_SAVED_POS:  // UPDATE_SAVED_POS
             parts.push("$this->peg_reportedPos = $this->peg_currPos;");
             ip++;
             break;
 
-          case op.CALL:             // CALL f, n, pc, p1, p2, ..., pN
+          case op.CALL:              // CALL f, n, pc, p1, p2, ..., pN
             compileCall();
             break;
 
-          case op.RULE:             // RULE r
+          case op.RULE:              // RULE r
             parts.push(stack.push("$this->peg_parse" + ast.rules[bc[ip + 1]].name + "()"));
             ip += 2;
             break;
 
-          case op.SILENT_FAILS_ON:  // SILENT_FAILS_ON
+          case op.SILENT_FAILS_ON:   // SILENT_FAILS_ON
             parts.push("$this->peg_silentFails++;");
             ip++;
             break;
 
-          case op.SILENT_FAILS_OFF: // SILENT_FAILS_OFF
+          case op.SILENT_FAILS_OFF:  // SILENT_FAILS_OFF
             parts.push("$this->peg_silentFails--;");
             ip++;
             break;
@@ -623,7 +744,7 @@ module.exports = function(ast, options) {
 
   parts.push(indent(4, [
     ...options.cache
-      ? ["public $peg_cache = array();"]
+      ? ["public $peg_cache = array();", ""]
       : [],
 
     "private $peg_currPos = 0;",
@@ -635,10 +756,10 @@ module.exports = function(ast, options) {
     "private $peg_silentFails = 0;", // 0 = report failures, > 0 = silence failures
     "private $input = array();",
     "private $input_length = 0;",
+    "private $peg_FAILED;",
+    "",
   ].join("\n")));
 
-  parts.push("");
-  parts.push("    private $peg_FAILED;");
   parts.push(indent(4, generateTablesDeclaration()));
   parts.push("");
 
@@ -669,12 +790,13 @@ module.exports = function(ast, options) {
   }
 
   parts.push(indent(8, "$this->peg_FAILED = new " + phpGlobalNamespacePrefix + "stdClass;"));
+  parts.push("");
   parts.push(indent(8, generateTablesDefinition()));
   parts.push("");
 
   const startRuleFunctions = "array("
     + options.allowedStartRules.map(
-      r => "'" + r + '\' => array($this, "peg_parse' + r + '")'
+      r => '"' + r + '" => array($this, "peg_parse' + r + '")'
     ).join(", ")
     + ")";
   const startRuleFunction = 'array($this, "peg_parse' + options.allowedStartRules[0] + '")';
@@ -768,7 +890,7 @@ module.exports = function(ast, options) {
     "    if ($length === 1 && $start < $this->input_length) {",
     "        return $this->input[$start];",
     "    }",
-    "    $substr = '';",
+    '    $substr = "";',
     "    $max = min($start + $length, $this->input_length);",
     "    for ($i = $start; $i < $max; $i++) {",
     "        $substr .= $this->input[$i];",
@@ -787,6 +909,11 @@ module.exports = function(ast, options) {
     "private function offset()",
     "{",
     "    return $this->peg_reportedPos;",
+    "}",
+    "",
+    "private function range()",
+    "{",
+    '    return array("start" => $this->peg_reportedPos, "end" => $this->peg_currPos);',
     "}",
     "",
     "private function line()",
@@ -924,7 +1051,6 @@ module.exports = function(ast, options) {
   ].join("\n")));
 
   parts.push(indent(4, generateFunctions()));
-  parts.push("");
 
   ast.rules.forEach(rule => {
     parts.push(indent(4, generateRuleFunction(rule)));
@@ -932,7 +1058,7 @@ module.exports = function(ast, options) {
   });
   // Remove empty line
   parts.pop();
-  
+
   parts.push([
     "};",
     "",
