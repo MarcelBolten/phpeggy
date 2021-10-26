@@ -564,7 +564,7 @@ module.exports = function(ast, options) {
             break;
 
           case op.RULE:              // RULE r
-            parts.push(stack.push("$this->peg_parse" + ast.rules[bc[ip + 1]].name + "()"));
+            parts.push(stack.push("$this->peg_parse_" + ast.rules[bc[ip + 1]].name + "()"));
             ip += 2;
             break;
 
@@ -589,7 +589,7 @@ module.exports = function(ast, options) {
     const code = compile(rule.bytecode);
 
     parts.push([
-      "private function peg_parse" + rule.name + "()",
+      "private function peg_parse_" + rule.name + "()",
       "{",
     ].join("\n"));
 
@@ -718,14 +718,15 @@ module.exports = function(ast, options) {
     'if (!class_exists("' + phpGlobalNamePrefixOrNamespaceEscaped + 'SyntaxError", false)) {',
     "    class SyntaxError extends " + phpGlobalNamespacePrefix + "Exception",
     "    {",
+    '        public $name = "SyntaxError";',
     "        public $expected;",
     "        public $found;",
     "        public $grammarOffset;",
     "        public $grammarLine;",
     "        public $grammarColumn;",
-    "        public $name;",
+    "        public $location;",
     "",
-    "        public function __construct($message, $expected, $found, $offset, $line, $column)",
+    "        public function __construct($message, $expected, $found, $offset, $line, $column, $location)",
     "        {",
     "            parent::__construct($message, 0);",
     "            $this->expected = $expected;",
@@ -733,7 +734,47 @@ module.exports = function(ast, options) {
     "            $this->grammarOffset = $offset;",
     "            $this->grammarLine = $line;",
     "            $this->grammarColumn = $column;",
-    '            $this->name = "SyntaxError";',
+    "            $this->location = $location;",
+    "        }",
+    "",
+    "        public function format($sources)",
+    // $sources = array(array("source" => "User input", "text" => $user_input))
+    "        {",
+    '            $str = $this->name . ": " . $this->message;',
+    "            if ($this->location) {",
+    "                $src = null;",
+    "                for ($k = 0; $k < count($sources); $k++) {",
+    '                    if ($sources[$k]["source"] === $this->location["source"]) {',
+    '                        $src = preg_split("/\\r\\n|\\n|\\r/", $sources[$k]["text"]);',
+    "                        break;",
+    "                    }",
+    "                }",
+    '                $s = $this->location["start"];',
+    '                $loc = $this->location["source"] . ":" . $s["line"] . ":" . $s["column"];',
+    "                if ($src) {",
+    '                    $e = $this->location["end"];',
+    '                    $filler = $this->peg_padEnd("", strlen($s["line"]));',
+    '                    $line = $src[$s["line"] - 1];',
+    '                    $last = $s["line"] === $e["line"] ? $e["column"] : $line["length"] + 1;',
+    '                    $str .= "\\n --> " . $loc . "\\n"',
+    '                        . $filler . " |\\n"',
+    '                        . $s["line"] . " | " . $line . "\\n"',
+    '                        . $filler . " | " . $this->peg_padEnd("", $s["column"] - 1)',
+    '                        . $this->peg_padEnd("", $last - $s["column"], "^");',
+    "                } else {",
+    '                    $str .= "\\n at " . $loc;',
+    "                }",
+    "            }",
+    "            return $str;",
+    "        }",
+    "",
+    '        private function peg_padEnd($str, $targetLength, $padString = " ") {',
+    "            if (strlen($str) > $targetLength) {",
+    "                return $str;",
+    "            }",
+    "            $targetLength -= strlen($str);",
+    "            $padString .= str_repeat($padString, $targetLength);",
+    "            return $str . substr($padString, 0, $targetLength);",
     "        }",
     "    }",
     "}",
@@ -757,6 +798,7 @@ module.exports = function(ast, options) {
     "private $input = array();",
     "private $input_length = 0;",
     "private $peg_FAILED;",
+    "private $peg_source;",
     "",
   ].join("\n")));
 
@@ -765,10 +807,9 @@ module.exports = function(ast, options) {
 
   // START public function parse
   parts.push(indent(4, [
-    "public function parse($input)",
+    "public function parse($input, ...$options)",
     "{",
-    "    $arguments = func_get_args();",
-    "    $options = count($arguments) > 1 ? $arguments[1] : array();",
+    "    $options = isset($options) ? $options[0] : array();",
     "    $this->cleanup_state();",
     "",
     "    if (is_array($input)) {",
@@ -778,6 +819,7 @@ module.exports = function(ast, options) {
     "        $this->input = $match[0];",
     "    }",
     "    $this->input_length = count($this->input);",
+    '    $this->peg_source = isset($options["grammarSource"]) ? $options["grammarSource"] : "";',
     "",
   ].join("\n")));
 
@@ -796,10 +838,10 @@ module.exports = function(ast, options) {
 
   const startRuleFunctions = "array("
     + options.allowedStartRules.map(
-      r => '"' + r + '" => array($this, "peg_parse' + r + '")'
+      r => '"' + r + '" => array($this, "peg_parse_' + r + '")'
     ).join(", ")
     + ")";
-  const startRuleFunction = 'array($this, "peg_parse' + options.allowedStartRules[0] + '")';
+  const startRuleFunction = 'array($this, "peg_parse_' + options.allowedStartRules[0] + '")';
 
   parts.push(indent(8, [
     "$peg_startRuleFunctions = " + startRuleFunctions + ";",
@@ -883,6 +925,7 @@ module.exports = function(ast, options) {
     "    $this->peg_silentFails = 0;",
     "    $this->input = array();",
     "    $this->input_length = 0;",
+    '    $this->peg_source = "";',
     "}",
     "",
     "private function input_substr($start, $length)",
@@ -913,7 +956,27 @@ module.exports = function(ast, options) {
     "",
     "private function range()",
     "{",
-    '    return array("start" => $this->peg_reportedPos, "end" => $this->peg_currPos);',
+    '    return array("source" => $this->peg_source, "start" => $this->peg_reportedPos, "end" => $this->peg_currPos);',
+    "}",
+    "",
+    "private function location()",
+    "{",
+    "    $compute_pd_start = $this->peg_computePosDetails($this->peg_reportedPos);",
+    "    $compute_pd_end = $this->peg_computePosDetails($this->peg_currPos);",
+    "",
+    "    return array(",
+    '        "source" => $this->peg_source,',
+    '        "start" => array(',
+    '            "offset" => $this->peg_reportedPos,',
+    '            "line" => $compute_pd_start["line"],',
+    '            "column" => $compute_pd_start["column"]',
+    "        ),",
+    '        "end" => array(',
+    '            "offset" => $this->peg_currPos,',
+    '            "line" => $compute_pd_end["line"],',
+    '            "column" => $compute_pd_end["column"]',
+    "        )",
+    "    );",
     "}",
     "",
     "private function line()",
@@ -1044,7 +1107,8 @@ module.exports = function(ast, options) {
     "        $found,",
     "        $pos,",
     '        $posDetails["line"],',
-    '        $posDetails["column"]',
+    '        $posDetails["column"],',
+    "        $this->location()",
     "    );",
     "}",
     "",
