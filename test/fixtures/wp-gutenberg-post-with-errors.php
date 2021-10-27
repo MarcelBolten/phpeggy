@@ -52,14 +52,15 @@ if (!function_exists("PHPeggy\\peg_regex_test")) {
 if (!class_exists("PHPeggy\\SyntaxError", false)) {
     class SyntaxError extends \Exception
     {
+        public $name = "SyntaxError";
         public $expected;
         public $found;
         public $grammarOffset;
         public $grammarLine;
         public $grammarColumn;
-        public $name;
+        public $location;
 
-        public function __construct($message, $expected, $found, $offset, $line, $column)
+        public function __construct($message, $expected, $found, $offset, $line, $column, $location)
         {
             parent::__construct($message, 0);
             $this->expected = $expected;
@@ -67,7 +68,46 @@ if (!class_exists("PHPeggy\\SyntaxError", false)) {
             $this->grammarOffset = $offset;
             $this->grammarLine = $line;
             $this->grammarColumn = $column;
-            $this->name = "SyntaxError";
+            $this->location = $location;
+        }
+
+        public function format($sources)
+        {
+            $str = $this->name . ": " . $this->message;
+            if ($this->location) {
+                $src = null;
+                for ($k = 0; $k < count($sources); $k++) {
+                    if ($sources[$k]["source"] === $this->location["source"]) {
+                        $src = preg_split("/\r\n|\n|\r/", $sources[$k]["text"]);
+                        break;
+                    }
+                }
+                $s = $this->location["start"];
+                $loc = $this->location["source"] . ":" . $s["line"] . ":" . $s["column"];
+                if ($src) {
+                    $e = $this->location["end"];
+                    $filler = $this->peg_padEnd("", strlen($s["line"]));
+                    $line = $src[$s["line"] - 1];
+                    $last = $s["line"] === $e["line"] ? $e["column"] : strlen($line) + 1;
+                    $str .= "\n --> " . $loc . "\n"
+                        . $filler . " |\n"
+                        . $s["line"] . " | " . $line . "\n"
+                        . $filler . " | " . $this->peg_padEnd("", $s["column"] - 1)
+                        . $this->peg_padEnd("", $last - $s["column"], "^");
+                } else {
+                    $str .= "\n at " . $loc;
+                }
+            }
+            return $str;
+        }
+
+        private function peg_padEnd($str, $targetLength, $padString = " ") {
+            if (strlen($str) > $targetLength) {
+                return $str;
+            }
+            $targetLength -= strlen($str);
+            $padString .= str_repeat($padString, $targetLength);
+            return $str . substr($padString, 0, $targetLength);
         }
     }
 }
@@ -84,6 +124,7 @@ class Parser
     private $input = array();
     private $input_length = 0;
     private $peg_FAILED;
+    private $peg_source;
 
     private $peg_l0;
     private $peg_l1;
@@ -117,10 +158,9 @@ class Parser
     private $peg_e13;
     private $peg_e14;
 
-    public function parse($input)
+    public function parse($input, ...$options)
     {
-        $arguments = func_get_args();
-        $options = count($arguments) > 1 ? $arguments[1] : array();
+        $options = isset($options[0]) ? $options[0] : array();
         $this->cleanup_state();
 
         if (is_array($input)) {
@@ -130,6 +170,7 @@ class Parser
             $this->input = $match[0];
         }
         $this->input_length = count($this->input);
+        $this->peg_source = isset($options["grammarSource"]) ? $options["grammarSource"] : "";
 
         $old_regex_encoding = mb_regex_encoding();
         mb_regex_encoding("UTF-8");
@@ -168,8 +209,8 @@ class Parser
         $this->peg_e13 = array("type" => "class", "value" => "[\\r\\n]", "description" => "[\\r\\n]", "ignoreCase" => "false");
         $this->peg_e14 = array("type" => "class", "value" => "[ \\t]", "description" => "[ \\t]", "ignoreCase" => "false");
 
-        $peg_startRuleFunctions = array("Document" => array($this, "peg_parseDocument"));
-        $peg_startRuleFunction = array($this, "peg_parseDocument");
+        $peg_startRuleFunctions = array("Document" => array($this, "peg_parse_Document"));
+        $peg_startRuleFunction = array($this, "peg_parse_Document");
         if (isset($options["startRule"])) {
             if (!(isset($peg_startRuleFunctions[$options["startRule"]]))) {
                 throw new \Exception("Can't start parsing from rule \"" + $options["startRule"] + "\".");
@@ -208,6 +249,7 @@ class Parser
         $this->peg_silentFails = 0;
         $this->input = array();
         $this->input_length = 0;
+        $this->peg_source = "";
     }
 
     private function input_substr($start, $length)
@@ -235,7 +277,33 @@ class Parser
 
     private function range()
     {
-        return array("start" => $this->peg_reportedPos, "end" => $this->peg_currPos);
+        return array("source" => $this->peg_source, "start" => $this->peg_reportedPos, "end" => $this->peg_currPos);
+    }
+
+    private function location($fail = false)
+    {
+        $start = $this->peg_reportedPos;
+        $end = $this->peg_currPos;
+        if ($fail) {
+            $start = $this->peg_maxFailPos;
+            $end = $this->peg_maxFailPos + ($this->peg_maxFailPos < count($this->input) ? 1 : 0);
+        }
+        $compute_pd_start = $this->peg_computePosDetails($start);
+        $compute_pd_end = $this->peg_computePosDetails($end);
+
+        return array(
+            "source" => $this->peg_source,
+            "start" => array(
+                "offset" => $start,
+                "line" => $compute_pd_start["line"],
+                "column" => $compute_pd_start["column"]
+            ),
+            "end" => array(
+                "offset" => $end,
+                "line" => $compute_pd_end["line"],
+                "column" => $compute_pd_end["column"]
+            )
+        );
     }
 
     private function line()
@@ -361,7 +429,8 @@ class Parser
             $found,
             $pos,
             $posDetails["line"],
-            $posDetails["column"]
+            $posDetails["column"],
+            $this->location(true)
         );
     }
 
@@ -418,36 +487,36 @@ class Parser
         return json_decode($attrs, true);
     }
 
-    private function peg_parseDocument()
+    private function peg_parse_Document()
     {
-        $s0 = $this->peg_parseWP_Block_List();
+        $s0 = $this->peg_parse_WP_Block_List();
 
         return $s0;
     }
 
-    private function peg_parseWP_Block_List()
+    private function peg_parse_WP_Block_List()
     {
         $s0 = array();
-        $s1 = $this->peg_parseWP_Block();
+        $s1 = $this->peg_parse_WP_Block();
         while ($s1 !== $this->peg_FAILED) {
             $s0[] = $s1;
-            $s1 = $this->peg_parseWP_Block();
+            $s1 = $this->peg_parse_WP_Block();
         }
 
         return $s0;
     }
 
-    private function peg_parseWP_Block()
+    private function peg_parse_WP_Block()
     {
-        $s0 = $this->peg_parseWP_Block_Void();
+        $s0 = $this->peg_parse_WP_Block_Void();
         if ($s0 === $this->peg_FAILED) {
-            $s0 = $this->peg_parseWP_Block_Balanced();
+            $s0 = $this->peg_parse_WP_Block_Balanced();
         }
 
         return $s0;
     }
 
-    private function peg_parseWP_Block_Void()
+    private function peg_parse_WP_Block_Void()
     {
         $s0 = $this->peg_currPos;
         if ($this->input_substr($this->peg_currPos, 4) === $this->peg_l0) {
@@ -461,11 +530,11 @@ class Parser
         }
         if ($s1 !== $this->peg_FAILED) {
             $s2 = array();
-            $s3 = $this->peg_parseWS();
+            $s3 = $this->peg_parse_WS();
             if ($s3 !== $this->peg_FAILED) {
                 while ($s3 !== $this->peg_FAILED) {
                     $s2[] = $s3;
-                    $s3 = $this->peg_parseWS();
+                    $s3 = $this->peg_parse_WS();
                 }
             } else {
                 $s2 = $this->peg_FAILED;
@@ -481,28 +550,28 @@ class Parser
                     }
                 }
                 if ($s3 !== $this->peg_FAILED) {
-                    $s4 = $this->peg_parseWP_Block_Name();
+                    $s4 = $this->peg_parse_WP_Block_Name();
                     if ($s4 !== $this->peg_FAILED) {
                         $s5 = array();
-                        $s6 = $this->peg_parseWS();
+                        $s6 = $this->peg_parse_WS();
                         if ($s6 !== $this->peg_FAILED) {
                             while ($s6 !== $this->peg_FAILED) {
                                 $s5[] = $s6;
-                                $s6 = $this->peg_parseWS();
+                                $s6 = $this->peg_parse_WS();
                             }
                         } else {
                             $s5 = $this->peg_FAILED;
                         }
                         if ($s5 !== $this->peg_FAILED) {
                             $s6 = $this->peg_currPos;
-                            $s7 = $this->peg_parseWP_Block_Attributes();
+                            $s7 = $this->peg_parse_WP_Block_Attributes();
                             if ($s7 !== $this->peg_FAILED) {
                                 $s8 = array();
-                                $s9 = $this->peg_parseWS();
+                                $s9 = $this->peg_parse_WS();
                                 if ($s9 !== $this->peg_FAILED) {
                                     while ($s9 !== $this->peg_FAILED) {
                                         $s8[] = $s9;
-                                        $s9 = $this->peg_parseWS();
+                                        $s9 = $this->peg_parse_WS();
                                     }
                                 } else {
                                     $s8 = $this->peg_FAILED;
@@ -561,16 +630,16 @@ class Parser
         return $s0;
     }
 
-    private function peg_parseWP_Block_Balanced()
+    private function peg_parse_WP_Block_Balanced()
     {
         $s0 = $this->peg_currPos;
-        $s1 = $this->peg_parseWP_Block_Start();
+        $s1 = $this->peg_parse_WP_Block_Start();
         if ($s1 !== $this->peg_FAILED) {
             $s2 = array();
             $s3 = $this->peg_currPos;
             $s4 = $this->peg_currPos;
             $this->peg_silentFails++;
-            $s5 = $this->peg_parseWP_Block_End();
+            $s5 = $this->peg_parse_WP_Block_End();
             $this->peg_silentFails--;
             if ($s5 === $this->peg_FAILED) {
                 $s4 = null;
@@ -579,7 +648,7 @@ class Parser
                 $s4 = $this->peg_FAILED;
             }
             if ($s4 !== $this->peg_FAILED) {
-                $s5 = $this->peg_parseAny();
+                $s5 = $this->peg_parse_Any();
                 if ($s5 !== $this->peg_FAILED) {
                     $this->peg_reportedPos = $s3;
                     $s3 = $this->peg_f2($s1, $s5);
@@ -596,7 +665,7 @@ class Parser
                 $s3 = $this->peg_currPos;
                 $s4 = $this->peg_currPos;
                 $this->peg_silentFails++;
-                $s5 = $this->peg_parseWP_Block_End();
+                $s5 = $this->peg_parse_WP_Block_End();
                 $this->peg_silentFails--;
                 if ($s5 === $this->peg_FAILED) {
                     $s4 = null;
@@ -605,7 +674,7 @@ class Parser
                     $s4 = $this->peg_FAILED;
                 }
                 if ($s4 !== $this->peg_FAILED) {
-                    $s5 = $this->peg_parseAny();
+                    $s5 = $this->peg_parse_Any();
                     if ($s5 !== $this->peg_FAILED) {
                         $this->peg_reportedPos = $s3;
                         $s3 = $this->peg_f2($s1, $s5);
@@ -618,7 +687,7 @@ class Parser
                     $s3 = $this->peg_FAILED;
                 }
             }
-            $s3 = $this->peg_parseWP_Block_End();
+            $s3 = $this->peg_parse_WP_Block_End();
             if ($s3 !== $this->peg_FAILED) {
                 $this->peg_reportedPos = $this->peg_currPos;
                 $s4 = $this->peg_f3($s1, $s2, $s3);
@@ -646,7 +715,7 @@ class Parser
         return $s0;
     }
 
-    private function peg_parseWP_Block_Start()
+    private function peg_parse_WP_Block_Start()
     {
         $s0 = $this->peg_currPos;
         if ($this->input_substr($this->peg_currPos, 4) === $this->peg_l0) {
@@ -660,11 +729,11 @@ class Parser
         }
         if ($s1 !== $this->peg_FAILED) {
             $s2 = array();
-            $s3 = $this->peg_parseWS();
+            $s3 = $this->peg_parse_WS();
             if ($s3 !== $this->peg_FAILED) {
                 while ($s3 !== $this->peg_FAILED) {
                     $s2[] = $s3;
-                    $s3 = $this->peg_parseWS();
+                    $s3 = $this->peg_parse_WS();
                 }
             } else {
                 $s2 = $this->peg_FAILED;
@@ -680,28 +749,28 @@ class Parser
                     }
                 }
                 if ($s3 !== $this->peg_FAILED) {
-                    $s4 = $this->peg_parseWP_Block_Name();
+                    $s4 = $this->peg_parse_WP_Block_Name();
                     if ($s4 !== $this->peg_FAILED) {
                         $s5 = array();
-                        $s6 = $this->peg_parseWS();
+                        $s6 = $this->peg_parse_WS();
                         if ($s6 !== $this->peg_FAILED) {
                             while ($s6 !== $this->peg_FAILED) {
                                 $s5[] = $s6;
-                                $s6 = $this->peg_parseWS();
+                                $s6 = $this->peg_parse_WS();
                             }
                         } else {
                             $s5 = $this->peg_FAILED;
                         }
                         if ($s5 !== $this->peg_FAILED) {
                             $s6 = $this->peg_currPos;
-                            $s7 = $this->peg_parseWP_Block_Attributes();
+                            $s7 = $this->peg_parse_WP_Block_Attributes();
                             if ($s7 !== $this->peg_FAILED) {
                                 $s8 = array();
-                                $s9 = $this->peg_parseWS();
+                                $s9 = $this->peg_parse_WS();
                                 if ($s9 !== $this->peg_FAILED) {
                                     while ($s9 !== $this->peg_FAILED) {
                                         $s8[] = $s9;
-                                        $s9 = $this->peg_parseWS();
+                                        $s9 = $this->peg_parse_WS();
                                     }
                                 } else {
                                     $s8 = $this->peg_FAILED;
@@ -760,7 +829,7 @@ class Parser
         return $s0;
     }
 
-    private function peg_parseWP_Block_End()
+    private function peg_parse_WP_Block_End()
     {
         $s0 = $this->peg_currPos;
         if ($this->input_substr($this->peg_currPos, 4) === $this->peg_l0) {
@@ -774,11 +843,11 @@ class Parser
         }
         if ($s1 !== $this->peg_FAILED) {
             $s2 = array();
-            $s3 = $this->peg_parseWS();
+            $s3 = $this->peg_parse_WS();
             if ($s3 !== $this->peg_FAILED) {
                 while ($s3 !== $this->peg_FAILED) {
                     $s2[] = $s3;
-                    $s3 = $this->peg_parseWS();
+                    $s3 = $this->peg_parse_WS();
                 }
             } else {
                 $s2 = $this->peg_FAILED;
@@ -794,14 +863,14 @@ class Parser
                     }
                 }
                 if ($s3 !== $this->peg_FAILED) {
-                    $s4 = $this->peg_parseWP_Block_Name();
+                    $s4 = $this->peg_parse_WP_Block_Name();
                     if ($s4 !== $this->peg_FAILED) {
                         $s5 = array();
-                        $s6 = $this->peg_parseWS();
+                        $s6 = $this->peg_parse_WS();
                         if ($s6 !== $this->peg_FAILED) {
                             while ($s6 !== $this->peg_FAILED) {
                                 $s5[] = $s6;
-                                $s6 = $this->peg_parseWS();
+                                $s6 = $this->peg_parse_WS();
                             }
                         } else {
                             $s5 = $this->peg_FAILED;
@@ -847,14 +916,14 @@ class Parser
         return $s0;
     }
 
-    private function peg_parseWP_Block_Name()
+    private function peg_parse_WP_Block_Name()
     {
         $s0 = $this->peg_currPos;
         $s1 = $this->peg_currPos;
-        $s2 = $this->peg_parseASCII_Letter();
+        $s2 = $this->peg_parse_ASCII_Letter();
         if ($s2 !== $this->peg_FAILED) {
             $s3 = array();
-            $s4 = $this->peg_parseASCII_AlphaNumeric();
+            $s4 = $this->peg_parse_ASCII_AlphaNumeric();
             if ($s4 === $this->peg_FAILED) {
                 $s4 = $this->peg_currPos;
                 if ($this->input_substr($this->peg_currPos, 1) === $this->peg_l5) {
@@ -867,7 +936,7 @@ class Parser
                     }
                 }
                 if ($s5 !== $this->peg_FAILED) {
-                    $s6 = $this->peg_parseASCII_AlphaNumeric();
+                    $s6 = $this->peg_parse_ASCII_AlphaNumeric();
                     if ($s6 !== $this->peg_FAILED) {
                         $s5 = array($s5, $s6);
                         $s4 = $s5;
@@ -882,7 +951,7 @@ class Parser
             }
             while ($s4 !== $this->peg_FAILED) {
                 $s3[] = $s4;
-                $s4 = $this->peg_parseASCII_AlphaNumeric();
+                $s4 = $this->peg_parse_ASCII_AlphaNumeric();
                 if ($s4 === $this->peg_FAILED) {
                     $s4 = $this->peg_currPos;
                     if ($this->input_substr($this->peg_currPos, 1) === $this->peg_l5) {
@@ -895,7 +964,7 @@ class Parser
                         }
                     }
                     if ($s5 !== $this->peg_FAILED) {
-                        $s6 = $this->peg_parseASCII_AlphaNumeric();
+                        $s6 = $this->peg_parse_ASCII_AlphaNumeric();
                         if ($s6 !== $this->peg_FAILED) {
                             $s5 = array($s5, $s6);
                             $s4 = $s5;
@@ -924,7 +993,7 @@ class Parser
         return $s0;
     }
 
-    private function peg_parseWP_Block_Attributes()
+    private function peg_parse_WP_Block_Attributes()
     {
         $s0 = $this->peg_currPos;
         $s1 = $this->peg_currPos;
@@ -955,11 +1024,11 @@ class Parser
             }
             if ($s8 !== $this->peg_FAILED) {
                 $s9 = array();
-                $s10 = $this->peg_parseWS();
+                $s10 = $this->peg_parse_WS();
                 if ($s10 !== $this->peg_FAILED) {
                     while ($s10 !== $this->peg_FAILED) {
                         $s9[] = $s10;
-                        $s10 = $this->peg_parseWS();
+                        $s10 = $this->peg_parse_WS();
                     }
                 } else {
                     $s9 = $this->peg_FAILED;
@@ -1047,11 +1116,11 @@ class Parser
                 }
                 if ($s8 !== $this->peg_FAILED) {
                     $s9 = array();
-                    $s10 = $this->peg_parseWS();
+                    $s10 = $this->peg_parse_WS();
                     if ($s10 !== $this->peg_FAILED) {
                         while ($s10 !== $this->peg_FAILED) {
                             $s9[] = $s10;
-                            $s10 = $this->peg_parseWS();
+                            $s10 = $this->peg_parse_WS();
                         }
                     } else {
                         $s9 = $this->peg_FAILED;
@@ -1157,20 +1226,20 @@ class Parser
         return $s0;
     }
 
-    private function peg_parseASCII_AlphaNumeric()
+    private function peg_parse_ASCII_AlphaNumeric()
     {
-        $s0 = $this->peg_parseASCII_Letter();
+        $s0 = $this->peg_parse_ASCII_Letter();
         if ($s0 === $this->peg_FAILED) {
-            $s0 = $this->peg_parseASCII_Digit();
+            $s0 = $this->peg_parse_ASCII_Digit();
             if ($s0 === $this->peg_FAILED) {
-                $s0 = $this->peg_parseSpecial_Chars();
+                $s0 = $this->peg_parse_Special_Chars();
             }
         }
 
         return $s0;
     }
 
-    private function peg_parseASCII_Letter()
+    private function peg_parse_ASCII_Letter()
     {
         if (peg_regex_test($this->peg_c0, $this->input_substr($this->peg_currPos, 1))) {
             $s0 = $this->input_substr($this->peg_currPos, 1);
@@ -1185,7 +1254,7 @@ class Parser
         return $s0;
     }
 
-    private function peg_parseASCII_Digit()
+    private function peg_parse_ASCII_Digit()
     {
         if (peg_regex_test($this->peg_c1, $this->input_substr($this->peg_currPos, 1))) {
             $s0 = $this->input_substr($this->peg_currPos, 1);
@@ -1200,7 +1269,7 @@ class Parser
         return $s0;
     }
 
-    private function peg_parseSpecial_Chars()
+    private function peg_parse_Special_Chars()
     {
         if (peg_regex_test($this->peg_c2, $this->input_substr($this->peg_currPos, 1))) {
             $s0 = $this->input_substr($this->peg_currPos, 1);
@@ -1215,7 +1284,7 @@ class Parser
         return $s0;
     }
 
-    private function peg_parseWS()
+    private function peg_parse_WS()
     {
         if (peg_regex_test($this->peg_c3, $this->input_substr($this->peg_currPos, 1))) {
             $s0 = $this->input_substr($this->peg_currPos, 1);
@@ -1230,7 +1299,7 @@ class Parser
         return $s0;
     }
 
-    private function peg_parseNewline()
+    private function peg_parse_Newline()
     {
         if (peg_regex_test($this->peg_c4, $this->input_substr($this->peg_currPos, 1))) {
             $s0 = $this->input_substr($this->peg_currPos, 1);
@@ -1245,7 +1314,7 @@ class Parser
         return $s0;
     }
 
-    private function peg_parse_()
+    private function peg_parse__()
     {
         if (peg_regex_test($this->peg_c5, $this->input_substr($this->peg_currPos, 1))) {
             $s0 = $this->input_substr($this->peg_currPos, 1);
@@ -1260,14 +1329,14 @@ class Parser
         return $s0;
     }
 
-    private function peg_parse__()
+    private function peg_parse___()
     {
         $s0 = array();
-        $s1 = $this->peg_parse_();
+        $s1 = $this->peg_parse__();
         if ($s1 !== $this->peg_FAILED) {
             while ($s1 !== $this->peg_FAILED) {
                 $s0[] = $s1;
-                $s1 = $this->peg_parse_();
+                $s1 = $this->peg_parse__();
             }
         } else {
             $s0 = $this->peg_FAILED;
@@ -1276,7 +1345,7 @@ class Parser
         return $s0;
     }
 
-    private function peg_parseAny()
+    private function peg_parse_Any()
     {
         if ($this->input_length > $this->peg_currPos) {
             $s0 = $this->input_substr($this->peg_currPos, 1);

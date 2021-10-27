@@ -47,14 +47,15 @@ if (!function_exists("PHPeggy\\peg_regex_test")) {
 if (!class_exists("PHPeggy\\SyntaxError", false)) {
     class SyntaxError extends \Exception
     {
+        public $name = "SyntaxError";
         public $expected;
         public $found;
         public $grammarOffset;
         public $grammarLine;
         public $grammarColumn;
-        public $name;
+        public $location;
 
-        public function __construct($message, $expected, $found, $offset, $line, $column)
+        public function __construct($message, $expected, $found, $offset, $line, $column, $location)
         {
             parent::__construct($message, 0);
             $this->expected = $expected;
@@ -62,7 +63,46 @@ if (!class_exists("PHPeggy\\SyntaxError", false)) {
             $this->grammarOffset = $offset;
             $this->grammarLine = $line;
             $this->grammarColumn = $column;
-            $this->name = "SyntaxError";
+            $this->location = $location;
+        }
+
+        public function format($sources)
+        {
+            $str = $this->name . ": " . $this->message;
+            if ($this->location) {
+                $src = null;
+                for ($k = 0; $k < count($sources); $k++) {
+                    if ($sources[$k]["source"] === $this->location["source"]) {
+                        $src = preg_split("/\r\n|\n|\r/", $sources[$k]["text"]);
+                        break;
+                    }
+                }
+                $s = $this->location["start"];
+                $loc = $this->location["source"] . ":" . $s["line"] . ":" . $s["column"];
+                if ($src) {
+                    $e = $this->location["end"];
+                    $filler = $this->peg_padEnd("", strlen($s["line"]));
+                    $line = $src[$s["line"] - 1];
+                    $last = $s["line"] === $e["line"] ? $e["column"] : strlen($line) + 1;
+                    $str .= "\n --> " . $loc . "\n"
+                        . $filler . " |\n"
+                        . $s["line"] . " | " . $line . "\n"
+                        . $filler . " | " . $this->peg_padEnd("", $s["column"] - 1)
+                        . $this->peg_padEnd("", $last - $s["column"], "^");
+                } else {
+                    $str .= "\n at " . $loc;
+                }
+            }
+            return $str;
+        }
+
+        private function peg_padEnd($str, $targetLength, $padString = " ") {
+            if (strlen($str) > $targetLength) {
+                return $str;
+            }
+            $targetLength -= strlen($str);
+            $padString .= str_repeat($padString, $targetLength);
+            return $str . substr($padString, 0, $targetLength);
         }
     }
 }
@@ -79,6 +119,7 @@ class Parser
     private $input = array();
     private $input_length = 0;
     private $peg_FAILED;
+    private $peg_source;
 
 
     private $peg_c0;
@@ -97,10 +138,9 @@ class Parser
     private $peg_e5;
     private $peg_e6;
 
-    public function parse($input)
+    public function parse($input, ...$options)
     {
-        $arguments = func_get_args();
-        $options = count($arguments) > 1 ? $arguments[1] : array();
+        $options = isset($options[0]) ? $options[0] : array();
         $this->cleanup_state();
 
         if (is_array($input)) {
@@ -110,6 +150,7 @@ class Parser
             $this->input = $match[0];
         }
         $this->input_length = count($this->input);
+        $this->peg_source = isset($options["grammarSource"]) ? $options["grammarSource"] : "";
 
         $old_regex_encoding = mb_regex_encoding();
         mb_regex_encoding("UTF-8");
@@ -133,8 +174,8 @@ class Parser
         $this->peg_e5 = array("type" => "class", "value" => "[\x{0DCA9}]", "description" => "[\x{0DCA9}]", "ignoreCase" => "false");
         $this->peg_e6 = array("type" => "class", "value" => "[ \\t\\r\\n]", "description" => "[ \\t\\r\\n]", "ignoreCase" => "false");
 
-        $peg_startRuleFunctions = array("Document" => array($this, "peg_parseDocument"));
-        $peg_startRuleFunction = array($this, "peg_parseDocument");
+        $peg_startRuleFunctions = array("Document" => array($this, "peg_parse_Document"));
+        $peg_startRuleFunction = array($this, "peg_parse_Document");
         if (isset($options["startRule"])) {
             if (!(isset($peg_startRuleFunctions[$options["startRule"]]))) {
                 throw new \Exception("Can't start parsing from rule \"" + $options["startRule"] + "\".");
@@ -173,6 +214,7 @@ class Parser
         $this->peg_silentFails = 0;
         $this->input = array();
         $this->input_length = 0;
+        $this->peg_source = "";
     }
 
     private function input_substr($start, $length)
@@ -200,7 +242,33 @@ class Parser
 
     private function range()
     {
-        return array("start" => $this->peg_reportedPos, "end" => $this->peg_currPos);
+        return array("source" => $this->peg_source, "start" => $this->peg_reportedPos, "end" => $this->peg_currPos);
+    }
+
+    private function location($fail = false)
+    {
+        $start = $this->peg_reportedPos;
+        $end = $this->peg_currPos;
+        if ($fail) {
+            $start = $this->peg_maxFailPos;
+            $end = $this->peg_maxFailPos + ($this->peg_maxFailPos < count($this->input) ? 1 : 0);
+        }
+        $compute_pd_start = $this->peg_computePosDetails($start);
+        $compute_pd_end = $this->peg_computePosDetails($end);
+
+        return array(
+            "source" => $this->peg_source,
+            "start" => array(
+                "offset" => $start,
+                "line" => $compute_pd_start["line"],
+                "column" => $compute_pd_start["column"]
+            ),
+            "end" => array(
+                "offset" => $end,
+                "line" => $compute_pd_end["line"],
+                "column" => $compute_pd_end["column"]
+            )
+        );
     }
 
     private function line()
@@ -326,7 +394,8 @@ class Parser
             $found,
             $pos,
             $posDetails["line"],
-            $posDetails["column"]
+            $posDetails["column"],
+            $this->location(true)
         );
     }
 
@@ -360,14 +429,14 @@ class Parser
         return implode('', $content);
     }
 
-    private function peg_parseDocument()
+    private function peg_parse_Document()
     {
         $s0 = array();
-        $s1 = $this->peg_parseThing();
+        $s1 = $this->peg_parse_Thing();
         if ($s1 !== $this->peg_FAILED) {
             while ($s1 !== $this->peg_FAILED) {
                 $s0[] = $s1;
-                $s1 = $this->peg_parseThing();
+                $s1 = $this->peg_parse_Thing();
             }
         } else {
             $s0 = $this->peg_FAILED;
@@ -376,19 +445,19 @@ class Parser
         return $s0;
     }
 
-    private function peg_parseThing()
+    private function peg_parse_Thing()
     {
-        $s0 = $this->peg_parseLetter_Or_Number();
+        $s0 = $this->peg_parse_Letter_Or_Number();
         if ($s0 === $this->peg_FAILED) {
-            $s0 = $this->peg_parseQuote();
+            $s0 = $this->peg_parse_Quote();
             if ($s0 === $this->peg_FAILED) {
-                $s0 = $this->peg_parseChar_Padding_Test();
+                $s0 = $this->peg_parse_Char_Padding_Test();
                 if ($s0 === $this->peg_FAILED) {
-                    $s0 = $this->peg_parseChinese_Character();
+                    $s0 = $this->peg_parse_Chinese_Character();
                     if ($s0 === $this->peg_FAILED) {
-                        $s0 = $this->peg_parsePile_Of_Poo();
+                        $s0 = $this->peg_parse_Pile_Of_Poo();
                         if ($s0 === $this->peg_FAILED) {
-                            $s0 = $this->peg_parseWhitespace();
+                            $s0 = $this->peg_parse_Whitespace();
                         }
                     }
                 }
@@ -398,7 +467,7 @@ class Parser
         return $s0;
     }
 
-    private function peg_parseLetter_Or_Number()
+    private function peg_parse_Letter_Or_Number()
     {
         $s0 = $this->peg_currPos;
         if (peg_regex_test($this->peg_c0, $this->input_substr($this->peg_currPos, 1))) {
@@ -419,7 +488,7 @@ class Parser
         return $s0;
     }
 
-    private function peg_parseQuote()
+    private function peg_parse_Quote()
     {
         $s0 = $this->peg_currPos;
         if (peg_regex_test($this->peg_c1, $this->input_substr($this->peg_currPos, 1))) {
@@ -440,7 +509,7 @@ class Parser
         return $s0;
     }
 
-    private function peg_parseChar_Padding_Test()
+    private function peg_parse_Char_Padding_Test()
     {
         $s0 = $this->peg_currPos;
         if (peg_regex_test($this->peg_c2, $this->input_substr($this->peg_currPos, 1))) {
@@ -461,7 +530,7 @@ class Parser
         return $s0;
     }
 
-    private function peg_parseChinese_Character()
+    private function peg_parse_Chinese_Character()
     {
         $s0 = $this->peg_currPos;
         if (peg_regex_test($this->peg_c3, $this->input_substr($this->peg_currPos, 1))) {
@@ -482,7 +551,7 @@ class Parser
         return $s0;
     }
 
-    private function peg_parsePile_Of_Poo()
+    private function peg_parse_Pile_Of_Poo()
     {
         $s0 = $this->peg_currPos;
         if (peg_regex_test($this->peg_c4, $this->input_substr($this->peg_currPos, 1))) {
@@ -519,7 +588,7 @@ class Parser
         return $s0;
     }
 
-    private function peg_parseWhitespace()
+    private function peg_parse_Whitespace()
     {
         $s0 = $this->peg_currPos;
         $s1 = array();
