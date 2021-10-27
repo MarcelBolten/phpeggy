@@ -11,6 +11,7 @@ const examples
   "Json":        "json.pegjs",
   "Css":         "css.pegjs",
   "Javascript":  "javascript.pegjs",
+  "FizzBuzz":    "fizzbuzz.pegjs",
 };
 
 function generateParser(input_file, output_file, classname) {

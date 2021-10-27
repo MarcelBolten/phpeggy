@@ -4,7 +4,8 @@ $examples = array(
     "Arithmetics" => "output/arithmetics.php",
     "Json"        => "output/json.php",
     "Css"         => "output/css.php",
-    "Javascript"  => "output/javascript.php"
+    "Javascript"  => "output/javascript.php",
+    "FizzBuzz"    => "output/fizzbuzz.php"
 );
 
 $output = null;
@@ -21,9 +22,10 @@ if (isset($_POST["code"], $_POST["parser"]) && isset($examples[$_POST["parser"]]
         try {
             $full_classname = "Parser\\" . $classname;
             $parser = new $full_classname();
-            $output = $parser->parse($_POST["code"]);
+            $output = $parser->parse($_POST["code"], array("grammarSource" => "tests"));
         } catch (Parser\SyntaxError $ex) {
             $error = "Syntax error: " . $ex->getMessage() . " At line " . $ex->grammarLine . " column " . $ex->grammarColumn . " offset " . $ex->grammarOffset;
+            $errorForamted = print_r($ex->format(array(array("source" => "tests", "text" => $_POST["code"]))), true);
         }
         $parsing_time = microtime(true) - $start;
     } else {
@@ -105,6 +107,7 @@ if (isset($_POST["code"], $_POST["parser"]) && isset($examples[$_POST["parser"]]
                 ?></div>
                 <?php
                     if ($error) echo "<div class=\"error\">" . htmlspecialchars($error) . "</div>";
+                    if ($errorForamted) echo "<div class=\"error\"><pre>" . htmlspecialchars($errorForamted) . "</pre></div>";
                     if ($parsing_time !== null) {
                         echo "<h2>Parsing time</h2>";
                         echo "<div>" . htmlspecialchars($parsing_time) . " s.</div>";
