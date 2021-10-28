@@ -22,10 +22,10 @@ if (isset($_POST["code"], $_POST["parser"]) && isset($examples[$_POST["parser"]]
         try {
             $full_classname = "Parser\\" . $classname;
             $parser = new $full_classname();
-            $output = $parser->parse($_POST["code"], array("grammarSource" => "tests"));
+            $output = $parser->parse($_POST["code"], array("grammarSource" => "Input string"));
         } catch (Parser\SyntaxError $ex) {
             $error = "Syntax error: " . $ex->getMessage() . " At line " . $ex->grammarLine . " column " . $ex->grammarColumn . " offset " . $ex->grammarOffset;
-            $errorForamted = print_r($ex->format(array(array("source" => "tests", "text" => $_POST["code"]))), true);
+            $errorForamted = print_r($ex->format(array(array("source" => "Input string", "text" => $_POST["code"]))), true);
         }
         $parsing_time = microtime(true) - $start;
     } else {
@@ -65,6 +65,8 @@ if (isset($_POST["code"], $_POST["parser"]) && isset($examples[$_POST["parser"]]
                 border:1px solid #999;
                 padding: 10px;
                 white-space: pre;
+                max-height: 300px;
+                overflow-y: auto;
             }
             .error{
                 color:#F00;
