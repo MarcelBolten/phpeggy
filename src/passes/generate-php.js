@@ -185,7 +185,7 @@ module.exports = function(ast, options) {
   function generateCacheHeader(ruleIndexCode) {
     return [
       "$key = $this->peg_currPos * " + ast.rules.length + " + " + ruleIndexCode + ";",
-      "$cached = isset($this->peg_cache[$key]) ? $this->peg_cache[$key] : null;",
+      "$cached = $this->peg_cache[$key] ?? null;",
       "",
       "if ($cached) {",
       '    $this->peg_currPos = $cached["nextPos"];',
@@ -198,7 +198,7 @@ module.exports = function(ast, options) {
   function generateCacheFooter(resultCode) {
     return [
       "",
-      '$this->peg_cache[$key] = array ("nextPos" => $this->peg_currPos, "result" => ' + resultCode + ");",
+      '$this->peg_cache[$key] = array("nextPos" => $this->peg_currPos, "result" => ' + resultCode + ");",
     ].join("\n");
   }
 
@@ -638,14 +638,16 @@ module.exports = function(ast, options) {
     "/* BEGIN Useful functions */",
     "/* chr_unicode - get unicode character from its char code */",
     'if (!function_exists("' + phpGlobalNamePrefixOrNamespaceEscaped + 'chr_unicode")) {',
-    "    function chr_unicode($code) {",
+    "    function chr_unicode($code)",
+    "    {",
     '        return html_entity_decode("&#$code;", ENT_QUOTES, "UTF-8");',
     "    }",
     "}",
     "",
     "/* ord_unicode - get unicode char code from string */",
     'if (!function_exists("' + phpGlobalNamePrefixOrNamespaceEscaped + 'ord_unicode")) {',
-    "    function ord_unicode($character) {",
+    "    function ord_unicode($character)",
+    "    {",
     "        if (strlen($character) === 1) {",
     "            return ord($character);",
     "        }",
@@ -669,7 +671,8 @@ module.exports = function(ast, options) {
     parts.push([
       "/* peg_regex_test - multibyte regex test */",
       'if (!function_exists("' + phpGlobalNamePrefixOrNamespaceEscaped + 'peg_regex_test")) {',
-      "    function peg_regex_test($pattern, $string) {",
+      "    function peg_regex_test($pattern, $string)",
+      "    {",
       '        if (substr($pattern, -1) === "i") {',
       "            return mb_eregi(substr($pattern, 1, -2), $string);",
       "        } else {",
@@ -686,7 +689,8 @@ module.exports = function(ast, options) {
     parts.push([
       "/* peg_char_class_test - simple character class test */",
       'if (!function_exists("' + phpGlobalNamePrefixOrNamespaceEscaped + 'peg_char_class_test")) {',
-      "    function peg_char_class_test($class, $character) {",
+      "    function peg_char_class_test($class, $character)",
+      "    {",
       "        $code = ord_unicode($character);",
       "        foreach ($class as $range) {",
       "            if ($code >= $range[0] && $code <= $range[1]) {",
@@ -768,7 +772,8 @@ module.exports = function(ast, options) {
     "            return $str;",
     "        }",
     "",
-    '        private function peg_padEnd($str, $targetLength, $padString = " ") {',
+    '        private function peg_padEnd($str, $targetLength, $padString = " ")',
+    "        {",
     "            if (strlen($str) > $targetLength) {",
     "                return $str;",
     "            }",
@@ -809,7 +814,7 @@ module.exports = function(ast, options) {
   parts.push(indent(4, [
     "public function parse($input, ...$options)",
     "{",
-    "    $options = isset($options[0]) ? $options[0] : array();",
+    "    $options = $options[0] ?? array();",
     "    $this->cleanup_state();",
     "",
     "    if (is_array($input)) {",
@@ -819,7 +824,7 @@ module.exports = function(ast, options) {
     "        $this->input = $match[0];",
     "    }",
     "    $this->input_length = count($this->input);",
-    '    $this->peg_source = isset($options["grammarSource"]) ? $options["grammarSource"] : "";',
+    '    $this->peg_source = $options["grammarSource"] ?? "";',
     "",
   ].join("\n")));
 
@@ -831,7 +836,7 @@ module.exports = function(ast, options) {
     ].join("\n")));
   }
 
-  parts.push(indent(8, "$this->peg_FAILED = new " + phpGlobalNamespacePrefix + "stdClass;"));
+  parts.push(indent(8, "$this->peg_FAILED = new " + phpGlobalNamespacePrefix + "stdClass();"));
   parts.push("");
   parts.push(indent(8, generateTablesDefinition()));
   parts.push("");
@@ -975,13 +980,13 @@ module.exports = function(ast, options) {
     '        "start" => array(',
     '            "offset" => $start,',
     '            "line" => $compute_pd_start["line"],',
-    '            "column" => $compute_pd_start["column"]',
+    '            "column" => $compute_pd_start["column"],',
     "        ),",
     '        "end" => array(',
     '            "offset" => $end,',
     '            "line" => $compute_pd_end["line"],',
-    '            "column" => $compute_pd_end["column"]',
-    "        )",
+    '            "column" => $compute_pd_end["column"],',
+    "        ),",
     "    );",
     "}",
     "",
@@ -1016,10 +1021,12 @@ module.exports = function(ast, options) {
     "    for ($p = $startPos; $p < $endPos; $p++) {",
     "        $ch = $this->input_substr($p, 1);",
     '        if ($ch === "\\n") {',
-    '            if (!$details["seenCR"]) { $details["line"]++; }',
+    '            if (!$details["seenCR"]) {',
+    '                $details["line"]++;',
+    "            }",
     '            $details["column"] = 1;',
     '            $details["seenCR"] = false;',
-    '        } else if ($ch === "\\r" || $ch === "\\u2028" || $ch === "\\u2029") {',
+    '        } elseif ($ch === "\\r" || $ch === "\\u2028" || $ch === "\\u2029") {',
     '            $details["line"]++;',
     '            $details["column"] = 1;',
     '            $details["seenCR"] = true;',
@@ -1046,7 +1053,9 @@ module.exports = function(ast, options) {
     "",
     "private function peg_fail($expected)",
     "{",
-    "    if ($this->peg_currPos < $this->peg_maxFailPos) { return; }",
+    "    if ($this->peg_currPos < $this->peg_maxFailPos) {",
+    "        return;",
+    "    }",
     "",
     "    if ($this->peg_currPos > $this->peg_maxFailPos) {",
     "        $this->peg_maxFailPos = $this->peg_currPos;",
@@ -1060,7 +1069,7 @@ module.exports = function(ast, options) {
     "{",
     '    if ($a["description"] < $b["description"]) {',
     "        return -1;",
-    '    } else if ($a["description"] > $b["description"]) {',
+    '    } elseif ($a["description"] > $b["description"]) {',
     "        return 1;",
     "    } else {",
     "        return 0;",

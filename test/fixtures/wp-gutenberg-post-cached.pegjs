@@ -52,7 +52,8 @@
 
 // array arguments are backwards because of PHP
 if (!function_exists(__NAMESPACE__ . "\\peg_array_partition")) {
-    function peg_array_partition($array, $predicate) {
+    function peg_array_partition($array, $predicate)
+    {
         $truthy = array();
         $falsey = array();
 
@@ -67,7 +68,8 @@ if (!function_exists(__NAMESPACE__ . "\\peg_array_partition")) {
 }
 
 if (!function_exists(__NAMESPACE__ . "\\peg_join_blocks")) {
-    function peg_join_blocks($pre, $tokens, $post) {
+    function peg_join_blocks($pre, $tokens, $post)
+    {
         $blocks = array();
 
         if (!empty($pre)) {
@@ -75,7 +77,7 @@ if (!function_exists(__NAMESPACE__ . "\\peg_join_blocks")) {
         }
 
         foreach ($tokens as $token) {
-            list($token, $html) = $token;
+            [$token, $html] = $token;
 
             $blocks[] = $token;
 
@@ -219,7 +221,7 @@ Block_Balanced
   = s:Block_Start children:(Token / $(!Block_End .))* e:Block_End
   {
     /** <?php
-    list($innerHTML, $innerBlocks) = peg_array_partition($children, 'is_string');
+    [$innerHTML, $innerBlocks] = peg_array_partition($children, 'is_string');
 
     return array(
         'blockName' => $s['blockName'],

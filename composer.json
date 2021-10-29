@@ -1,0 +1,28 @@
+{
+    "name": "marcelbolten/phpeggy",
+    "description": "PHP target for Peggy parser generator",
+    "homepage": "https://github.com/marcelbolten/phpeggy.git",
+    "type": "library",
+    "keywords": [
+        "peggy",
+        "plugin",
+        "php",
+        "parser",
+        "generator",
+        "PEG"
+    ],
+    "authors": [
+        {
+            "name": "Marcel Bolten",
+            "email": "github@marcelbolten.de"
+        }
+    ],
+    "readme": "./README.md",
+    "require": {
+        "php" : ">=7.3"
+    },
+    "require-dev": {
+        "friendsofphp/php-cs-fixer": "^3.2"
+    },
+    "license": "MIT"
+}

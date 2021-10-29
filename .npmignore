@@ -1,6 +1,11 @@
-.nvmrc
-.travis.yml
-CHANGELOG.md
 bin/
 manual-test/
 test/
+vendor/
+.eslintrc.js
+.nvmrc
+.php-cs-fixer.dist.php
+.travis.yml
+CHANGELOG.md
+composer.json
+composer.lock

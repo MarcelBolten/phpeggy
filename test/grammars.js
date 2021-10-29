@@ -55,9 +55,9 @@ if (!match) {
 console.log("PHP version: " + match[0].trim());
 const major = Number(match[1]);
 const minor = Number(match[2]);
-if (major < 5 || (major === 5 && minor < 6)) {
+if (major < 7 || (major === 7 && minor < 3)) {
   throw new Error(
-    "This library requires at least PHP 5.6.  (Why so old?)"
+    "This library requires at least PHP 7.3."
   );
 }
 console.log("Running tests");
@@ -126,7 +126,7 @@ grammarNames.forEach(grammarName => {
         phpActual = peggy.generate(grammar, peggyOptions);
       } catch (err) {
         phpActual = util.format(
-          "<?php /*\nERROR GENERATING PARSER:\n\n%s\n\n*/\n",
+          "<?php\n/*\nERROR GENERATING PARSER:\n\n%s\n\n*/\n",
           err.message
         );
       }

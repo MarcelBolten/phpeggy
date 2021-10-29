@@ -10,9 +10,14 @@ Released: TBD
 
 ### Major Changes
 
-- Drop support for PHP 5.2
+- Drop support for PHP < 7.3, older versions might still work but are not tested anymore!
 - Keep up with Peggy development up to version 1.2.0
   Implementation of global initializer blocks and plucking (see https://github.com/peggyjs/peggy/blob/main/CHANGELOG.md#major-changes)
+
+### Developer
+
+- Added ESLint
+- Use PHP-CS-Fixer to check generated PHP parsers
 
 1.0.0
 -----

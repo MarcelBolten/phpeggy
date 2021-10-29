@@ -10,14 +10,16 @@ namespace PHPeggy;
 /* BEGIN Useful functions */
 /* chr_unicode - get unicode character from its char code */
 if (!function_exists("PHPeggy\\chr_unicode")) {
-    function chr_unicode($code) {
+    function chr_unicode($code)
+    {
         return html_entity_decode("&#$code;", ENT_QUOTES, "UTF-8");
     }
 }
 
 /* ord_unicode - get unicode char code from string */
 if (!function_exists("PHPeggy\\ord_unicode")) {
-    function ord_unicode($character) {
+    function ord_unicode($character)
+    {
         if (strlen($character) === 1) {
             return ord($character);
         }
@@ -34,7 +36,8 @@ if (!function_exists("PHPeggy\\ord_unicode")) {
 
 /* peg_char_class_test - simple character class test */
 if (!function_exists("PHPeggy\\peg_char_class_test")) {
-    function peg_char_class_test($class, $character) {
+    function peg_char_class_test($class, $character)
+    {
         $code = ord_unicode($character);
         foreach ($class as $range) {
             if ($code >= $range[0] && $code <= $range[1]) {
@@ -99,7 +102,8 @@ if (!class_exists("PHPeggy\\SyntaxError", false)) {
             return $str;
         }
 
-        private function peg_padEnd($str, $targetLength, $padString = " ") {
+        private function peg_padEnd($str, $targetLength, $padString = " ")
+        {
             if (strlen($str) > $targetLength) {
                 return $str;
             }
@@ -143,7 +147,7 @@ class Parser
 
     public function parse($input, ...$options)
     {
-        $options = isset($options[0]) ? $options[0] : array();
+        $options = $options[0] ?? array();
         $this->cleanup_state();
 
         if (is_array($input)) {
@@ -153,9 +157,9 @@ class Parser
             $this->input = $match[0];
         }
         $this->input_length = count($this->input);
-        $this->peg_source = isset($options["grammarSource"]) ? $options["grammarSource"] : "";
+        $this->peg_source = $options["grammarSource"] ?? "";
 
-        $this->peg_FAILED = new \stdClass;
+        $this->peg_FAILED = new \stdClass();
 
 
         $this->peg_c0 = array(array(97,122), array(65,90), array(48,57));
@@ -259,13 +263,13 @@ class Parser
             "start" => array(
                 "offset" => $start,
                 "line" => $compute_pd_start["line"],
-                "column" => $compute_pd_start["column"]
+                "column" => $compute_pd_start["column"],
             ),
             "end" => array(
                 "offset" => $end,
                 "line" => $compute_pd_end["line"],
-                "column" => $compute_pd_end["column"]
-            )
+                "column" => $compute_pd_end["column"],
+            ),
         );
     }
 
@@ -300,10 +304,12 @@ class Parser
         for ($p = $startPos; $p < $endPos; $p++) {
             $ch = $this->input_substr($p, 1);
             if ($ch === "\n") {
-                if (!$details["seenCR"]) { $details["line"]++; }
+                if (!$details["seenCR"]) {
+                    $details["line"]++;
+                }
                 $details["column"] = 1;
                 $details["seenCR"] = false;
-            } else if ($ch === "\r" || $ch === "\u2028" || $ch === "\u2029") {
+            } elseif ($ch === "\r" || $ch === "\u2028" || $ch === "\u2029") {
                 $details["line"]++;
                 $details["column"] = 1;
                 $details["seenCR"] = true;
@@ -330,7 +336,9 @@ class Parser
 
     private function peg_fail($expected)
     {
-        if ($this->peg_currPos < $this->peg_maxFailPos) { return; }
+        if ($this->peg_currPos < $this->peg_maxFailPos) {
+            return;
+        }
 
         if ($this->peg_currPos > $this->peg_maxFailPos) {
             $this->peg_maxFailPos = $this->peg_currPos;
@@ -344,7 +352,7 @@ class Parser
     {
         if ($a["description"] < $b["description"]) {
             return -1;
-        } else if ($a["description"] > $b["description"]) {
+        } elseif ($a["description"] > $b["description"]) {
             return 1;
         } else {
             return 0;
