@@ -19,7 +19,7 @@
   "scripts": {
     "lint": "eslint .",
     "phpcsfix": "./vendor/bin/php-cs-fixer fix --config=.php-cs-fixer.dist.php -v --dry-run --diff --using-cache=no",
-    "rebuild-fixtures": "rm test/fixtures/*.php && GENERATE_MISSING_FIXTURES=y npm test && npm run phpcsfix",
+    "rebuild-fixtures": "rm test/fixtures/*.php && GENERATE_MISSING_FIXTURES=y npm test",
     "pretest": "npm run lint",
     "test": "mocha",
     "posttest": "npm run phpcsfix"
