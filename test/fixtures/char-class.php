@@ -116,11 +116,11 @@ class Parser
     private $peg_currPos = 0;
     private $peg_reportedPos = 0;
     private $peg_cachedPos = 0;
-    private $peg_cachedPosDetails = array("line" => 1, "column" => 1, "seenCR" => false);
+    private $peg_cachedPosDetails = ["line" => 1, "column" => 1, "seenCR" => false];
     private $peg_maxFailPos = 0;
-    private $peg_maxFailExpected = array();
+    private $peg_maxFailExpected = [];
     private $peg_silentFails = 0;
-    private $input = array();
+    private $input = [];
     private $input_length = 0;
     private $peg_FAILED;
     private $peg_source;
@@ -144,7 +144,7 @@ class Parser
 
     public function parse($input, ...$options)
     {
-        $options = $options[0] ?? array();
+        $options = $options[0] ?? [];
         $this->cleanup_state();
 
         if (is_array($input)) {
@@ -170,16 +170,16 @@ class Parser
         $this->peg_c5 = "/^[\\x{0DCA9}]/";
         $this->peg_c6 = "/^[ \\t\\r\\n]/";
 
-        $this->peg_e0 = array("type" => "class", "value" => "[a-z0-9]", "description" => "[a-z0-9]", "ignoreCase" => "true");
-        $this->peg_e1 = array("type" => "class", "value" => "['\"]", "description" => "['\"]", "ignoreCase" => "false");
-        $this->peg_e2 = array("type" => "class", "value" => "[\x{000FF}-\x{00100}]", "description" => "[\x{000FF}-\x{00100}]", "ignoreCase" => "false");
-        $this->peg_e3 = array("type" => "class", "value" => "[\x{02E80}-\x{02FD5}\x{03400}-\x{04DBF}\x{04E00}-\x{09FCC}]", "description" => "[\x{02E80}-\x{02FD5}\x{03400}-\x{04DBF}\x{04E00}-\x{09FCC}]", "ignoreCase" => "false");
-        $this->peg_e4 = array("type" => "class", "value" => "[\x{0D83D}]", "description" => "[\x{0D83D}]", "ignoreCase" => "false");
-        $this->peg_e5 = array("type" => "class", "value" => "[\x{0DCA9}]", "description" => "[\x{0DCA9}]", "ignoreCase" => "false");
-        $this->peg_e6 = array("type" => "class", "value" => "[ \\t\\r\\n]", "description" => "[ \\t\\r\\n]", "ignoreCase" => "false");
+        $this->peg_e0 = ["type" => "class", "value" => "[a-z0-9]", "description" => "[a-z0-9]", "ignoreCase" => "true"];
+        $this->peg_e1 = ["type" => "class", "value" => "['\"]", "description" => "['\"]", "ignoreCase" => "false"];
+        $this->peg_e2 = ["type" => "class", "value" => "[\x{000FF}-\x{00100}]", "description" => "[\x{000FF}-\x{00100}]", "ignoreCase" => "false"];
+        $this->peg_e3 = ["type" => "class", "value" => "[\x{02E80}-\x{02FD5}\x{03400}-\x{04DBF}\x{04E00}-\x{09FCC}]", "description" => "[\x{02E80}-\x{02FD5}\x{03400}-\x{04DBF}\x{04E00}-\x{09FCC}]", "ignoreCase" => "false"];
+        $this->peg_e4 = ["type" => "class", "value" => "[\x{0D83D}]", "description" => "[\x{0D83D}]", "ignoreCase" => "false"];
+        $this->peg_e5 = ["type" => "class", "value" => "[\x{0DCA9}]", "description" => "[\x{0DCA9}]", "ignoreCase" => "false"];
+        $this->peg_e6 = ["type" => "class", "value" => "[ \\t\\r\\n]", "description" => "[ \\t\\r\\n]", "ignoreCase" => "false"];
 
-        $peg_startRuleFunctions = array("Document" => array($this, "peg_parse_Document"));
-        $peg_startRuleFunction = array($this, "peg_parse_Document");
+        $peg_startRuleFunctions = ["Document" => [$this, "peg_parse_Document"]];
+        $peg_startRuleFunction = [$this, "peg_parse_Document"];
         if (isset($options["startRule"])) {
             if (!(isset($peg_startRuleFunctions[$options["startRule"]]))) {
                 throw new \Exception("Can't start parsing from rule \"" + $options["startRule"] + "\".");
@@ -198,7 +198,7 @@ class Parser
             return $peg_result;
         }
         if ($peg_result !== $this->peg_FAILED && $this->peg_currPos < $this->input_length) {
-            $this->peg_fail(array("type" => "end", "description" => "end of input"));
+            $this->peg_fail(["type" => "end", "description" => "end of input"]);
         }
 
         $exception = $this->peg_buildException(null, $this->peg_maxFailExpected, $this->peg_maxFailPos);
@@ -212,11 +212,11 @@ class Parser
         $this->peg_currPos = 0;
         $this->peg_reportedPos = 0;
         $this->peg_cachedPos = 0;
-        $this->peg_cachedPosDetails = array("line" => 1, "column" => 1, "seenCR" => false);
+        $this->peg_cachedPosDetails = ["line" => 1, "column" => 1, "seenCR" => false];
         $this->peg_maxFailPos = 0;
-        $this->peg_maxFailExpected = array();
+        $this->peg_maxFailExpected = [];
         $this->peg_silentFails = 0;
-        $this->input = array();
+        $this->input = [];
         $this->input_length = 0;
         $this->peg_source = "";
     }
@@ -246,7 +246,7 @@ class Parser
 
     private function range()
     {
-        return array("source" => $this->peg_source, "start" => $this->peg_reportedPos, "end" => $this->peg_currPos);
+        return ["source" => $this->peg_source, "start" => $this->peg_reportedPos, "end" => $this->peg_currPos];
     }
 
     private function location($fail = false)
@@ -260,19 +260,19 @@ class Parser
         $compute_pd_start = $this->peg_computePosDetails($start);
         $compute_pd_end = $this->peg_computePosDetails($end);
 
-        return array(
+        return [
             "source" => $this->peg_source,
-            "start" => array(
+            "start" => [
                 "offset" => $start,
                 "line" => $compute_pd_start["line"],
                 "column" => $compute_pd_start["column"],
-            ),
-            "end" => array(
+            ],
+            "end" => [
                 "offset" => $end,
                 "line" => $compute_pd_end["line"],
                 "column" => $compute_pd_end["column"],
-            ),
-        );
+            ],
+        ];
     }
 
     private function line()
@@ -291,7 +291,7 @@ class Parser
     {
         throw $this->peg_buildException(
             null,
-            array(array("type" => "other", "description" => $description)),
+            [["type" => "other", "description" => $description]],
             $this->peg_reportedPos
         );
     }
@@ -327,7 +327,7 @@ class Parser
         if ($this->peg_cachedPos !== $pos) {
             if ($this->peg_cachedPos > $pos) {
                 $this->peg_cachedPos = 0;
-                $this->peg_cachedPosDetails = array("line" => 1, "column" => 1, "seenCR" => false);
+                $this->peg_cachedPosDetails = ["line" => 1, "column" => 1, "seenCR" => false];
             }
             $this->peg_advancePos($this->peg_cachedPosDetails, $this->peg_cachedPos, $pos);
             $this->peg_cachedPos = $pos;
@@ -344,7 +344,7 @@ class Parser
 
         if ($this->peg_currPos > $this->peg_maxFailPos) {
             $this->peg_maxFailPos = $this->peg_currPos;
-            $this->peg_maxFailExpected = array();
+            $this->peg_maxFailExpected = [];
         }
 
         $this->peg_maxFailExpected[] = $expected;
@@ -367,7 +367,7 @@ class Parser
         $found = $pos < $this->input_length ? $this->input[$pos] : null;
 
         if ($expected !== null) {
-            usort($expected, array($this, "peg_buildException_expectedComparator"));
+            usort($expected, [$this, "peg_buildException_expectedComparator"]);
             $i = 1;
             while ($i < count($expected)) {
                 if ($expected[$i - 1] === $expected[$i]) {
@@ -409,27 +409,27 @@ class Parser
 
     private function peg_f0($a)
     {
-        return array('rule' => 'Letter_Or_Number', 'value' => $a);
+        return ['rule' => 'Letter_Or_Number', 'value' => $a];
     }
 
     private function peg_f1($a)
     {
-        return array('rule' => 'Quote', 'value' => $a);
+        return ['rule' => 'Quote', 'value' => $a];
     }
 
     private function peg_f2($a)
     {
-        return array('rule' => 'Char_Padding_Test', 'value' => $a);
+        return ['rule' => 'Char_Padding_Test', 'value' => $a];
     }
 
     private function peg_f3($a)
     {
-        return array('rule' => 'Chinese_Character', 'value' => $a);
+        return ['rule' => 'Chinese_Character', 'value' => $a];
     }
 
     private function peg_f4($a)
     {
-        return array('rule' => 'Pile_Of_Poo', 'value' => $a);
+        return ['rule' => 'Pile_Of_Poo', 'value' => $a];
     }
 
     private function peg_f5($content)
@@ -439,7 +439,7 @@ class Parser
 
     private function peg_parse_Document()
     {
-        $s0 = array();
+        $s0 = [];
         $s1 = $this->peg_parse_Thing();
         if ($s1 !== $this->peg_FAILED) {
             while ($s1 !== $this->peg_FAILED) {
@@ -599,7 +599,7 @@ class Parser
     private function peg_parse_Whitespace()
     {
         $s0 = $this->peg_currPos;
-        $s1 = array();
+        $s1 = [];
         if (peg_regex_test($this->peg_c6, $this->input_substr($this->peg_currPos, 1))) {
             $s2 = $this->input_substr($this->peg_currPos, 1);
             $this->peg_currPos++;
