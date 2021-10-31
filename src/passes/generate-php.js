@@ -1082,7 +1082,7 @@ module.exports = function(ast, options) {
     "    $found = $pos < $this->input_length ? $this->input[$pos] : null;",
     "",
     "    if ($expected !== null) {",
-    '        usort($expected, [$this, "peg_buildException_expectedComparator")];',
+    '        usort($expected, [$this, "peg_buildException_expectedComparator"]);',
     "        $i = 1;",
     /*
      * This works because the bytecode generator guarantees that every
