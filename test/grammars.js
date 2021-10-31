@@ -64,24 +64,23 @@ console.log("Running tests");
 
 function getPHPParserTestCode(parser, input) {
   return parser + `
-
-$input = base64_decode( '${Buffer.from(input).toString("base64")}' );
+$input = base64_decode('${Buffer.from(input).toString("base64")}');
 
 try {
-  $parser = new Parser;
-  $result = $parser->parse( $input );
-  echo json_encode( $result );
-} catch ( SyntaxError $ex ) {
-  echo json_encode( array(
-    'error' => array(
-      'message'  => $ex->getMessage(),
-      'expected' => $ex->expected,
-      'found'    => $ex->found,
-      'line'     => $ex->grammarLine,
-      'column'   => $ex->grammarColumn,
-      'offset'   => $ex->grammarOffset,
-    ),
-  ) );
+    $parser = new Parser;
+    $result = $parser->parse($input);
+    echo json_encode($result);
+} catch (SyntaxError $ex) {
+    echo json_encode([
+        'error' => [
+            'message' => $ex->getMessage(),
+            'expected' => $ex->expected,
+            'found' => $ex->found,
+            'line' => $ex->grammarLine,
+            'column' => $ex->grammarColumn,
+            'offset' => $ex->grammarOffset,
+        ],
+    ]);
 }
 `;
 }

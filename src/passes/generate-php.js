@@ -107,16 +107,16 @@ module.exports = function(ast, options) {
       if (mbstringAllowed) {
         classIndex = internalUtils.quotePhp(regexp);
       } else {
-        const classArray = "array("
+        const classArray = "["
           + cls.value.map(part => {
             if (!(part instanceof Array)) {
               part = [part, part];
             }
-            return "array("
+            return "["
               + part[0].charCodeAt(0) + ","
-              + part[1].charCodeAt(0) + ")";
+              + part[1].charCodeAt(0) + "]";
           }).join(", ")
-          + ")";
+          + "]";
         classIndex = classArray;
       }
       return classIndex;
@@ -125,16 +125,16 @@ module.exports = function(ast, options) {
     function buildExpectation(e) {
       switch (e.type) {
         case "rule": {
-          return 'array("type" => "other", "description" => ' + internalUtils.quote(e.value) + ")";
+          return '["type" => "other", "description" => ' + internalUtils.quote(e.value) + "]";
         }
 
         case "literal": {
-          return "array("
+          return "["
             + ['"type" => "literal",',
               '"value" => ' + internalUtils.quote(e.value) + ",",
               '"description" => ' + internalUtils.quote(internalUtils.quote(e.value)) + ",",
               '"ignoreCase" => ' + internalUtils.quote(e.ignoreCase.toString())].join(" ")
-            + ")";
+            + "]";
         }
 
         case "class": {
@@ -146,16 +146,16 @@ module.exports = function(ast, options) {
           }).join("")
           + "]";
 
-          return "array("
+          return "["
             + ['"type" => "class",',
               '"value" => ' + internalUtils.quotePhp(rawText) + ",",
               '"description" => ' + internalUtils.quotePhp(rawText) + ",",
               '"ignoreCase" => ' + internalUtils.quote(e.ignoreCase.toString())].join(" ")
-            + ")";
+            + "]";
         }
 
         case "any":
-          return 'array("type" => "any", "description" => "any character")';
+          return '["type" => "any", "description" => "any character"]';
 
         default: throw new Error("Unknown expectation type (" + JSON.stringify(e) + ")");
       }
@@ -198,7 +198,7 @@ module.exports = function(ast, options) {
   function generateCacheFooter(resultCode) {
     return [
       "",
-      '$this->peg_cache[$key] = array("nextPos" => $this->peg_currPos, "result" => ' + resultCode + ");",
+      '$this->peg_cache[$key] = ["nextPos" => $this->peg_currPos, "result" => ' + resultCode + "];",
     ].join("\n");
   }
 
@@ -380,7 +380,7 @@ module.exports = function(ast, options) {
             break;
 
           case op.PUSH_EMPTY_ARRAY:  // PUSH_EMPTY_ARRAY
-            parts.push(stack.push("array()"));
+            parts.push(stack.push("[]"));
             ip++;
             break;
 
@@ -419,7 +419,7 @@ module.exports = function(ast, options) {
 
           case op.WRAP:              // WRAP n
             parts.push(
-              stack.push("array(" + stack.pop(bc[ip + 1]).join(", ") + ")")
+              stack.push("[" + stack.pop(bc[ip + 1]).join(", ") + "]")
             );
             ip += 2;
             break;
@@ -742,7 +742,7 @@ module.exports = function(ast, options) {
     "        }",
     "",
     "        public function format($sources)",
-    // $sources = array(array("source" => "User input", "text" => $user_input))
+    // $sources = [["source" => "User input", "text" => $user_input]]
     "        {",
     '            $str = $this->name . ": " . $this->message;',
     "            if ($this->location) {",
@@ -790,17 +790,17 @@ module.exports = function(ast, options) {
 
   parts.push(indent(4, [
     ...options.cache
-      ? ["public $peg_cache = array();", ""]
+      ? ["public $peg_cache = [];", ""]
       : [],
 
     "private $peg_currPos = 0;",
     "private $peg_reportedPos = 0;",
     "private $peg_cachedPos = 0;",
-    'private $peg_cachedPosDetails = array("line" => 1, "column" => 1, "seenCR" => false);',
+    'private $peg_cachedPosDetails = ["line" => 1, "column" => 1, "seenCR" => false];',
     "private $peg_maxFailPos = 0;",
-    "private $peg_maxFailExpected = array();",
+    "private $peg_maxFailExpected = [];",
     "private $peg_silentFails = 0;", // 0 = report failures, > 0 = silence failures
-    "private $input = array();",
+    "private $input = [];",
     "private $input_length = 0;",
     "private $peg_FAILED;",
     "private $peg_source;",
@@ -814,7 +814,7 @@ module.exports = function(ast, options) {
   parts.push(indent(4, [
     "public function parse($input, ...$options)",
     "{",
-    "    $options = $options[0] ?? array();",
+    "    $options = $options[0] ?? [];",
     "    $this->cleanup_state();",
     "",
     "    if (is_array($input)) {",
@@ -841,12 +841,12 @@ module.exports = function(ast, options) {
   parts.push(indent(8, generateTablesDefinition()));
   parts.push("");
 
-  const startRuleFunctions = "array("
+  const startRuleFunctions = "["
     + options.allowedStartRules.map(
-      r => '"' + r + '" => array($this, "peg_parse_' + r + '")'
+      r => '"' + r + '" => [$this, "peg_parse_' + r + '"]'
     ).join(", ")
-    + ")";
-  const startRuleFunction = 'array($this, "peg_parse_' + options.allowedStartRules[0] + '")';
+    + "]";
+  const startRuleFunction = '[$this, "peg_parse_' + options.allowedStartRules[0] + '"]';
 
   parts.push(indent(8, [
     "$peg_startRuleFunctions = " + startRuleFunctions + ";",
@@ -880,7 +880,7 @@ module.exports = function(ast, options) {
 
   if (options.cache) {
     parts.push("");
-    parts.push(indent(8, "$this->peg_cache = array();"));
+    parts.push(indent(8, "$this->peg_cache = [];"));
   }
 
   if (mbstringAllowed) {
@@ -898,7 +898,7 @@ module.exports = function(ast, options) {
     "    return $peg_result;",
     "}",
     "if ($peg_result !== $this->peg_FAILED && $this->peg_currPos < $this->input_length) {",
-    '    $this->peg_fail(array("type" => "end", "description" => "end of input"));',
+    '    $this->peg_fail(["type" => "end", "description" => "end of input"]);',
     "}",
     "",
     "$exception = $this->peg_buildException(null, $this->peg_maxFailExpected, $this->peg_maxFailPos);",
@@ -918,17 +918,17 @@ module.exports = function(ast, options) {
     "{",
 
     ...options.cache
-      ? ["    $this->peg_cache = array();"]
+      ? ["    $this->peg_cache = [];"]
       : [],
 
     "    $this->peg_currPos = 0;",
     "    $this->peg_reportedPos = 0;",
     "    $this->peg_cachedPos = 0;",
-    '    $this->peg_cachedPosDetails = array("line" => 1, "column" => 1, "seenCR" => false);',
+    '    $this->peg_cachedPosDetails = ["line" => 1, "column" => 1, "seenCR" => false];',
     "    $this->peg_maxFailPos = 0;",
-    "    $this->peg_maxFailExpected = array();",
+    "    $this->peg_maxFailExpected = [];",
     "    $this->peg_silentFails = 0;",
-    "    $this->input = array();",
+    "    $this->input = [];",
     "    $this->input_length = 0;",
     '    $this->peg_source = "";',
     "}",
@@ -961,7 +961,7 @@ module.exports = function(ast, options) {
     "",
     "private function range()",
     "{",
-    '    return array("source" => $this->peg_source, "start" => $this->peg_reportedPos, "end" => $this->peg_currPos);',
+    '    return ["source" => $this->peg_source, "start" => $this->peg_reportedPos, "end" => $this->peg_currPos];',
     "}",
     "",
     "private function location($fail = false)",
@@ -975,19 +975,19 @@ module.exports = function(ast, options) {
     "    $compute_pd_start = $this->peg_computePosDetails($start);",
     "    $compute_pd_end = $this->peg_computePosDetails($end);",
     "",
-    "    return array(",
+    "    return [",
     '        "source" => $this->peg_source,',
-    '        "start" => array(',
+    '        "start" => [',
     '            "offset" => $start,',
     '            "line" => $compute_pd_start["line"],',
     '            "column" => $compute_pd_start["column"],',
-    "        ),",
-    '        "end" => array(',
+    "        ],",
+    '        "end" => [',
     '            "offset" => $end,',
     '            "line" => $compute_pd_end["line"],',
     '            "column" => $compute_pd_end["column"],',
-    "        ),",
-    "    );",
+    "        ],",
+    "    ];",
     "}",
     "",
     "private function line()",
@@ -1006,7 +1006,7 @@ module.exports = function(ast, options) {
     "{",
     "    throw $this->peg_buildException(",
     "        null,",
-    '        array(array("type" => "other", "description" => $description)),',
+    '        [["type" => "other", "description" => $description]],',
     "        $this->peg_reportedPos",
     "    );",
     "}",
@@ -1042,7 +1042,7 @@ module.exports = function(ast, options) {
     "    if ($this->peg_cachedPos !== $pos) {",
     "        if ($this->peg_cachedPos > $pos) {",
     "            $this->peg_cachedPos = 0;",
-    '            $this->peg_cachedPosDetails = array("line" => 1, "column" => 1, "seenCR" => false);',
+    '            $this->peg_cachedPosDetails = ["line" => 1, "column" => 1, "seenCR" => false];',
     "        }",
     "        $this->peg_advancePos($this->peg_cachedPosDetails, $this->peg_cachedPos, $pos);",
     "        $this->peg_cachedPos = $pos;",
@@ -1059,7 +1059,7 @@ module.exports = function(ast, options) {
     "",
     "    if ($this->peg_currPos > $this->peg_maxFailPos) {",
     "        $this->peg_maxFailPos = $this->peg_currPos;",
-    "        $this->peg_maxFailExpected = array();",
+    "        $this->peg_maxFailExpected = [];",
     "    }",
     "",
     "    $this->peg_maxFailExpected[] = $expected;",
@@ -1082,7 +1082,7 @@ module.exports = function(ast, options) {
     "    $found = $pos < $this->input_length ? $this->input[$pos] : null;",
     "",
     "    if ($expected !== null) {",
-    '        usort($expected, array($this, "peg_buildException_expectedComparator"));',
+    '        usort($expected, [$this, "peg_buildException_expectedComparator")];',
     "        $i = 1;",
     /*
      * This works because the bytecode generator guarantees that every

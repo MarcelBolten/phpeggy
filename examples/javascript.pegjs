@@ -48,7 +48,7 @@
  */
 
 start
-  = __ program:Program __ { return $program; }
+  = __ @Program __
 
 /* ===== A.1 Lexical Grammar ===== */
 
@@ -83,26 +83,27 @@ SingleLineComment
   = "//" (!LineTerminator SourceCharacter)*
 
 Identifier "identifier"
-  = !ReservedWord name:IdentifierName { return $name; }
+  = !ReservedWord @IdentifierName
 
 IdentifierName "identifier"
-  = start:IdentifierStart parts:IdentifierPart* {
+  = start:IdentifierStart parts:IdentifierPart*
+  {
       return $start + join("", $parts);
-    }
+  }
 
 IdentifierStart
   = UnicodeLetter
   / "$"
   / "_"
-  / "\\" sequence:UnicodeEscapeSequence { return $sequence; }
+  / "\\" @UnicodeEscapeSequence
 
 IdentifierPart
   = IdentifierStart
   / UnicodeCombiningMark
   / UnicodeDigit
   / UnicodeConnectorPunctuation
-  / "\u200C" { return "\u200C"; } // zero-width non-joiner
-  / "\u200D" { return "\u200D"; } // zero-width joiner
+  / @"\u200C" // zero-width non-joiner
+  / @"\u200D" // zero-width joiner
 
 UnicodeLetter
   = Lu
@@ -179,25 +180,25 @@ Literal
   = NullLiteral
   / BooleanLiteral
   / value:NumericLiteral {
-      return array(
+      return [
         "type" => "NumericLiteral",
-        "value" => $value
-      );
+        "value" => $value,
+      ];
     }
   / value:StringLiteral {
-      return array(
+      return [
         "type" => "StringLiteral",
-        "value" => $value
-      );
+        "value" => $value,
+      ];
     }
   / RegularExpressionLiteral
 
 NullLiteral
-  = NullToken { return array("type" => "NullLiteral" ); }
+  = NullToken { return ["type" => "NullLiteral"]; }
 
 BooleanLiteral
-  = TrueToken { return array("type" => "BooleanLiteral", "value" => true  ); }
-  / FalseToken { return array("type" => "BooleanLiteral", "value" => false ); }
+  = TrueToken { return ["type" => "BooleanLiteral", "value" => true]; }
+  / FalseToken { return ["type" => "BooleanLiteral", "value" => false]; }
 
 NumericLiteral "number"
   = literal:(HexIntegerLiteral / DecimalLiteral) !IdentifierStart {
@@ -208,7 +209,7 @@ DecimalLiteral
   = parts:$(DecimalIntegerLiteral "." DecimalDigits? ExponentPart?) {
       return floatval($parts);
     }
-  / parts:$("." DecimalDigits ExponentPart?)     { return floatval($parts); }
+  / parts:$("." DecimalDigits ExponentPart?) { return floatval($parts); }
   / parts:$(DecimalIntegerLiteral ExponentPart?) { return floatval($parts); }
 
 DecimalIntegerLiteral
@@ -250,17 +251,17 @@ SingleStringCharacters
   = chars:SingleStringCharacter+ { return join("", $chars); }
 
 DoubleStringCharacter
-  = !('"' / "\\" / LineTerminator) char_:SourceCharacter { return $char_;     }
-  / "\\" sequence:EscapeSequence                         { return $sequence;  }
+  = !('"' / "\\" / LineTerminator) @SourceCharacter
+  / "\\" @EscapeSequence
   / LineContinuation
 
 SingleStringCharacter
-  = !("'" / "\\" / LineTerminator) char_:SourceCharacter { return $char_;     }
-  / "\\" sequence:EscapeSequence                         { return $sequence;  }
+  = !("'" / "\\" / LineTerminator) @SourceCharacter
+  / "\\" @EscapeSequence
   / LineContinuation
 
 LineContinuation
-  = "\\" sequence:LineTerminatorSequence { return $sequence; }
+  = "\\" @LineTerminatorSequence
 
 EscapeSequence
   = CharacterEscapeSequence
@@ -285,7 +286,7 @@ SingleEscapeCharacter
     }
 
 NonEscapeCharacter
-  = (!EscapeCharacter / LineTerminator) char_:SourceCharacter { return $char_; }
+  = (!EscapeCharacter / LineTerminator) @SourceCharacter
 
 EscapeCharacter
   = SingleEscapeCharacter
@@ -305,11 +306,11 @@ UnicodeEscapeSequence
 
 RegularExpressionLiteral "regular expression"
   = "/" body:RegularExpressionBody "/" flags:RegularExpressionFlags {
-      return array(
-        "type" =>  "RegularExpressionLiteral",
-        "body" =>  $body,
-        "flags" => $flags
-      );
+      return [
+        "type" => "RegularExpressionLiteral",
+        "body" => $body,
+        "flags" => $flags,
+      ];
     }
 
 RegularExpressionBody
@@ -321,12 +322,12 @@ RegularExpressionChars
   = chars:RegularExpressionChar* { return join("", $chars); }
 
 RegularExpressionFirstChar
-  = ![*\\/[] char_:RegularExpressionNonTerminator { return $char_; }
+  = ![*\\/[] @RegularExpressionNonTerminator
   / RegularExpressionBackslashSequence
   / RegularExpressionClass
 
 RegularExpressionChar
-  = ![\\/[] char_:RegularExpressionNonTerminator { return $char_; }
+  = ![\\/[] @RegularExpressionNonTerminator
   / RegularExpressionBackslashSequence
   / RegularExpressionClass
 
@@ -338,7 +339,7 @@ RegularExpressionBackslashSequence
   = "\\" char_:RegularExpressionNonTerminator { return "\\" + $char_; }
 
 RegularExpressionNonTerminator
-  = !LineTerminator char_:SourceCharacter { return $char_; }
+  = !LineTerminator @SourceCharacter
 
 RegularExpressionClass
   = "[" chars:RegularExpressionClassChars "]" { return "[" + $chars + "]"; }
@@ -347,7 +348,7 @@ RegularExpressionClassChars
   = chars:RegularExpressionClassChar* { return join("", $chars); }
 
 RegularExpressionClassChar
-  = ![\]\\] char_:RegularExpressionNonTerminator { return $char_; }
+  = ![\]\\] @RegularExpressionNonTerminator
   / RegularExpressionBackslashSequence
 
 RegularExpressionFlags
@@ -355,37 +356,68 @@ RegularExpressionFlags
 
 /* Tokens */
 
-BreakToken      = "break"            !IdentifierPart
-CaseToken       = "case"             !IdentifierPart
-CatchToken      = "catch"            !IdentifierPart
-ContinueToken   = "continue"         !IdentifierPart
-DebuggerToken   = "debugger"         !IdentifierPart
-DefaultToken    = "default"          !IdentifierPart
-DeleteToken     = "delete"           !IdentifierPart { return "delete"; }
-DoToken         = "do"               !IdentifierPart
-ElseToken       = "else"             !IdentifierPart
-FalseToken      = "false"            !IdentifierPart
-FinallyToken    = "finally"          !IdentifierPart
-ForToken        = "for"              !IdentifierPart
-FunctionToken   = "function"         !IdentifierPart
-GetToken        = "get"              !IdentifierPart
-IfToken         = "if"               !IdentifierPart
-InstanceofToken = "instanceof"       !IdentifierPart { return "instanceof"; }
-InToken         = "in"               !IdentifierPart { return "in"; }
-NewToken        = "new"              !IdentifierPart
-NullToken       = "null"             !IdentifierPart
-ReturnToken     = "return"           !IdentifierPart
-SetToken        = "set"              !IdentifierPart
-SwitchToken     = "switch"           !IdentifierPart
-ThisToken       = "this"             !IdentifierPart
-ThrowToken      = "throw"            !IdentifierPart
-TrueToken       = "true"             !IdentifierPart
-TryToken        = "try"              !IdentifierPart
-TypeofToken     = "typeof"           !IdentifierPart { return "typeof"; }
-VarToken        = "var"              !IdentifierPart
-VoidToken       = "void"             !IdentifierPart { return "void"; }
-WhileToken      = "while"            !IdentifierPart
-WithToken       = "with"             !IdentifierPart
+BreakToken
+  = "break" !IdentifierPart
+CaseToken
+  = "case" !IdentifierPart
+CatchToken
+  = "catch" !IdentifierPart
+ContinueToken
+  = "continue" !IdentifierPart
+DebuggerToken
+  = "debugger" !IdentifierPart
+DefaultToken
+  = "default" !IdentifierPart
+DeleteToken
+  = @"delete" !IdentifierPart
+DoToken
+  = "do" !IdentifierPart
+ElseToken
+  = "else" !IdentifierPart
+FalseToken
+  = "false" !IdentifierPart
+FinallyToken
+  = "finally" !IdentifierPart
+ForToken
+  = "for" !IdentifierPart
+FunctionToken
+  = "function" !IdentifierPart
+GetToken
+  = "get" !IdentifierPart
+IfToken
+  = "if" !IdentifierPart
+InstanceofToken
+  = @"instanceof" !IdentifierPart
+InToken
+  = @"in" !IdentifierPart
+NewToken
+  = "new" !IdentifierPart
+NullToken
+  = "null" !IdentifierPart
+ReturnToken
+  = "return" !IdentifierPart
+SetToken
+  = "set" !IdentifierPart
+SwitchToken
+  = "switch" !IdentifierPart
+ThisToken
+  = "this" !IdentifierPart
+ThrowToken
+  = "throw" !IdentifierPart
+TrueToken
+  = "true" !IdentifierPart
+TryToken
+  = "try" !IdentifierPart
+TypeofToken
+  = @"typeof" !IdentifierPart
+VarToken
+  = "var" !IdentifierPart
+VoidToken
+  = @"void" !IdentifierPart
+WhileToken
+  = "while" !IdentifierPart
+WithToken
+  = "with" !IdentifierPart
 
 /*
  * Unicode Character Categories
@@ -470,36 +502,36 @@ __
 /* ===== A.3 Expressions ===== */
 
 PrimaryExpression
-  = ThisToken       { return array("type" => "This" ); }
-  / name:Identifier { return array("type" => "Variable", "name" => $name ); }
+  = ThisToken { return ["type" => "This"]; }
+  / name:Identifier { return ["type" => "Variable", "name" => $name]; }
   / Literal
   / ArrayLiteral
   / ObjectLiteral
-  / "(" __ expression:Expression __ ")" { return $expression; }
+  / "(" __ @Expression __ ")"
 
 ArrayLiteral
   = "[" __ elision:(Elision __)? "]" {
-      return array(
-        "type" =>     "ArrayLiteral",
-        "elements" => $elision !== null ? $elision[0] : array()
-      );
+      return [
+        "type" => "ArrayLiteral",
+        "elements" => $elision !== null ? $elision[0] : [],
+      ];
     }
   / "[" __ elements:ElementList __ elision:("," __ (Elision __)?)? "]" {
-      return array(
-        "type" =>     "ArrayLiteral",
-        "elements" => array_merge($elements, ($elision !== null && $elision[2] !== null ? (array)$elision[2][0] : array()))
-      );
+      return [
+        "type" => "ArrayLiteral",
+        "elements" => array_merge($elements, ($elision !== null && $elision[2] !== null ? (array)$elision[2][0] : [])),
+      ];
     }
 
 ElementList
   = head:(
       elision:(Elision __)? element:AssignmentExpression {
-        return array_merge($elision !== null ? (array)$elision[0] : array(), (array)$element);
+        return array_merge($elision !== null ? (array)$elision[0] : [], (array)$element);
       }
     )
     tail:(
       __ "," __ elision:(Elision __)? element:AssignmentExpression {
-        return array_merge($elision !== null ? (array)$elision[0] : array(), (array)$element);
+        return array_merge($elision !== null ? (array)$elision[0] : [], (array)$element);
       }
     )* {
       $result = $head;
@@ -511,7 +543,7 @@ ElementList
 
 Elision
   = "," elision:(__ ",")* {
-      $result = array(null);
+      $result = [null];
       for ($i = 0; $i < count($elision); $i++) {
         $result[] = null;
       }
@@ -520,15 +552,15 @@ Elision
 
 ObjectLiteral
   = "{" __ properties:(PropertyNameAndValueList __ ("," __)?)? "}" {
-      return array(
-        "type" =>       "ObjectLiteral",
-        "properties" => $properties !== null ? $properties[0] : array()
-      );
+      return [
+        "type" => "ObjectLiteral",
+        "properties" => $properties !== null ? $properties[0] : [],
+      ];
     }
 
 PropertyNameAndValueList
   = head:PropertyAssignment tail:(__ "," __ PropertyAssignment)* {
-      $result = array($head);
+      $result = [$head];
       for ($i = 0; $i < count($tail); $i++) {
         $result[] = $tail[$i][3];
       }
@@ -537,30 +569,30 @@ PropertyNameAndValueList
 
 PropertyAssignment
   = name:PropertyName __ ":" __ value:AssignmentExpression {
-      return array(
+      return [
         "type" => "PropertyAssignment",
         "name" => $name,
-        "value" => $value
-      );
+        "value" => $value,
+      ];
     }
   / GetToken __ name:PropertyName __
     "(" __ ")" __
     "{" __ body:FunctionBody __ "}" {
-      return array(
+      return [
         "type" => "GetterDefinition",
         "name" => $name,
-        "body" => $body
-      );
+        "body" => $body,
+      ];
     }
   / SetToken __ name:PropertyName __
     "(" __ param:PropertySetParameterList __ ")" __
     "{" __ body:FunctionBody __ "}" {
-      return array(
+      return [
         "type" => "SetterDefinition",
-        "name" =>  $name,
+        "name" => $name,
         "param" => $param,
-        "body" =>  $body
-      );
+        "body" => $body,
+      ];
     }
 
 PropertyName
@@ -576,24 +608,24 @@ MemberExpression
         PrimaryExpression
       / FunctionExpression
       / NewToken __ constructor:MemberExpression __ args:Arguments {
-          return array(
-            "type" =>        "NewOperator",
+          return [
+            "type" => "NewOperator",
             "constructor" => $constructor,
-            "arguments" =>   $args
-          );
+            "arguments" => $args,
+          ];
         }
     )
     accessors:(
-        __ "[" __ name:Expression __ "]" { return $name; }
-      / __ "." __ name:IdentifierName    { return $name; }
+        __ "[" __ @Expression __ "]"
+      / __ "." __ @IdentifierName
     )* {
       $result = $base;
       for ($i = 0; $i < count($accessors); $i++) {
-        $result = array(
+        $result = [
           "type" => "PropertyAccess",
           "base" => $result,
-          "name" => $accessors[$i]
-        );
+          "name" => $accessors[$i],
+        ];
       }
       return $result;
     }
@@ -601,59 +633,59 @@ MemberExpression
 NewExpression
   = MemberExpression
   / NewToken __ constructor:NewExpression {
-      return array(
-       "type" =>     "NewOperator",
+      return [
+       "type" => "NewOperator",
         "constructor" => $constructor,
-        "arguments"   => array()  
-      );
+        "arguments" => [],  
+      ];
     }
 
 CallExpression
   = base:(
       name:MemberExpression __ args:Arguments {
-        return array(
+        return [
           "type" => "FunctionCall",
-          "name" =>      $name,
-          "arguments" => $args
-        );
+          "name" => $name,
+          "arguments" => $args,
+        ];
       }
     )
     argumentsOrAccessors:(
         __ args:Arguments {
-          return array(
-            "type" =>     "FunctionCallArguments",
-            "arguments" => $args
-          );
+          return [
+            "type" => "FunctionCallArguments",
+            "arguments" => $args,
+          ];
         }
       / __ "[" __ name:Expression __ "]" {
-          return array(
+          return [
             "type" => "PropertyAccessProperty",
-            "name" => $name
-          );
+            "name" => $name,
+          ];
         }
       / __ "." __ name:IdentifierName {
-          return array(
+          return [
             "type" => "PropertyAccessProperty",
-            "name" => $name
-          );
+            "name" => $name,
+          ];
         }
     )* {
       $result = $base;
       for ($i = 0; $i < count($argumentsOrAccessors); $i++) {
         switch ($argumentsOrAccessors[$i]["type"]) {
           case "FunctionCallArguments":
-            $result = array(
-              "type"      => "FunctionCall",
-              "name"      => $result,
-              "arguments" => $argumentsOrAccessors[$i]["arguments"]
-            );
+            $result = [
+              "type" => "FunctionCall",
+              "name" => $result,
+              "arguments" => $argumentsOrAccessors[$i]["arguments"],
+            ];
             break;
           case "PropertyAccessProperty":
-            $result = array(
+            $result = [
               "type" => "PropertyAccess",
               "base" => $result,
-              "name" => $argumentsOrAccessors[$i]["name"]
-            );
+              "name" => $argumentsOrAccessors[$i]["name"],
+            ];
             break;
           default:
             throw new \Exception(
@@ -666,12 +698,12 @@ CallExpression
 
 Arguments
   = "(" __ args:ArgumentList? __ ")" {
-    return $args !== null ? $args : array();
+    return $args !== null ? $args : [];
   }
 
 ArgumentList
   = head:AssignmentExpression tail:(__ "," __ AssignmentExpression)* {
-    $result = array($head);
+    $result = [$head];
     for ($i = 0; $i < count($tail); $i++) {
       $result[] = $tail[$i][3];
     }
@@ -684,11 +716,11 @@ LeftHandSideExpression
 
 PostfixExpression
   = expression:LeftHandSideExpression _ operator:PostfixOperator {
-      return array(
-        "type"       => "PostfixExpression",
-        "operator"   => $operator,
-        "expression" => $expression
-      );
+      return [
+        "type" => "PostfixExpression",
+        "operator" => $operator,
+        "expression" => $expression,
+      ];
     }
   / LeftHandSideExpression
 
@@ -699,11 +731,11 @@ PostfixOperator
 UnaryExpression
   = PostfixExpression
   / operator:UnaryOperator __ expression:UnaryExpression {
-      return array(
-        "type"       => "UnaryExpression",
-        "operator"   => $operator,
-        "expression" => $expression
-      );
+      return [
+        "type" => "UnaryExpression",
+        "operator" => $operator,
+        "expression" => $expression,
+      ];
     }
 
 UnaryOperator
@@ -722,12 +754,12 @@ MultiplicativeExpression
     tail:(__ MultiplicativeOperator __ UnaryExpression)* {
       $result = $head;
       for ($i = 0; $i < count($tail); $i++) {
-        $result = array(
-          "type" =>     "BinaryExpression",
+        $result = [
+          "type" => "BinaryExpression",
           "operator" => $tail[$i][1],
-          "left" =>     $result,
-          "right" =>    $tail[$i][3]
-        );
+          "left" => $result,
+          "right" => $tail[$i][3],
+        ];
       }
       return $result;
     }
@@ -740,12 +772,12 @@ AdditiveExpression
     tail:(__ AdditiveOperator __ MultiplicativeExpression)* {
       $result = $head;
       for ($i = 0; $i < count($tail); $i++) {
-        $result = array(
-          "type"     => "BinaryExpression",
+        $result = [
+          "type" => "BinaryExpression",
           "operator" => $tail[$i][1],
-          "left"     => $result,
-          "right"    => $tail[$i][3]
-        );
+          "left" => $result,
+          "right" => $tail[$i][3],
+        ];
       }
       return $result;
     }
@@ -759,12 +791,12 @@ ShiftExpression
     tail:(__ ShiftOperator __ AdditiveExpression)* {
       $result = $head;
       for ($i = 0; $i < count($tail); $i++) {
-        $result = array(
-          "type"     => "BinaryExpression",
+        $result = [
+          "type" => "BinaryExpression",
           "operator" => $tail[$i][1],
-          "left"     => $result,
-          "right"    => $tail[$i][3]
-        );
+          "left" => $result,
+          "right" => $tail[$i][3],
+        ];
       }
       return $result;
     }
@@ -779,12 +811,12 @@ RelationalExpression
     tail:(__ RelationalOperator __ ShiftExpression)* {
       $result = $head;
       for ($i = 0; $i < count($tail); $i++) {
-        $result = array(
-          "type" =>     "BinaryExpression",
+        $result = [
+          "type" => "BinaryExpression",
           "operator" => $tail[$i][1],
-          "left" =>     $result,
-          "right" =>    $tail[$i][3]
-        );
+          "left" => $result,
+          "right" => $tail[$i][3],
+        ];
       }
       return $result;
     }
@@ -802,12 +834,12 @@ RelationalExpressionNoIn
     tail:(__ RelationalOperatorNoIn __ ShiftExpression)* {
       $result = $head;
       for ($i = 0; $i < count($tail); $i++) {
-        $result = array(
-          "type" =>     "BinaryExpression",
+        $result = [
+          "type" => "BinaryExpression",
           "operator" => $tail[$i][1],
-          "left" =>     $result,
-          "right" =>    $tail[$i][3]
-        );
+          "left" => $result,
+          "right" => $tail[$i][3],
+        ];
       }
       return $result;
     }
@@ -824,12 +856,12 @@ EqualityExpression
     tail:(__ EqualityOperator __ RelationalExpression)* {
       $result = $head;
       for ($i = 0; $i < count($tail); $i++) {
-        $result = array(
-          "type" =>     "BinaryExpression",
+        $result = [
+          "type" => "BinaryExpression",
           "operator" => $tail[$i][1],
-          "left" =>     $result,
-          "right" =>    $tail[$i][3]
-        );
+          "left" => $result,
+          "right" => $tail[$i][3],
+        ];
       }
       return $result;
     }
@@ -839,12 +871,12 @@ EqualityExpressionNoIn
     tail:(__ EqualityOperator __ RelationalExpressionNoIn)* {
       $result = $head;
       for ($i = 0; $i < count($tail); $i++) {
-        $result = array(
-          "type" =>     "BinaryExpression",
+        $result = [
+          "type" => "BinaryExpression",
           "operator" => $tail[$i][1],
-          "left" =>     $result,
-          "right" =>    $tail[$i][3]
-        );
+          "left" => $result,
+          "right" => $tail[$i][3],
+        ];
       }
       return $result;
     }
@@ -860,12 +892,12 @@ BitwiseANDExpression
     tail:(__ BitwiseANDOperator __ EqualityExpression)* {
       $result = $head;
       for ($i = 0; $i < count($tail); $i++) {
-        $result = array(
-          "type" =>     "BinaryExpression",
+        $result = [
+          "type" => "BinaryExpression",
           "operator" => $tail[$i][1],
-          "left" =>     $result,
-          "right" =>    $tail[$i][3]
-        );
+          "left" => $result,
+          "right" => $tail[$i][3],
+        ];
       }
       return $result;
     }
@@ -875,30 +907,30 @@ BitwiseANDExpressionNoIn
     tail:(__ BitwiseANDOperator __ EqualityExpressionNoIn)* {
       $result = $head;
       for ($i = 0; $i < count($tail); $i++) {
-        $result = array(
-          "type" =>     "BinaryExpression",
+        $result = [
+          "type" => "BinaryExpression",
           "operator" => $tail[$i][1],
-          "left" =>     $result,
-          "right" =>    $tail[$i][3]
-        );
+          "left" => $result,
+          "right" => $tail[$i][3],
+        ];
       }
       return $result;
     }
 
 BitwiseANDOperator
-  = "&" !("&" / "=") { return "&"; }
+  = @"&" !("&" / "=")
 
 BitwiseXORExpression
   = head:BitwiseANDExpression
     tail:(__ BitwiseXOROperator __ BitwiseANDExpression)* {
       $result = $head;
       for ($i = 0; $i < count($tail); $i++) {
-        $result = array(
-          "type" =>     "BinaryExpression",
+        $result = [
+          "type" => "BinaryExpression",
           "operator" => $tail[$i][1],
-          "left" =>     $result,
-          "right" =>    $tail[$i][3]
-        );
+          "left" => $result,
+          "right" => $tail[$i][3],
+        ];
       }
       return $result;
     }
@@ -908,30 +940,30 @@ BitwiseXORExpressionNoIn
     tail:(__ BitwiseXOROperator __ BitwiseANDExpressionNoIn)* {
       $result = $head;
       for ($i = 0; $i < count($tail); $i++) {
-        $result = array(
-          "type" =>     "BinaryExpression",
+        $result = [
+          "type" => "BinaryExpression",
           "operator" => $tail[$i][1],
-          "left" =>     $result,
-          "right" =>    $tail[$i][3]
-        );
+          "left" => $result,
+          "right" => $tail[$i][3],
+        ];
       }
       return $result;
     }
 
 BitwiseXOROperator
-  = "^" !("^" / "=") { return "^"; }
+  = @"^" !("^" / "=")
 
 BitwiseORExpression
   = head:BitwiseXORExpression
     tail:(__ BitwiseOROperator __ BitwiseXORExpression)* {
       $result = $head;
       for ($i = 0; $i < count($tail); $i++) {
-        $result = array(
-          "type" =>     "BinaryExpression",
+        $result = [
+          "type" => "BinaryExpression",
           "operator" => $tail[$i][1],
-          "left" =>     $result,
-          "right" =>    $tail[$i][3]
-        );
+          "left" => $result,
+          "right" => $tail[$i][3],
+        ];
       }
       return $result;
     }
@@ -941,30 +973,30 @@ BitwiseORExpressionNoIn
     tail:(__ BitwiseOROperator __ BitwiseXORExpressionNoIn)* {
       $result = $head;
       for ($i = 0; $i < count($tail); $i++) {
-        $result = array(
-          "type" =>     "BinaryExpression",
+        $result = [
+          "type" => "BinaryExpression",
           "operator" => $tail[$i][1],
-          "left" =>     $result,
-          "right" =>    $tail[$i][3]
-        );
+          "left" => $result,
+          "right" => $tail[$i][3],
+        ];
       }
       return $result;
     }
 
 BitwiseOROperator
-  = "|" !("|" / "=") { return "|"; }
+  = @"|" !("|" / "=")
 
 LogicalANDExpression
   = head:BitwiseORExpression
     tail:(__ LogicalANDOperator __ BitwiseORExpression)* {
       $result = $head;
       for ($i = 0; $i < count($tail); $i++) {
-        $result = array(
-          "type" =>     "BinaryExpression",
+        $result = [
+          "type" => "BinaryExpression",
           "operator" => $tail[$i][1],
-          "left" =>     $result,
-          "right" =>    $tail[$i][3]
-        );
+          "left" => $result,
+          "right" => $tail[$i][3],
+        ];
       }
       return $result;
     }
@@ -974,30 +1006,30 @@ LogicalANDExpressionNoIn
     tail:(__ LogicalANDOperator __ BitwiseORExpressionNoIn)* {
       $result = $head;
       for ($i = 0; $i < count($tail); $i++) {
-        $result = array(
-          "type" =>     "BinaryExpression",
+        $result = [
+          "type" => "BinaryExpression",
           "operator" => $tail[$i][1],
-          "left" =>     $result,
-          "right" =>    $tail[$i][3]
-        );
+          "left" => $result,
+          "right" => $tail[$i][3],
+        ];
       }
       return $result;
     }
 
 LogicalANDOperator
-  = "&&" !"=" { return "&&"; }
+  = @"&&" !"="
 
 LogicalORExpression
   = head:LogicalANDExpression
     tail:(__ LogicalOROperator __ LogicalANDExpression)* {
       $result = $head;
       for ($i = 0; $i < count($tail); $i++) {
-        $result = array(
-          "type" =>     "BinaryExpression",
+        $result = [
+          "type" => "BinaryExpression",
           "operator" => $tail[$i][1],
-          "left" =>     $result,
-          "right" =>    $tail[$i][3]
-        );
+          "left" => $result,
+          "right" => $tail[$i][3],
+        ];
       }
       return $result;
     }
@@ -1007,29 +1039,29 @@ LogicalORExpressionNoIn
     tail:(__ LogicalOROperator __ LogicalANDExpressionNoIn)* {
       $result = $head;
       for ($i = 0; $i < count($tail); $i++) {
-        $result = array(
-          "type" =>     "BinaryExpression",
+        $result = [
+          "type" => "BinaryExpression",
           "operator" => $tail[$i][1],
-          "left" =>     $result,
-          "right" =>    $tail[$i][3]
-        );
+          "left" => $result,
+          "right" => $tail[$i][3],
+        ];
       }
       return $result;
     }
 
 LogicalOROperator
-  = "||" !"=" { return "||"; }
+  = @"||" !"="
 
 ConditionalExpression
   = condition:LogicalORExpression __
     "?" __ trueExpression:AssignmentExpression __
     ":" __ falseExpression:AssignmentExpression {
-      return array(
-        "type" =>            "ConditionalExpression",
-        "condition" =>       $condition,
-        "trueExpression" =>  $trueExpression,
-        "falseExpression" => $falseExpression
-      );
+      return [
+        "type" => "ConditionalExpression",
+        "condition" => $condition,
+        "trueExpression" => $trueExpression,
+        "falseExpression" => $falseExpression,
+      ];
     }
   / LogicalORExpression
 
@@ -1037,12 +1069,12 @@ ConditionalExpressionNoIn
   = condition:LogicalORExpressionNoIn __
     "?" __ trueExpression:AssignmentExpressionNoIn __
     ":" __ falseExpression:AssignmentExpressionNoIn {
-      return array(
-        "type" =>            "ConditionalExpression",
-        "condition" =>       $condition,
-        "trueExpression" =>  $trueExpression,
-        "falseExpression" => $falseExpression
-      );
+      return [
+        "type" => "ConditionalExpression",
+        "condition" => $condition,
+        "trueExpression" => $trueExpression,
+        "falseExpression" => $falseExpression,
+      ];
     }
   / LogicalORExpressionNoIn
 
@@ -1050,12 +1082,12 @@ AssignmentExpression
   = left:LeftHandSideExpression __
     operator:AssignmentOperator __
     right:AssignmentExpression {
-      return array(
-        "type" =>     "AssignmentExpression",
+      return [
+        "type" => "AssignmentExpression",
         "operator" => $operator,
-        "left" =>     $left,
-        "right" =>    $right
-      );
+        "left" => $left,
+        "right" => $right,
+      ];
     }
   / ConditionalExpression
 
@@ -1063,17 +1095,17 @@ AssignmentExpressionNoIn
   = left:LeftHandSideExpression __
     operator:AssignmentOperator __
     right:AssignmentExpressionNoIn {
-      return array(
-        "type" =>     "AssignmentExpression",
+      return [
+        "type" => "AssignmentExpression",
         "operator" => $operator,
-        "left" =>     $left,
-        "right" =>    $right
-      );
+        "left" => $left,
+        "right" => $right,
+      ];
     }
   / ConditionalExpressionNoIn
 
 AssignmentOperator
-  = "=" (!"=") { return "="; }
+  = @"=" (!"=")
   / "*="
   / "/="
   / "%="
@@ -1091,12 +1123,12 @@ Expression
     tail:(__ "," __ AssignmentExpression)* {
       $result = $head;
       for ($i = 0; $i < count($tail); $i++) {
-        $result = array(
-          "type" =>     "BinaryExpression",
+        $result = [
+          "type" => "BinaryExpression",
           "operator" => $tail[$i][1],
-          "left" =>     $result,
-          "right" =>    $tail[$i][3]
-        );
+          "left" => $result,
+          "right" => $tail[$i][3],
+        ];
       }
       return $result;
     }
@@ -1106,12 +1138,12 @@ ExpressionNoIn
     tail:(__ "," __ AssignmentExpressionNoIn)* {
       $result = $head;
       for ($i = 0; $i < count($tail); $i++) {
-        $result = array(
-          "type" =>     "BinaryExpression",
+        $result = [
+          "type" => "BinaryExpression",
           "operator" => $tail[$i][1],
-          "left" =>     $result,
-          "right" =>    $tail[$i][3]
-        );
+          "left" => $result,
+          "right" => $tail[$i][3],
+        ];
       }
       return $result;
     }
@@ -1144,15 +1176,15 @@ Statement
 
 Block
   = "{" __ statements:(StatementList __)? "}" {
-      return array(
-        "type" =>       "Block",
-        "statements" => $statements !== null ? $statements[0] : array()
-      );
+      return [
+        "type" => "Block",
+        "statements" => $statements !== null ? $statements[0] : [],
+      ];
     }
 
 StatementList
   = head:Statement tail:(__ Statement)* {
-      $result = array($head);
+      $result = [$head];
       for ($i = 0; $i < count($tail); $i++) {
         $result[] = $tail[$i][1];
       }
@@ -1161,15 +1193,15 @@ StatementList
 
 VariableStatement
   = VarToken __ declarations:VariableDeclarationList EOS {
-      return array(
-        "type" =>         "VariableStatement",
-        "declarations" => $declarations
-      );
+      return [
+        "type" => "VariableStatement",
+        "declarations" => $declarations,
+      ];
     }
 
 VariableDeclarationList
   = head:VariableDeclaration tail:(__ "," __ VariableDeclaration)* {
-      $result = array($head);
+      $result = [$head];
       for ($i = 0; $i < count($tail); $i++) {
         $result[] = $tail[$i][3];
       }
@@ -1178,7 +1210,7 @@ VariableDeclarationList
 
 VariableDeclarationListNoIn
   = head:VariableDeclarationNoIn tail:(__ "," __ VariableDeclarationNoIn)* {
-      $result = array($head);
+      $result = [$head];
       for ($i = 0; $i < count($tail); $i++) {
         $result[] = $tail[$i][3];
       }
@@ -1187,45 +1219,45 @@ VariableDeclarationListNoIn
 
 VariableDeclaration
   = name:Identifier value:(__ Initialiser)? {
-      return array(
-        "type" =>  "VariableDeclaration",
-        "name" =>  $name,
-        "value" => $value !== null ? $value[1] : null
-      );
+      return [
+        "type" => "VariableDeclaration",
+        "name" => $name,
+        "value" => $value !== null ? $value[1] : null,
+      ];
     }
 
 VariableDeclarationNoIn
   = name:Identifier value:(__ InitialiserNoIn)? {
-      return array(
-        "type" =>  "VariableDeclaration",
-        "name" =>  $name,
-        "value" => $value !== null ? $value[1] : null
-      );
+      return [
+        "type" => "VariableDeclaration",
+        "name" => $name,
+        "value" => $value !== null ? $value[1] : null,
+      ];
     }
 
 Initialiser
-  = "=" (!"=") __ expression:AssignmentExpression { return $expression; }
+  = "=" (!"=") __ @AssignmentExpression
 
 InitialiserNoIn
-  = "=" (!"=") __ expression:AssignmentExpressionNoIn { return $expression; }
+  = "=" (!"=") __ @AssignmentExpressionNoIn
 
 EmptyStatement
-  = ";" { return array("type" => "EmptyStatement" ); }
+  = ";" { return ["type" => "EmptyStatement"]; }
 
 ExpressionStatement
-  = !("{" / FunctionToken) expression:Expression EOS { return $expression; }
+  = !("{" / FunctionToken) @Expression EOS
 
 IfStatement
   = IfToken __
     "(" __ condition:Expression __ ")" __
     ifStatement:Statement
     elseStatement:(__ ElseToken __ Statement)? {
-      return array(
-        "type" =>          "IfStatement",
-        "condition" =>     $condition,
-        "ifStatement" =>   $ifStatement,
-        "elseStatement" => $elseStatement !== null ? $elseStatement[3] : null
-      );
+      return [
+        "type" => "IfStatement",
+        "condition" => $condition,
+        "ifStatement" => $ifStatement,
+        "elseStatement" => $elseStatement !== null ? $elseStatement[3] : null,
+      ];
     }
 
 IterationStatement
@@ -1238,20 +1270,20 @@ DoWhileStatement
   = DoToken __
     statement:Statement __
     WhileToken __ "(" __ condition:Expression __ ")" EOS {
-      return array(
+      return [
         "type" => "DoWhileStatement",
         "condition" => $condition,
-        "statement" => $statement
-      );
+        "statement" => $statement,
+      ];
     }
 
 WhileStatement
   = WhileToken __ "(" __ condition:Expression __ ")" __ statement:Statement {
-      return array(
+      return [
         "type" => "WhileStatement",
         "condition" => $condition,
-        "statement" => $statement
-      );
+        "statement" => $statement,
+      ];
     }
 
 ForStatement
@@ -1259,10 +1291,10 @@ ForStatement
     "(" __
     initializer:(
         VarToken __ declarations:VariableDeclarationListNoIn {
-          return array(
-            "type" =>         "VariableStatement",
-            "declarations" => $declarations
-          );
+          return [
+            "type" => "VariableStatement",
+            "declarations" => $declarations,
+          ];
         }
       / ExpressionNoIn?
     ) __
@@ -1273,20 +1305,20 @@ ForStatement
     ")" __
     statement:Statement
     {
-      return array(
-        "type" =>        "ForStatement",
+      return [
+        "type" => "ForStatement",
         "initializer" => $initializer,
-        "test" =>        $test,
-        "counter" =>     $counter,
-        "statement" =>   $statement
-      );
+        "test" => $test,
+        "counter" => $counter,
+        "statement" => $statement,
+      ];
     }
 
 ForInStatement
   = ForToken __
     "(" __
     iterator:(
-        VarToken __ declaration:VariableDeclarationNoIn { return $declaration; }
+        VarToken __ @VariableDeclarationNoIn
       / LeftHandSideExpression
     ) __
     InToken __
@@ -1294,66 +1326,66 @@ ForInStatement
     ")" __
     statement:Statement
     {
-      return array(
+      return [
         "type" => "ForInStatement",
         "iterator" => $iterator,
         "collection" => $collection,
-        "statement" => $statement
-      );
+        "statement" => $statement,
+      ];
     }
 
 ContinueStatement
   = ContinueToken _
     label:(
-        identifier:Identifier EOS { return $identifier; }
+        @Identifier EOS
       / EOSNoLineTerminator { return ""; }
     ) {
-      return array(
+      return [
         "type" => "ContinueStatement",
-        "label" => $label !== "" ? $label : null
-      );
+        "label" => $label !== "" ? $label : null,
+      ];
     }
 
 BreakStatement
   = BreakToken _
     label:(
-        identifier:Identifier EOS { return $identifier; }
+        @Identifier EOS
       / EOSNoLineTerminator { return ""; }
     ) {
-      return array(
+      return [
         "type" => "BreakStatement",
-        "label" => $label !== "" ? $label : null
-      );
+        "label" => $label !== "" ? $label : null,
+      ];
     }
 
 ReturnStatement
   = ReturnToken _
     value:(
-        expression:Expression EOS { return $expression; }
+        @Expression EOS
       / EOSNoLineTerminator { return ""; }
     ) {
-      return array(
+      return [
         "type" => "ReturnStatement",
-        "value" => $value !== "" ? $value : null
-      );
+        "value" => $value !== "" ? $value : null,
+      ];
     }
 
 WithStatement
   = WithToken __ "(" __ environment:Expression __ ")" __ statement:Statement {
-      return array(
-        "type" =>        "WithStatement",
+      return [
+        "type" => "WithStatement",
         "environment" => $environment,
-        "statement" =>   $statement
-      );
+        "statement" => $statement,
+      ];
     }
 
 SwitchStatement
   = SwitchToken __ "(" __ expression:Expression __ ")" __ clauses:CaseBlock {
-      return array(
-        "type" =>       "SwitchStatement",
+      return [
+        "type" => "SwitchStatement",
         "expression" => $expression,
-        "clauses" =>    $clauses
-      );
+        "clauses" => $clauses,
+      ];
     }
 
 CaseBlock
@@ -1361,15 +1393,15 @@ CaseBlock
     before:CaseClauses?
     defaultAndAfter:(__ DefaultClause __ CaseClauses?)? __
     "}" {
-      $before = $before !== null ? $before : array();
+      $before = $before !== null ? $before : [];
       if ($defaultAndAfter !== null) {
         $defaultClause = $defaultAndAfter[1];
         $clausesAfter = $defaultAndAfter[3] !== null
           ? $defaultAndAfter[3]
-          : array();
+          : [];
       } else {
         $defaultClause = null;
-        $clausesAfter = array();
+        $clausesAfter = [];
       }
 
       return array_merge(($defaultClause ? array_merge($before, $defaultClause) : (array)$before), (array)$clausesAfter);
@@ -1377,7 +1409,7 @@ CaseBlock
 
 CaseClauses
   = head:CaseClause tail:(__ CaseClause)* {
-      $result = array($head);
+      $result = [$head];
       for ($i = 0; $i < count($tail); $i++) {
         $result[] = $tail[$i][1];
       }
@@ -1386,83 +1418,83 @@ CaseClauses
 
 CaseClause
   = CaseToken __ selector:Expression __ ":" statements:(__ StatementList)? {
-      return array(
-        "type" =>       "CaseClause",
-        "selector" =>   $selector,
-        "statements" => $statements !== null ? $statements[1] : array()
-      );
+      return [
+        "type" => "CaseClause",
+        "selector" => $selector,
+        "statements" => $statements !== null ? $statements[1] : [],
+      ];
     }
 
 DefaultClause
   = DefaultToken __ ":" statements:(__ StatementList)? {
-      return array(
-        "type" =>      "DefaultClause",
-        "statements" => $statements !== null ? $statements[1] : array()
-      );
+      return [
+        "type" => "DefaultClause",
+        "statements" => $statements !== null ? $statements[1] : [],
+      ];
     }
 
 LabelledStatement
   = label:Identifier __ ":" __ statement:Statement {
-      return array(
-        "type" =>      "LabelledStatement",
-        "label" =>     $label,
-        "statement" => $statement
-      );
+      return [
+        "type" => "LabelledStatement",
+        "label" => $label,
+        "statement" => $statement,
+      ];
     }
 
 ThrowStatement
   = ThrowToken _ exception:Expression EOSNoLineTerminator {
-      return array(
-        "type" =>      "ThrowStatement",
-        "exception" => $exception
-      );
+      return [
+        "type" => "ThrowStatement",
+        "exception" => $exception,
+      ];
     }
 
 TryStatement
   = TryToken __ block:Block __ catch_:Catch __ finally_:Finally {
-      return array(
-        "type" =>      "TryStatement",
-        "block" =>     $block,
-        "catch" =>   $catch_,
-        "finally" => $finally_
-      );
+      return [
+        "type" => "TryStatement",
+        "block" => $block,
+        "catch" => $catch_,
+        "finally" => $finally_,
+      ];
     }
   / TryToken __ block:Block __ catch_:Catch {
-      return array(
-        "type" =>      "TryStatement",
-        "block" =>     $block,
-        "catch" =>   $catch_,
-        "finally" => null
-      );
+      return [
+        "type" => "TryStatement",
+        "block" => $block,
+        "catch" => $catch_,
+        "finally" => null,
+      ];
     }
   / TryToken __ block:Block __ finally_:Finally {
-      return array(
-        "type" =>      "TryStatement",
-        "block" =>     $block,
-        "catch" =>   null,
-        "finally" => $finally_
-      );
+      return [
+        "type" => "TryStatement",
+        "block" => $block,
+        "catch" => null,
+        "finally" => $finally_,
+      ];
     }
 
 Catch
   = CatchToken __ "(" __ identifier:Identifier __ ")" __ block:Block {
-      return array(
-        "type" =>       "Catch",
+      return [
+        "type" => "Catch",
         "identifier" => $identifier,
-        "block" =>      $block
-      );
+        "block" => $block,
+      ];
     }
 
 Finally
   = FinallyToken __ block:Block {
-      return array(
-        "type" =>  "Finally",
-        "block" => $block
-      );
+      return [
+        "type" => "Finally",
+        "block" => $block,
+      ];
     }
 
 DebuggerStatement
-  = DebuggerToken EOS { return array("type" => "DebuggerStatement" ); }
+  = DebuggerToken EOS { return ["type" => "DebuggerStatement"]; }
 
 /* ===== A.5 Functions and Programs ===== */
 
@@ -1470,29 +1502,29 @@ FunctionDeclaration
   = FunctionToken __ name:Identifier __
     "(" __ params:FormalParameterList? __ ")" __
     "{" __ elements:FunctionBody __ "}" {
-      return array(
-        "type" =>     "Function",
-        "name" =>     $name,
-        "params" =>   $params !== null ? $params : array(),
-        "elements" => $elements
-      );
+      return [
+        "type" => "Function",
+        "name" => $name,
+        "params" => $params !== null ? $params : [],
+        "elements" => $elements,
+      ];
     }
 
 FunctionExpression
   = FunctionToken __ name:Identifier? __
     "(" __ params:FormalParameterList? __ ")" __
     "{" __ elements:FunctionBody __ "}" {
-      return array(
-        "type" =>     "Function",
-        "name" =>     $name,
-        "params" =>   $params !== null ? $params : array(),
-        "elements" => $elements
-      );
+      return [
+        "type" => "Function",
+        "name" => $name,
+        "params" => $params !== null ? $params : [],
+        "elements" => $elements,
+      ];
     }
 
 FormalParameterList
   = head:Identifier tail:(__ "," __ Identifier)* {
-      $result = array($head);
+      $result = [$head];
       for ($i = 0; $i < count($tail); $i++) {
         $result[] = $tail[$i][3];
       }
@@ -1500,19 +1532,19 @@ FormalParameterList
     }
 
 FunctionBody
-  = elements:SourceElements? { return $elements !== null ? $elements : array(); }
+  = elements:SourceElements? { return $elements !== null ? $elements : []; }
 
 Program
   = elements:SourceElements? {
-      return array(
-        "type" =>     "Program",
-        "elements" => $elements !== null ? $elements : array()
-      );
+      return [
+        "type" => "Program",
+        "elements" => $elements !== null ? $elements : [],
+      ];
     }
 
 SourceElements
   = head:SourceElement tail:(__ SourceElement)* {
-      $result = array($head);
+      $result = [$head];
       for ($i = 0; $i < count($tail); $i++) {
         $result[] = $tail[$i][1];
       }

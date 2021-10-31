@@ -9,10 +9,10 @@ Thing
 Chr_Unicode_Test
   = "\\x" hex_code:[0-9a-f]i+ {
     $chr = chr_unicode(hexdec(implode('', $hex_code)));
-    return array(
+    return [
       'chr' => $chr,
       'ord' => ord_unicode($chr),
-    );
+    ];
   }
 
 Comment

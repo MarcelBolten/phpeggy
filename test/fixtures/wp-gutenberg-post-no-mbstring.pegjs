@@ -54,8 +54,8 @@
 if (!function_exists(__NAMESPACE__ . "\\peg_array_partition")) {
     function peg_array_partition($array, $predicate)
     {
-        $truthy = array();
-        $falsey = array();
+        $truthy = [];
+        $falsey = [];
 
         foreach ($array as $item) {
             call_user_func($predicate, $item)
@@ -63,17 +63,17 @@ if (!function_exists(__NAMESPACE__ . "\\peg_array_partition")) {
                 : $falsey[] = $item;
         }
 
-        return array($truthy, $falsey);
+        return [$truthy, $falsey];
     }
 }
 
 if (!function_exists(__NAMESPACE__ . "\\peg_join_blocks")) {
     function peg_join_blocks($pre, $tokens, $post)
     {
-        $blocks = array();
+        $blocks = [];
 
         if (!empty($pre)) {
-            $blocks[] = array('attrs' => array(), 'innerHTML' => $pre);
+            $blocks[] = ['attrs' => [], 'innerHTML' => $pre];
         }
 
         foreach ($tokens as $token) {
@@ -82,12 +82,12 @@ if (!function_exists(__NAMESPACE__ . "\\peg_join_blocks")) {
             $blocks[] = $token;
 
             if (!empty($html)) {
-                $blocks[] = array('attrs' => array(), 'innerHTML' => $html);
+                $blocks[] = ['attrs' => [], 'innerHTML' => $html];
             }
         }
 
         if (!empty($post)) {
-            $blocks[] = array('attrs' => array(), 'innerHTML' => $post);
+            $blocks[] = ['attrs' => [], 'innerHTML' => $post];
         }
 
         return $blocks;
@@ -160,7 +160,7 @@ function partition(predicate, list) {
 
 Block_List
   = pre:$(!Token .)*
-    ts:(t:Token html:$((!Token .)*) { /** <?php return array($t, $html); ?> **/ return [ t, html ] })*
+    ts:(t:Token html:$((!Token .)*) { /** <?php return [$t, $html]; ?> **/ return [ t, html ] })*
     post:$(.*)
   { /** <?php return peg_join_blocks($pre, $ts, $post); ?> **/
     return joinBlocks(pre, ts, post);
@@ -174,16 +174,16 @@ Token
 Tag_More
   = "<!--" WS* "more" customText:(WS+ text:$((!(WS* "-->") .)+) { /** <?php return $text; ?> **/ return text })? WS* "-->" noTeaser:(WS* "<!--noteaser-->")?
   { /** <?php
-    $attrs = array('noTeaser' => (bool) $noTeaser);
+    $attrs = ['noTeaser' => (bool) $noTeaser];
     if (!empty($customText)) {
         $attrs['customText'] = $customText;
     }
-    return array(
+    return [
         'blockName' => 'core/more',
         'attrs' => $attrs,
         'innerHTML' => '',
         'outerHTML' => $this->text(),
-    );
+    ];
     ?> **/
     return {
       blockName: 'core/more',
@@ -203,13 +203,13 @@ Block_Void
   })? "/-->"
   {
     /** <?php
-    return array(
+    return [
         'blockName'  => $blockName,
         'attrs'      => $attrs,
-        'innerBlocks' => array(),
+        'innerBlocks' => [],
         'innerHTML' => '',
         'outerHTML' => $this->text(),
-    );
+    ];
     ?> **/
 
     return {
@@ -227,13 +227,13 @@ Block_Balanced
     /** <?php
     [$innerHTML, $innerBlocks] = peg_array_partition($children, 'is_string');
 
-    return array(
+    return [
         'blockName'  => $s['blockName'],
         'attrs'      => $s['attrs'],
         'innerBlocks'  => $innerBlocks,
         'innerHTML'  => implode('', $innerHTML),
         'outerHTML' => $this->text(),
-    );
+    ];
     ?> **/
 
     var innerContent = partition(function(a) { return 'string' === typeof a }, children);
@@ -256,10 +256,10 @@ Block_Start
   })? "-->"
   {
     /** <?php
-    return array(
+    return [
         'blockName' => $blockName,
         'attrs'     => $attrs,
-    );
+    ];
     ?> **/
 
     return {
@@ -272,9 +272,9 @@ Block_End
   = "<!--" WS+ "/wp:" blockName:Block_Name WS+ "-->"
   {
     /** <?php
-    return array(
+    return [
         'blockName' => $blockName,
-    );
+    ];
     ?> **/
 
     return {

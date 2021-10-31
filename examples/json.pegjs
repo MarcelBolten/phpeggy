@@ -7,15 +7,15 @@
 /* ===== Syntactical Elements ===== */
 
 start
-  = _ object:object { return $object; }
+  = _ @object
 
 object
-  = "{" _ "}" _                 { return array();      }
-  / "{" _ members:members "}" _ { return $members; }
+  = "{" _ "}" _ { return []; }
+  / "{" _ @members "}" _
 
 members
   = head:pair tail:("," _ pair)* {
-      $result = array();
+      $result = [];
       $result[$head[0]] = $head[1];
       for ($i = 0; $i < count($tail); $i++) {
         $result[$tail[$i][2][0]] = $tail[$i][2][1];
@@ -24,15 +24,15 @@ members
     }
 
 pair
-  = name:string ":" _ value:value { return array($name, $value); }
+  = name:string ":" _ value:value { return [$name, $value]; }
 
 array
-  = "[" _ "]" _                   { return array();       }
-  / "[" _ elements:elements "]" _ { return $elements; }
+  = "[" _ "]" _ { return []; }
+  / "[" _ @elements "]" _
 
 elements
   = head:value tail:("," _ value)* {
-      $result = array($head);
+      $result = [$head];
       for ($i = 0; $i < count($tail); $i++) {
         $result[] = $tail[$i][2];
       }
@@ -44,15 +44,15 @@ value
   / number
   / object
   / array
-  / "true" _  { return true;  }
+  / "true" _ { return true; }
   / "false" _ { return false; }
-  / "null" _  { return null;  }
+  / "null" _ { return null; }
 
 /* ===== Lexical Elements ===== */
 
 string "string"
-  = '"' '"' _             { return "";    }
-  / '"' chars:chars '"' _ { return $chars; }
+  = '"' '"' _ { return ""; }
+  / '"' @chars '"' _
 
 chars
   = chars:char+ { return join("", $chars); }
@@ -60,23 +60,23 @@ chars
 char
   // In the original JSON grammar: "any-Unicode-character-except-"-or-\-or-control-character"
   = [^"\\\0-\x1F\x7f]
-  / '\\"'  { return '"';  }
+  / '\\"' { return '"'; }
   / "\\\\" { return "\\"; }
-  / "\\/"  { return "/";  }
-  / "\\b"  { return "\b"; }
-  / "\\f"  { return "\f"; }
-  / "\\n"  { return "\n"; }
-  / "\\r"  { return "\r"; }
-  / "\\t"  { return "\t"; }
+  / "\\/" { return "/"; }
+  / "\\b" { return "\b"; }
+  / "\\f" { return "\f"; }
+  / "\\n" { return "\n"; }
+  / "\\r" { return "\r"; }
+  / "\\t" { return "\t"; }
   / "\\u" digits:$(hexDigit hexDigit hexDigit hexDigit) {
       return chr_unicode(intval($digits, 16));
     }
 
 number "number"
   = parts:$(int frac exp) _ { return floatval($parts); }
-  / parts:$(int frac) _     { return floatval($parts); }
-  / parts:$(int exp) _      { return floatval($parts); }
-  / parts:$(int) _          { return floatval($parts); }
+  / parts:$(int frac) _ { return floatval($parts); }
+  / parts:$(int exp) _ { return floatval($parts); }
+  / parts:$(int) _ { return floatval($parts); }
 
 int
   = digit19 digits
@@ -97,7 +97,7 @@ e
   = [eE] [+-]?
 
 /*
- * The following rules are not present in the original JSON gramar, but they are
+ * The following rules are not present in the original JSON grammar, but they are
  * assumed to exist implicitly.
  *
  * FIXME: Define them according to ECMA-262, 5th ed.

@@ -11,22 +11,22 @@ Thing
 
 Letter_Or_Number
   = a:[a-zA-Z0-9] {
-    return array('rule' => 'Letter_Or_Number', 'value' => $a);
+    return ['rule' => 'Letter_Or_Number', 'value' => $a];
   }
 
 Quote
   = a:['"] {
-    return array('rule' => 'Quote', 'value' => $a);
+    return ['rule' => 'Quote', 'value' => $a];
   }
 
 Char_Padding_Test
   = a:[\u00ff-\u0100] {
-    return array('rule' => 'Char_Padding_Test', 'value' => $a);
+    return ['rule' => 'Char_Padding_Test', 'value' => $a];
   }
 
 Chinese_Character // https://stackoverflow.com/a/41155368
   = a:[\u2E80-\u2FD5\u3400-\u4DBF\u4E00-\u9FCC] {
-    return array('rule' => 'Chinese_Character', 'value' => $a);
+    return ['rule' => 'Chinese_Character', 'value' => $a];
   }
 
 // I would have used a character class like \u1f000-\u1ffff here but parsing >2
@@ -35,7 +35,7 @@ Chinese_Character // https://stackoverflow.com/a/41155368
 // JavaScript handles this as two 2-byte characters.
 Pile_Of_Poo
   = a:[\ud83d][\udca9] {
-    return array('rule' => 'Pile_Of_Poo', 'value' => $a);
+    return ['rule' => 'Pile_Of_Poo', 'value' => $a];
   }
 
 Whitespace

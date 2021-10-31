@@ -32,11 +32,11 @@ WP_Block_Void
   })? "/-->"
   {
     /** <?php
-    return array(
+    return [
         'blockName' => $blockName,
         'attrs' => $attrs,
         'rawContent' => '',
-    );
+    ];
     ?> **/
 
     return {
@@ -56,11 +56,11 @@ WP_Block_Balanced
   }
   {
     /** <?php
-    return array(
+    return [
         'blockName' => $s['blockName'],
         'attrs' => $s['attrs'],
         'rawContent' => implode('', $ts),
-    );
+    ];
     ?> **/
 
     return {
@@ -77,10 +77,10 @@ WP_Block_Start
   })? "-->"
   {
     /** <?php
-    return array(
+    return [
         'blockName' => $blockName,
         'attrs' => $attrs,
-    );
+    ];
     ?> **/
 
     return {
@@ -93,9 +93,9 @@ WP_Block_End
   = "<!--" WS+ "/wp:" blockName:WP_Block_Name WS+ "-->"
   {
     /** <?php
-    return array(
+    return [
         'blockName' => $blockName,
-    );
+    ];
     ?> **/
 
     return {
