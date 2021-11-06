@@ -1,0 +1,5 @@
+parameters:
+    level: 5
+    ignoreErrors:
+        - '#Method .* is unused.#'
+    reportUnmatchedIgnoredErrors: false

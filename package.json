@@ -19,10 +19,11 @@
   "scripts": {
     "lint": "eslint .",
     "phpcsfix": "./vendor/bin/php-cs-fixer fix --config=.php-cs-fixer.dist.php -v --dry-run --diff --using-cache=no",
-    "rebuild-fixtures": "rm test/fixtures/*.php && GENERATE_MISSING_FIXTURES=y npm test",
+    "php-static": "for f in test/fixtures/*.php; do echo \"\nProcessing $f ...\n\"; vendor/bin/phpstan analyse $f -c phpstan.neon ; vendor/bin/psalm $f; done",
+    "rebuild-fixtures": "rm -f test/fixtures/*.php && GENERATE_MISSING_FIXTURES=y npm test",
     "pretest": "npm run lint",
     "test": "mocha",
-    "posttest": "npm run phpcsfix"
+    "posttest": "npm run phpcsfix && npm run php-static"
   },
   "repository": {
     "type": "git",
