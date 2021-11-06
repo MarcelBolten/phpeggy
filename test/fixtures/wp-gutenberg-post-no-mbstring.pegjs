@@ -52,7 +52,7 @@
 
 // array arguments are backwards because of PHP
 if (!function_exists(__NAMESPACE__ . "\\peg_array_partition")) {
-    function peg_array_partition($array, $predicate)
+    function peg_array_partition(array $array, callable $predicate): array
     {
         $truthy = [];
         $falsey = [];
@@ -68,7 +68,7 @@ if (!function_exists(__NAMESPACE__ . "\\peg_array_partition")) {
 }
 
 if (!function_exists(__NAMESPACE__ . "\\peg_join_blocks")) {
-    function peg_join_blocks($pre, $tokens, $post)
+    function peg_join_blocks(string $pre, array $tokens, string $post): array
     {
         $blocks = [];
 
@@ -172,7 +172,7 @@ Token
   / Block_Balanced
 
 Tag_More
-  = "<!--" WS* "more" customText:(WS+ text:$((!(WS* "-->") .)+) { /** <?php return $text; ?> **/ return text })? WS* "-->" noTeaser:(WS* "<!--noteaser-->")?
+  = "<!--" WS* "more" customText:(WS+ @$((!(WS* "-->") .)+))? WS* "-->" noTeaser:(WS* "<!--noteaser-->")?
   { /** <?php
     $attrs = ['noTeaser' => (bool) $noTeaser];
     if (!empty($customText)) {
@@ -197,10 +197,7 @@ Tag_More
   }
 
 Block_Void
-  = "<!--" WS+ "wp:" blockName:Block_Name WS+ attrs:(a:Block_Attributes WS+ {
-    /** <?php return $a; ?> **/
-    return a;
-  })? "/-->"
+  = "<!--" WS+ "wp:" blockName:Block_Name WS+ attrs:(@Block_Attributes WS+)? "/-->"
   {
     /** <?php
     return [
@@ -250,10 +247,7 @@ Block_Balanced
   }
 
 Block_Start
-  = "<!--" WS+ "wp:" blockName:Block_Name WS+ attrs:(a:Block_Attributes WS+ {
-    /** <?php return $a; ?> **/
-    return a;
-  })? "-->"
+  = "<!--" WS+ "wp:" blockName:Block_Name WS+ attrs:(@Block_Attributes WS+)? "-->"
   {
     /** <?php
     return [

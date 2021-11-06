@@ -26,10 +26,7 @@ WP_Block
   / WP_Block_Balanced
 
 WP_Block_Void
-  = "<!--" WS+ "wp:" blockName:WP_Block_Name WS+ attrs:(a:WP_Block_Attributes WS+ {
-    /** <?php return $a; ?> **/
-    return a;
-  })? "/-->"
+  = "<!--" WS+ "wp:" blockName:WP_Block_Name WS+ attrs:(@WP_Block_Attributes WS+)? "/-->"
   {
     /** <?php
     return [
@@ -47,10 +44,7 @@ WP_Block_Void
   }
 
 WP_Block_Balanced
-  = s:WP_Block_Start ts:(!WP_Block_End c:Any {
-    /** <?php return $c; ?> **/
-    return c;
-  })* e:WP_Block_End & {
+  = s:WP_Block_Start ts:(!WP_Block_End @Any)* e:WP_Block_End & {
     /** <?php return $s['blockName'] === $e['blockName']; ?> **/
     return s.blockName === e.blockName;
   }
@@ -71,10 +65,7 @@ WP_Block_Balanced
   }
 
 WP_Block_Start
-  = "<!--" WS+ "wp:" blockName:WP_Block_Name WS+ attrs:(a:WP_Block_Attributes WS+ {
-    /** <?php return $a; ?> **/
-    return a;
-  })? "-->"
+  = "<!--" WS+ "wp:" blockName:WP_Block_Name WS+ attrs:(@WP_Block_Attributes WS+)? "-->"
   {
     /** <?php
     return [

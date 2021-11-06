@@ -10,22 +10,26 @@ Thing
   / Whitespace
 
 Letter_Or_Number
-  = a:[a-zA-Z0-9] {
+  = a:[a-zA-Z0-9]
+  {
     return ['rule' => 'Letter_Or_Number', 'value' => $a];
   }
 
 Quote
-  = a:['"] {
+  = a:['"]
+  {
     return ['rule' => 'Quote', 'value' => $a];
   }
 
 Char_Padding_Test
-  = a:[\u00ff-\u0100] {
+  = a:[\u00ff-\u0100]
+  {
     return ['rule' => 'Char_Padding_Test', 'value' => $a];
   }
 
 Chinese_Character // https://stackoverflow.com/a/41155368
-  = a:[\u2E80-\u2FD5\u3400-\u4DBF\u4E00-\u9FCC] {
+  = a:[\u2E80-\u2FD5\u3400-\u4DBF\u4E00-\u9FCC]
+  {
     return ['rule' => 'Chinese_Character', 'value' => $a];
   }
 
@@ -34,11 +38,13 @@ Chinese_Character // https://stackoverflow.com/a/41155368
 // doesn't work either, because PHP splits 4-byte emoji into one piece, while
 // JavaScript handles this as two 2-byte characters.
 Pile_Of_Poo
-  = a:[\ud83d][\udca9] {
+  = a:[\ud83d][\udca9]
+  {
     return ['rule' => 'Pile_Of_Poo', 'value' => $a];
   }
 
 Whitespace
-  = content:[ \t\r\n]+ {
+  = content:[ \t\r\n]+
+  {
     return implode('', $content);
   }

@@ -10,7 +10,9 @@
             },
             {
                 "type": "end",
-                "description": "end of input"
+                "description": "end of input",
+                "ignoreCase": null,
+                "value": null
             }
         ],
         "found": "\t",
