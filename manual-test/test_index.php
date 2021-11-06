@@ -19,13 +19,24 @@ if (isset($_POST["code"], $_POST["parser"]) && isset($examples[$_POST["parser"]]
     if (file_exists($parser_file)) {
         include $parser_file;
         $start = microtime(true);
+        $pass = false;
+        $repetitions = 1;
         try {
+            $start1 = microtime(true);
             $full_classname = "Parser\\" . $classname;
             $parser = new $full_classname();
             $output = $parser->parse($_POST["code"], array("grammarSource" => "Input string"));
+            $end1 = microtime(true);
+            $pass = true;
         } catch (Parser\SyntaxError $ex) {
             $error = "Syntax error: " . $ex->getMessage() . " At line " . $ex->grammarLine . " column " . $ex->grammarColumn . " offset " . $ex->grammarOffset;
-            $errorForamted = print_r($ex->format(array(array("source" => "Input string", "text" => $_POST["code"]))), true);
+            $errorFormated = print_r($ex->format(array(array("source" => "Input string", "text" => $_POST["code"]))), true);
+        }
+        if ($pass) {
+            $repetitions = min(ceil(10/($end1-$start1)), 1000);
+            for ($i=0; $i<$repetitions; $i++) {
+                $parser->parse($_POST["code"], array("grammarSource" => "Input string"));
+            }
         }
         $parsing_time = microtime(true) - $start;
     } else {
@@ -109,10 +120,10 @@ if (isset($_POST["code"], $_POST["parser"]) && isset($examples[$_POST["parser"]]
                 ?></div>
                 <?php
                     if ($error) echo "<div class=\"error\">" . htmlspecialchars($error) . "</div>";
-                    if ($errorForamted) echo "<div class=\"error\"><pre>" . htmlspecialchars($errorForamted) . "</pre></div>";
+                    if ($errorFormated) echo "<div class=\"error\"><pre>" . htmlspecialchars($errorFormated) . "</pre></div>";
                     if ($parsing_time !== null) {
                         echo "<h2>Parsing time</h2>";
-                        echo "<div>" . htmlspecialchars($parsing_time) . " s.</div>";
+                        echo "<div>" . htmlspecialchars($parsing_time/$repetitions) . " s. (mean of " . $repetitions . " repetitions)</div>";
                     }
                 ?>
             </div>
