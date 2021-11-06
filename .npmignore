@@ -9,3 +9,5 @@ vendor/
 CHANGELOG.md
 composer.json
 composer.lock
+phpstan.neon
+psalm.xml

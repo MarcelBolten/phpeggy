@@ -57,14 +57,20 @@ if (!function_exists("PHPeggy\\peg_char_class_test")) {
 if (!class_exists("PHPeggy\\SyntaxError", false)) {
     class SyntaxError extends \Exception
     {
-        public string $name = "SyntaxError";
+        /** @var string $name */
+        public $name = "SyntaxError";
         /** @var ?array<int, pegExpectation> $expected */
-        public ?array $expected;
-        public string $found;
-        public int $grammarOffset;
-        public int $grammarLine;
-        public int $grammarColumn;
-        public \stdClass $location;
+        public $expected;
+        /** @var string $found */
+        public $found;
+        /** @var int $grammarOffset */
+        public $grammarOffset;
+        /** @var int $grammarLine */
+        public $grammarLine;
+        /** @var int $grammarColumn */
+        public $grammarColumn;
+        /** @var \stdClass $location */
+        public $location;
 
         /**
          * @param ?array<int, pegExpectation> $expected
@@ -127,10 +133,14 @@ if (!class_exists("PHPeggy\\SyntaxError", false)) {
 
 class pegExpectation
 {
-    public ?string $type;
-    public ?string $description;
-    public ?string $value;
-    public ?string $ignoreCase;
+    /** @var ?string $type */
+    public $type;
+    /** @var ?string $description */
+    public $description;
+    /** @var ?string $value */
+    public $value;
+    /** @var ?string $ignoreCase */
+    public $ignoreCase;
 
     public function __construct(string $type = null, string $description = null, string $value = null, string $ignoreCase = null)
     {
@@ -143,7 +153,8 @@ class pegExpectation
 
 class pegCacheItem
 {
-    public int $nextPos;
+    /** @var int $nextPos */
+    public $nextPos;
     /** @var mixed $result */
     public $result;
 
@@ -157,9 +168,12 @@ class pegCacheItem
 
 class pegCachedPosDetails
 {
-    public int $line;
-    public int $column;
-    public bool $seenCR;
+    /** @var int $line */
+    public $line;
+    /** @var int $column */
+    public $column;
+    /** @var bool $seenCR */
+    public $seenCR;
 
     public function __construct(int $line = 1, int $column = 1, bool $seenCR = false)
     {
@@ -170,33 +184,42 @@ class pegCachedPosDetails
 }
 class Parser
 {
-    private int $peg_currPos = 0;
-    private int $peg_reportedPos = 0;
-    private int $peg_cachedPos = 0;
-    private pegCachedPosDetails $peg_cachedPosDetails;
-    private int $peg_maxFailPos = 0;
+    /** @var int $peg_currPos */
+    private $peg_currPos = 0;
+    /** @var int $peg_reportedPos */
+    private $peg_reportedPos = 0;
+    /** @var int $peg_cachedPos */
+    private $peg_cachedPos = 0;
+    /** @var pegCachedPosDetails $peg_cachedPosDetails */
+    private $peg_cachedPosDetails;
+    /** @var int $peg_maxFailPos */
+    private $peg_maxFailPos = 0;
     /** @var array<int, pegExpectation> $peg_maxFailExpected */
-    private array $peg_maxFailExpected = [];
-    private int $peg_silentFails = 0;
+    private $peg_maxFailExpected = [];
+    /** @var int $peg_silentFails */
+    private $peg_silentFails = 0;
     /** @var array<int, string> $input */
-    private array $input = [];
-    private int $input_length = 0;
-    private \stdClass $peg_FAILED;
-    private string $peg_source = "";
+    private $input = [];
+    /** @var int $input_length */
+    private $input_length = 0;
+    /** @var \stdClass $peg_FAILED */
+    private $peg_FAILED;
+    /** @var string $peg_source */
+    private $peg_source = "";
 
-    /** @var array<int, array<int, int>> */
+    /** @var array<int, array<int, int>> $peg_c0 */
     private array $peg_c0 = [[97,122], [65,90], [48,57]];
-    /** @var array<int, array<int, int>> */
+    /** @var array<int, array<int, int>> $peg_c1 */
     private array $peg_c1 = [[39,39], [34,34]];
-    /** @var array<int, array<int, int>> */
+    /** @var array<int, array<int, int>> $peg_c2 */
     private array $peg_c2 = [[255,256]];
-    /** @var array<int, array<int, int>> */
+    /** @var array<int, array<int, int>> $peg_c3 */
     private array $peg_c3 = [[11904,12245], [13312,19903], [19968,40908]];
-    /** @var array<int, array<int, int>> */
+    /** @var array<int, array<int, int>> $peg_c4 */
     private array $peg_c4 = [[55357,55357]];
-    /** @var array<int, array<int, int>> */
+    /** @var array<int, array<int, int>> $peg_c5 */
     private array $peg_c5 = [[56489,56489]];
-    /** @var array<int, array<int, int>> */
+    /** @var array<int, array<int, int>> $peg_c6 */
     private array $peg_c6 = [[32,32], [9,9], [13,13], [10,10]];
     private pegExpectation $peg_e0;
     private pegExpectation $peg_e1;

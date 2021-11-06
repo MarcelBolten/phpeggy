@@ -102,14 +102,20 @@ if (!function_exists(__NAMESPACE__ . "\\peg_join_blocks")) {
 if (!class_exists("PHPeggy\\SyntaxError", false)) {
     class SyntaxError extends \Exception
     {
-        public string $name = "SyntaxError";
+        /** @var string $name */
+        public $name = "SyntaxError";
         /** @var ?array<int, pegExpectation> $expected */
-        public ?array $expected;
-        public string $found;
-        public int $grammarOffset;
-        public int $grammarLine;
-        public int $grammarColumn;
-        public \stdClass $location;
+        public $expected;
+        /** @var string $found */
+        public $found;
+        /** @var int $grammarOffset */
+        public $grammarOffset;
+        /** @var int $grammarLine */
+        public $grammarLine;
+        /** @var int $grammarColumn */
+        public $grammarColumn;
+        /** @var \stdClass $location */
+        public $location;
 
         /**
          * @param ?array<int, pegExpectation> $expected
@@ -172,10 +178,14 @@ if (!class_exists("PHPeggy\\SyntaxError", false)) {
 
 class pegExpectation
 {
-    public ?string $type;
-    public ?string $description;
-    public ?string $value;
-    public ?string $ignoreCase;
+    /** @var ?string $type */
+    public $type;
+    /** @var ?string $description */
+    public $description;
+    /** @var ?string $value */
+    public $value;
+    /** @var ?string $ignoreCase */
+    public $ignoreCase;
 
     public function __construct(string $type = null, string $description = null, string $value = null, string $ignoreCase = null)
     {
@@ -188,7 +198,8 @@ class pegExpectation
 
 class pegCacheItem
 {
-    public int $nextPos;
+    /** @var int $nextPos */
+    public $nextPos;
     /** @var mixed $result */
     public $result;
 
@@ -202,9 +213,12 @@ class pegCacheItem
 
 class pegCachedPosDetails
 {
-    public int $line;
-    public int $column;
-    public bool $seenCR;
+    /** @var int $line */
+    public $line;
+    /** @var int $column */
+    public $column;
+    /** @var bool $seenCR */
+    public $seenCR;
 
     public function __construct(int $line = 1, int $column = 1, bool $seenCR = false)
     {
@@ -215,19 +229,28 @@ class pegCachedPosDetails
 }
 class Parser
 {
-    private int $peg_currPos = 0;
-    private int $peg_reportedPos = 0;
-    private int $peg_cachedPos = 0;
-    private pegCachedPosDetails $peg_cachedPosDetails;
-    private int $peg_maxFailPos = 0;
+    /** @var int $peg_currPos */
+    private $peg_currPos = 0;
+    /** @var int $peg_reportedPos */
+    private $peg_reportedPos = 0;
+    /** @var int $peg_cachedPos */
+    private $peg_cachedPos = 0;
+    /** @var pegCachedPosDetails $peg_cachedPosDetails */
+    private $peg_cachedPosDetails;
+    /** @var int $peg_maxFailPos */
+    private $peg_maxFailPos = 0;
     /** @var array<int, pegExpectation> $peg_maxFailExpected */
-    private array $peg_maxFailExpected = [];
-    private int $peg_silentFails = 0;
+    private $peg_maxFailExpected = [];
+    /** @var int $peg_silentFails */
+    private $peg_silentFails = 0;
     /** @var array<int, string> $input */
-    private array $input = [];
-    private int $input_length = 0;
-    private \stdClass $peg_FAILED;
-    private string $peg_source = "";
+    private $input = [];
+    /** @var int $input_length */
+    private $input_length = 0;
+    /** @var \stdClass $peg_FAILED */
+    private $peg_FAILED;
+    /** @var string $peg_source */
+    private $peg_source = "";
 
     private string $peg_l0 = "<!--";
     private string $peg_l1 = "more";
@@ -239,15 +262,10 @@ class Parser
     private string $peg_l7 = "/";
     private string $peg_l8 = "{";
     private string $peg_l9 = "}";
-    /** @var string */
     private string $peg_c0 = "/^[a-z]/";
-    /** @var string */
     private string $peg_c1 = "/^[a-z0-9_-]/";
-    /** @var string */
     private string $peg_c2 = "/^[ \\t\\r\\n]/";
-    /** @var string */
     private string $peg_c3 = "/^[\\r\\n]/";
-    /** @var string */
     private string $peg_c4 = "/^[ \\t]/";
     private pegExpectation $peg_e0;
     private pegExpectation $peg_e1;
