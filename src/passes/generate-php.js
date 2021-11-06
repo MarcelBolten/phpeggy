@@ -113,14 +113,16 @@ module.exports = function(ast, options) {
     }
 
     const literals = ast.literals.map(
-      (l, i) => "private string $peg_l" + i + " = " + buildLiteral(l) + ";"
+      (l, i) => "/** @var string $peg_l" + i + " */\n"
+        + "private $peg_l" + i + " = " + buildLiteral(l) + ";"
     );
     const classes = ast.classes.map(
-      (c, i) => (mbstringAllowed ? "" : "/** @var array<int, array<int, int>> $peg_c" + i + " */\n")
-        + "private " + (mbstringAllowed ? "string" : "array") + " $peg_c" + i + " = " + buildRegexp(c) + ";"
+      (c, i) => "/** @var " + (mbstringAllowed ? "string" : "array<int, array<int, int>>") + " $peg_c" + i + " */\n"
+        + "private $peg_c" + i + " = " + buildRegexp(c) + ";"
     );
     const expectations = ast.expectations.map(
-      (e, i) => "private pegExpectation $peg_e" + i + ";"
+      (e, i) => "/** @var pegExpectation $peg_e" + i + " */\n"
+        + "private $peg_e" + i + ";"
     );
 
     return [

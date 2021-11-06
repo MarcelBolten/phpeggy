@@ -203,20 +203,34 @@ class Parser
     /** @var string $peg_source */
     private $peg_source = "";
 
-    private string $peg_c0 = "/^[a-z0-9]/i";
-    private string $peg_c1 = "/^['\"]/";
-    private string $peg_c2 = "/^[\\x{000FF}-\\x{00100}]/";
-    private string $peg_c3 = "/^[\\x{02E80}-\\x{02FD5}\\x{03400}-\\x{04DBF}\\x{04E00}-\\x{09FCC}]/";
-    private string $peg_c4 = "/^[\\x{0D83D}]/";
-    private string $peg_c5 = "/^[\\x{0DCA9}]/";
-    private string $peg_c6 = "/^[ \\t\\r\\n]/";
-    private pegExpectation $peg_e0;
-    private pegExpectation $peg_e1;
-    private pegExpectation $peg_e2;
-    private pegExpectation $peg_e3;
-    private pegExpectation $peg_e4;
-    private pegExpectation $peg_e5;
-    private pegExpectation $peg_e6;
+    /** @var string $peg_c0 */
+    private $peg_c0 = "/^[a-z0-9]/i";
+    /** @var string $peg_c1 */
+    private $peg_c1 = "/^['\"]/";
+    /** @var string $peg_c2 */
+    private $peg_c2 = "/^[\\x{000FF}-\\x{00100}]/";
+    /** @var string $peg_c3 */
+    private $peg_c3 = "/^[\\x{02E80}-\\x{02FD5}\\x{03400}-\\x{04DBF}\\x{04E00}-\\x{09FCC}]/";
+    /** @var string $peg_c4 */
+    private $peg_c4 = "/^[\\x{0D83D}]/";
+    /** @var string $peg_c5 */
+    private $peg_c5 = "/^[\\x{0DCA9}]/";
+    /** @var string $peg_c6 */
+    private $peg_c6 = "/^[ \\t\\r\\n]/";
+    /** @var pegExpectation $peg_e0 */
+    private $peg_e0;
+    /** @var pegExpectation $peg_e1 */
+    private $peg_e1;
+    /** @var pegExpectation $peg_e2 */
+    private $peg_e2;
+    /** @var pegExpectation $peg_e3 */
+    private $peg_e3;
+    /** @var pegExpectation $peg_e4 */
+    private $peg_e4;
+    /** @var pegExpectation $peg_e5 */
+    private $peg_e5;
+    /** @var pegExpectation $peg_e6 */
+    private $peg_e6;
 
     public function __construct()
     {

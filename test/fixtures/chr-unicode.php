@@ -203,16 +203,26 @@ class Parser
     /** @var string $peg_source */
     private $peg_source = "";
 
-    private string $peg_l0 = "\\x";
-    private string $peg_l1 = "//";
-    private string $peg_c0 = "/^[0-9a-f]/i";
-    private string $peg_c1 = "/^[^\\r\\n]/";
-    private string $peg_c2 = "/^[ \\t\\r\\n]/";
-    private pegExpectation $peg_e0;
-    private pegExpectation $peg_e1;
-    private pegExpectation $peg_e2;
-    private pegExpectation $peg_e3;
-    private pegExpectation $peg_e4;
+    /** @var string $peg_l0 */
+    private $peg_l0 = "\\x";
+    /** @var string $peg_l1 */
+    private $peg_l1 = "//";
+    /** @var string $peg_c0 */
+    private $peg_c0 = "/^[0-9a-f]/i";
+    /** @var string $peg_c1 */
+    private $peg_c1 = "/^[^\\r\\n]/";
+    /** @var string $peg_c2 */
+    private $peg_c2 = "/^[ \\t\\r\\n]/";
+    /** @var pegExpectation $peg_e0 */
+    private $peg_e0;
+    /** @var pegExpectation $peg_e1 */
+    private $peg_e1;
+    /** @var pegExpectation $peg_e2 */
+    private $peg_e2;
+    /** @var pegExpectation $peg_e3 */
+    private $peg_e3;
+    /** @var pegExpectation $peg_e4 */
+    private $peg_e4;
 
     public function __construct()
     {

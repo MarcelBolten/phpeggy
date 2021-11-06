@@ -256,42 +256,68 @@ class Parser
     /** @var string $peg_source */
     private $peg_source = "";
 
-    private string $peg_l0 = "<!--";
-    private string $peg_l1 = "more";
-    private string $peg_l2 = "-->";
-    private string $peg_l3 = "<!--noteaser-->";
-    private string $peg_l4 = "wp:";
-    private string $peg_l5 = "/-->";
-    private string $peg_l6 = "/wp:";
-    private string $peg_l7 = "/";
-    private string $peg_l8 = "{";
-    private string $peg_l9 = "}";
+    /** @var string $peg_l0 */
+    private $peg_l0 = "<!--";
+    /** @var string $peg_l1 */
+    private $peg_l1 = "more";
+    /** @var string $peg_l2 */
+    private $peg_l2 = "-->";
+    /** @var string $peg_l3 */
+    private $peg_l3 = "<!--noteaser-->";
+    /** @var string $peg_l4 */
+    private $peg_l4 = "wp:";
+    /** @var string $peg_l5 */
+    private $peg_l5 = "/-->";
+    /** @var string $peg_l6 */
+    private $peg_l6 = "/wp:";
+    /** @var string $peg_l7 */
+    private $peg_l7 = "/";
+    /** @var string $peg_l8 */
+    private $peg_l8 = "{";
+    /** @var string $peg_l9 */
+    private $peg_l9 = "}";
     /** @var array<int, array<int, int>> $peg_c0 */
-    private array $peg_c0 = [[97,122]];
+    private $peg_c0 = [[97,122]];
     /** @var array<int, array<int, int>> $peg_c1 */
-    private array $peg_c1 = [[97,122], [48,57], [95,95], [45,45]];
+    private $peg_c1 = [[97,122], [48,57], [95,95], [45,45]];
     /** @var array<int, array<int, int>> $peg_c2 */
-    private array $peg_c2 = [[32,32], [9,9], [13,13], [10,10]];
+    private $peg_c2 = [[32,32], [9,9], [13,13], [10,10]];
     /** @var array<int, array<int, int>> $peg_c3 */
-    private array $peg_c3 = [[13,13], [10,10]];
+    private $peg_c3 = [[13,13], [10,10]];
     /** @var array<int, array<int, int>> $peg_c4 */
-    private array $peg_c4 = [[32,32], [9,9]];
-    private pegExpectation $peg_e0;
-    private pegExpectation $peg_e1;
-    private pegExpectation $peg_e2;
-    private pegExpectation $peg_e3;
-    private pegExpectation $peg_e4;
-    private pegExpectation $peg_e5;
-    private pegExpectation $peg_e6;
-    private pegExpectation $peg_e7;
-    private pegExpectation $peg_e8;
-    private pegExpectation $peg_e9;
-    private pegExpectation $peg_e10;
-    private pegExpectation $peg_e11;
-    private pegExpectation $peg_e12;
-    private pegExpectation $peg_e13;
-    private pegExpectation $peg_e14;
-    private pegExpectation $peg_e15;
+    private $peg_c4 = [[32,32], [9,9]];
+    /** @var pegExpectation $peg_e0 */
+    private $peg_e0;
+    /** @var pegExpectation $peg_e1 */
+    private $peg_e1;
+    /** @var pegExpectation $peg_e2 */
+    private $peg_e2;
+    /** @var pegExpectation $peg_e3 */
+    private $peg_e3;
+    /** @var pegExpectation $peg_e4 */
+    private $peg_e4;
+    /** @var pegExpectation $peg_e5 */
+    private $peg_e5;
+    /** @var pegExpectation $peg_e6 */
+    private $peg_e6;
+    /** @var pegExpectation $peg_e7 */
+    private $peg_e7;
+    /** @var pegExpectation $peg_e8 */
+    private $peg_e8;
+    /** @var pegExpectation $peg_e9 */
+    private $peg_e9;
+    /** @var pegExpectation $peg_e10 */
+    private $peg_e10;
+    /** @var pegExpectation $peg_e11 */
+    private $peg_e11;
+    /** @var pegExpectation $peg_e12 */
+    private $peg_e12;
+    /** @var pegExpectation $peg_e13 */
+    private $peg_e13;
+    /** @var pegExpectation $peg_e14 */
+    private $peg_e14;
+    /** @var pegExpectation $peg_e15 */
+    private $peg_e15;
 
     public function __construct()
     {
