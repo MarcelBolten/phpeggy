@@ -874,7 +874,7 @@ module.exports = function(ast, options) {
 
   parts.push(indent(4, [
     ...options.cache
-      ? ["/** @var array<int, pegCacheItem> */", "public array $peg_cache = [];", ""]
+      ? ["/** @var array<int, pegCacheItem> */", "public $peg_cache = [];", ""]
       : [],
 
     "/** @var int $peg_currPos */",

@@ -230,7 +230,7 @@ class pegCachedPosDetails
 class Parser
 {
     /** @var array<int, pegCacheItem> */
-    public array $peg_cache = [];
+    public $peg_cache = [];
 
     /** @var int $peg_currPos */
     private $peg_currPos = 0;
