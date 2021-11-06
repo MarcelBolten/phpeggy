@@ -299,7 +299,7 @@ term
     {
         return [
             "type" => "value",
-            "value" => ($operator !== null ? $operator : "") + $value[0],
+            "value" => ($operator !== null ? $operator : "") . $value[0],
         ];
     }
 

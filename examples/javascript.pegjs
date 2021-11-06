@@ -88,7 +88,7 @@ Identifier "identifier"
 IdentifierName "identifier"
   = start:IdentifierStart parts:IdentifierPart*
   {
-      return $start + join("", $parts);
+      return $start . join("", $parts);
   }
 
 IdentifierStart
@@ -336,13 +336,13 @@ RegularExpressionChar
  * "RegularExpressionNonTerminator".
  */
 RegularExpressionBackslashSequence
-  = "\\" char_:RegularExpressionNonTerminator { return "\\" + $char_; }
+  = "\\" char_:RegularExpressionNonTerminator { return "\\" . $char_; }
 
 RegularExpressionNonTerminator
   = !LineTerminator @SourceCharacter
 
 RegularExpressionClass
-  = "[" chars:RegularExpressionClassChars "]" { return "[" + $chars + "]"; }
+  = "[" chars:RegularExpressionClassChars "]" { return "[" . $chars . "]"; }
 
 RegularExpressionClassChars
   = chars:RegularExpressionClassChar* { return join("", $chars); }
@@ -689,7 +689,7 @@ CallExpression
             break;
           default:
             throw new \Exception(
-              "Invalid expression type: " + $argumentsOrAccessors[$i]["type"]
+              "Invalid expression type: " . $argumentsOrAccessors[$i]["type"]
             );
         }
       }
