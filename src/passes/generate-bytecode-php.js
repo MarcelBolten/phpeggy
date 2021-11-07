@@ -251,7 +251,7 @@ const op = require("../opcodes");
  * runtime check for the |FAILED| is required. Trick is explained on the
  * Wikipedia page (https://en.wikipedia.org/wiki/Asm.js#Code_generation)
  */
-module.exports = function(ast, options) {
+module.exports = function(ast) {
   const ALWAYS_MATCH = 1;
   const SOMETIMES_MATCH = 0;
   const NEVER_MATCH = -1;
@@ -260,12 +260,6 @@ module.exports = function(ast, options) {
   const classes = [];
   const expectations = [];
   const functions = [];
-
-  const mbstringAllowed = (
-    typeof options.phpeggy.mbstringAllowed === "undefined"
-      ? true
-      : options.phpeggy.mbstringAllowed
-  );
 
   function addLiteralConst(value) {
     const index = literals.indexOf(value);
@@ -745,14 +739,6 @@ module.exports = function(ast, options) {
     },
 
     class(node) {
-      if (node.parts.length === 0 && !mbstringAllowed) {
-        throw new Error(
-          "Empty character class matching requires the "
-          + "`mbstring` PHP extension, but it is disabled "
-          + "via `mbstringAllowed: false`."
-        );
-      }
-
       const match = node.match | 0;
       // Character class constant only required if condition is generated
       const classIndex = match === SOMETIMES_MATCH

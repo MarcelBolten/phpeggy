@@ -121,8 +121,17 @@ module.exports = function(ast, options) {
         + "private $peg_c" + i + " = " + buildRegexp(c) + ";"
     );
     const expectations = ast.expectations.map(
-      (e, i) => "/** @var pegExpectation $peg_e" + i + " */\n"
-        + "private $peg_e" + i + ";"
+      (e, i) => {
+        if (e.value && e.value.length === 0 && !mbstringAllowed) {
+          throw new Error(
+            "Empty character class matching requires the "
+            + "`mbstring` PHP extension, but it is disabled "
+            + "via `mbstringAllowed: false`."
+          );
+        }
+        return "/** @var pegExpectation $peg_e" + i + " */\n"
+          + "private $peg_e" + i + ";";
+      }
     );
 
     return [
