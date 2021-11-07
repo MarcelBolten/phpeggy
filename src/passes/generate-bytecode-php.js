@@ -505,7 +505,7 @@ module.exports = function(ast) {
       function buildElementsCode(elements, context) {
         if (elements.length > 0) {
           const processedCount
-            = node.elements.length - elements.slice(1).length;
+            = node.elements.length - elements.length + 1;
 
           return buildSequence(
             generate(elements[0], {
@@ -701,7 +701,7 @@ module.exports = function(ast) {
         // String only required if condition is generated or string is
         // case-sensitive and node always match
         const needConst = match === SOMETIMES_MATCH
-          || (match === ALWAYS_MATCH && !node.ignoreCase);
+          || match === ALWAYS_MATCH && !node.ignoreCase;
         const stringIndex = needConst
           ? addLiteralConst(
             node.ignoreCase
