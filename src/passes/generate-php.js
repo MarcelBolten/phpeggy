@@ -60,14 +60,6 @@ module.exports = function(ast, options) {
     }
 
     function buildRegexp(cls) {
-      if (cls.ignoreCase && !mbstringAllowed) {
-        throw new Error(
-          "Case-insensitive character class matching requires the "
-          + "`mbstring` PHP extension, but it is disabled "
-          + "via `mbstringAllowed: false`."
-        );
-      }
-
       let regexp, classIndex;
 
       if (cls.value.length > 0) {
@@ -80,13 +72,6 @@ module.exports = function(ast, options) {
             : internalUtils.quoteForPhpRegexp(part)).join("")
           + "]/" + (cls.ignoreCase ? "i" : "");
       } else {
-        if (!mbstringAllowed) {
-          throw new Error(
-            "Empty character class matching requires the "
-            + "`mbstring` PHP extension, but it is disabled "
-            + "via `mbstringAllowed: false`."
-          );
-        }
         /*
          * IE considers regexps /[]/ and /[^]/ as syntactically invalid, so we
          * translate them into euqivalents it can handle.
@@ -121,17 +106,8 @@ module.exports = function(ast, options) {
         + "private $peg_c" + i + " = " + buildRegexp(c) + ";"
     );
     const expectations = ast.expectations.map(
-      (e, i) => {
-        if (e.value && e.value.length === 0 && !mbstringAllowed) {
-          throw new Error(
-            "Empty character class matching requires the "
-            + "`mbstring` PHP extension, but it is disabled "
-            + "via `mbstringAllowed: false`."
-          );
-        }
-        return "/** @var pegExpectation $peg_e" + i + " */\n"
-          + "private $peg_e" + i + ";";
-      }
+      (e, i) => "/** @var pegExpectation $peg_e" + i + " */\n"
+        + "private $peg_e" + i + ";"
     );
 
     return [
@@ -505,13 +481,6 @@ module.exports = function(ast, options) {
             break;
 
           case op.MATCH_STRING_IC:   // MATCH_STRING_IC s, a, f, ...
-            if (!mbstringAllowed) {
-              throw new Error(
-                "Case-insensitive string matching requires the "
-                + "`mbstring` PHP extension, but it is disabled "
-                + "via `mbstringAllowed: false`."
-              );
-            }
             compileCondition(
               "mb_strtolower("
               + inputSubstr(
@@ -710,9 +679,8 @@ module.exports = function(ast, options) {
       "",
     ].join("\n"));
   } else {
-    // Case-insensitive character classes are disallowed in
-    // `generate-bytecode-php.js` if the `mbstringAllowed` option is set to
-    // false.
+    // Case-insensitive character classes are disallowed via passes.check in file
+    // `reportMbstringIncompatibility.js` if the `mbstringAllowed` option is set to false.
     parts.push([
       "/* peg_char_class_test - simple character class test */",
       'if (!function_exists("' + phpGlobalNamePrefixOrNamespaceEscaped + 'peg_char_class_test")) {',
