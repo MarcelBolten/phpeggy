@@ -8,7 +8,6 @@ vendor/
 .gitattributes
 .nvmrc
 .php-cs-fixer.dist.php
-.travis.yml
 CHANGELOG.md
 composer.json
 composer.lock
