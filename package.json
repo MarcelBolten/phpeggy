@@ -23,7 +23,7 @@
     "pretest": "npm run lint",
     "test": "mocha",
     "phpcsfix": "./vendor/bin/php-cs-fixer fix --config=.php-cs-fixer.dist.php -v --dry-run --diff --using-cache=no",
-    "php-static": "for f in test/fixtures/*.php; do echo \"\nProcessing $f ...\nPHPStan:\"; vendor/bin/phpstan analyse $f -c phpstan.neon; echo \"Psalm:\" ; vendor/bin/psalm $f; done",
+    "php-static": "for f in test/fixtures/*.php; do echo \"\nProcessing $f ...\nPHPStan:\"; vendor/bin/phpstan analyse -c phpstan.neon --no-progress $f; echo \"Psalm:\" ; vendor/bin/psalm $f; done",
     "test-php": "npm run phpcsfix && npm run php-static"
   },
   "repository": {
