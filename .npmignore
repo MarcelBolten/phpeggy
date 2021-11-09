@@ -1,9 +1,11 @@
+.github/
 bin/
 manual-test/
 src/.eslintrc.json
 test/
 vendor/
 .eslintrc.js
+.gitattributes
 .nvmrc
 .php-cs-fixer.dist.php
 .travis.yml
