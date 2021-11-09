@@ -1,4 +1,5 @@
-[![Tests](https://github.com/MarcelBolten/phpeggy/actions/workflows/node.js.yml/badge.svg)](https://github.com/MarcelBolten/phpeggy/actions/workflows/node.js.yml)
+[![Node.js Tests](https://github.com/MarcelBolten/phpeggy/actions/workflows/node.js.yml/badge.svg)](https://github.com/MarcelBolten/phpeggy/actions/workflows/node.js.yml)
+[![PHP Tests](https://github.com/MarcelBolten/phpeggy/actions/workflows/php.yml/badge.svg)](https://github.com/MarcelBolten/phpeggy/actions/workflows/php.yml)
 [![npm version](https://img.shields.io/npm/v/phpeggy)](https://www.npmjs.com/package/phpeggy)
 [![License](https://img.shields.io/badge/license-mit-blue)](https://opensource.org/licenses/MIT)
 
@@ -13,7 +14,7 @@ PHPeggy is the successor of [`phpegjs`](https://github.com/nylen/phpegjs) which 
 
 There are a few API changes compared to the most recent `phpegjs` release.
 - Options specific to PHPeggy have to be passed to `phpeggy` and not to `phpegjs`.
-- The support for PHP 5.2 was dropped along with the `parserGlobalNamePrefix` option.
+- PHP >=7.3 is required
 
 Follow these steps to upgrade:
 
@@ -72,12 +73,16 @@ original Peggy, generated PHP parser will be a class, not a function.
 
 Supported options of `peggy.generate`:
 
+  * `allowedStartRules` — rules the parser will be allowed to start parsing from
+    (default: the first rule in the grammar)
   * `cache` — if `true`, makes the parser cache results, avoiding exponential
     parsing time in pathological cases but making the parser slower (default:
     `false`). In case of PHP, this is strongly recommended for big grammars
     (like javascript.pegjs or css.pegjs in example folder)
-  * `allowedStartRules` — rules the parser will be allowed to start parsing from
-    (default: the first rule in the grammar)
+  * `grammarSource` — this object will be passed to any location() objects as the
+    source property (default: undefined). This object will be used even if
+    options.grammarSource is redefined in the grammar. It is useful to attach the
+    file information to the errors, for example
 
 <a name='PHPeggyOptions'></a>
 You can also pass options specific to the PHPeggy plugin as follows:
@@ -95,12 +100,12 @@ Here are the options available to pass this way:
     value is `''` or `null`, no namespace will be used.
   * `parserClassName` - name of generated class for parser (default: `Parser`).
   * `mbstringAllowed` - whether to allow usage of PHP's `mb_*` functions which
-    depend on the `mbstring` extension being installed (default: `true`).  This
+    depend on the `mbstring` extension being installed (default: `true`). This
     can be disabled for compatibility with a wider range of PHP configurations,
     but this will also disable several features of Peggy (case-insensitive
     string matching, case-insensitive character classes, and empty character
-    classes).  Attempting to use these features with `mbstringAllowed: false`
-    will cause `generate` to throw an error.
+    classes). Attempting to use these features with `mbstringAllowed: false`
+    will cause `check` to throw an error.
 
 Using the Parser
 ----------------
@@ -199,11 +204,11 @@ Guide for converting Peggy action blocks to PHPeggy
 | Javascript code                   | PHP analogue                              |
 | --------------------------------- | ----------------------------------------- |
 | `some_var`                        | `$some_var`                               |
-| `{f1: "val1", f2: "val2"}`        | `array("f1" => "val1", "f2" => "val2")`   |
-| `["val1", "val2"]`                | `array("val1", "val2")`                   |
+| `{f1: "val1", f2: "val2"}`        | `["f1" => "val1", "f2" => "val2"]`        |
+| `["val1", "val2"]`                | `["val1", "val2"]`                        |
 | `some_array.push("val")`          | `$some_array[] = "val"`                   |
 | `some_array.length`               | `count($some_array)`                      |
-| `some_array.join("")`             | `join("", $some_array)`                   |
+| `some_array.join("")`             | `implode("", $some_array)`                |
 | `some_array1.concat(some_array2)` | `array_merge($some_array1, $some_array2)` |
 | `parseInt("23")`                  | `intval("23")`                            |
 | `parseFloat("23.1")`              | `floatval("23.1")`                        |
