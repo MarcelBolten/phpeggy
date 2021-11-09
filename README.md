@@ -1,4 +1,4 @@
-[![Build Status](https://app.travis-ci.com/MarcelBolten/phpeggy.svg?branch=master)](https://app.travis-ci.com/MarcelBolten/phpeggy)
+[![Tests](https://github.com/MarcelBolten/phpeggy/actions/workflows/node.js.yml/badge.svg)](https://github.com/MarcelBolten/phpeggy/actions/workflows/node.js.yml)
 [![npm version](https://img.shields.io/npm/v/phpeggy)](https://www.npmjs.com/package/phpeggy)
 [![License](https://img.shields.io/badge/license-mit-blue)](https://opensource.org/licenses/MIT)
 
