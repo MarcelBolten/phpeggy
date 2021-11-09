@@ -24,7 +24,7 @@ jobs:
       - name: "Install PHP"
         uses: "shivammathur/setup-php@v2"
         with:
-          coverage: "xdebug"
+          coverage: "none"
           php-version: "${{ matrix.php-version }}"
           tools: composer:v2
           ini-values: error_reporting=-1
