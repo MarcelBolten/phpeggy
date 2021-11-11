@@ -8,7 +8,7 @@ on:
     branches: [develop]
 
 jobs:
-  Node.js:
+  NodeJS:
 
     strategy:
       matrix:
