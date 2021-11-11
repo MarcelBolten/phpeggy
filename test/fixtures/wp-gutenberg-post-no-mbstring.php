@@ -439,8 +439,8 @@ class Parser
             $start = $this->peg_maxFailPos;
             $end = $this->peg_maxFailPos + ($this->peg_maxFailPos < count($this->input) ? 1 : 0);
         }
-        $compute_pd_start = $this->peg_computePosDetails($start);
-        $compute_pd_end = $this->peg_computePosDetails($end);
+        $compute_pd_start = clone $this->peg_computePosDetails($start);
+        $compute_pd_end = clone $this->peg_computePosDetails($end);
 
         return (object) [
             "source" => $this->peg_source,
