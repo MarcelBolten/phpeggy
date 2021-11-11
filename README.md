@@ -1,5 +1,4 @@
-[![Node.js Tests](https://github.com/MarcelBolten/phpeggy/actions/workflows/node.js.yml/badge.svg)](https://github.com/MarcelBolten/phpeggy/actions/workflows/node.js.yml)
-[![PHP Tests](https://github.com/MarcelBolten/phpeggy/actions/workflows/php.yml/badge.svg)](https://github.com/MarcelBolten/phpeggy/actions/workflows/php.yml)
+[![Tests](https://github.com/MarcelBolten/phpeggy/actions/workflows/CI-tests.yml/badge.svg)](https://github.com/MarcelBolten/phpeggy/actions/workflows/CI-tests.yml)
 [![npm version](https://img.shields.io/npm/v/phpeggy)](https://www.npmjs.com/package/phpeggy)
 [![License](https://img.shields.io/badge/license-mit-blue)](https://opensource.org/licenses/MIT)
 
