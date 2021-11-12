@@ -161,7 +161,7 @@ PHPeggy rule:
 
 ```php
 media_list = head:medium tail:("," S* medium)* {
-  $result = array($head);
+  $result = [$head];
   for ($i = 0; $i < count($tail); $i++) {
     $result[] = $tail[$i][2];
   }
@@ -175,7 +175,7 @@ languages using a special comment syntax:
 ```js
 media_list = head:medium tail:("," S* medium)* {
   /** <?php
-  $result = array($head);
+  $result = [$head];
   for ($i = 0; $i < count($tail); $i++) {
     $result[] = $tail[$i][2];
   }
