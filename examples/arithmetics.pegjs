@@ -1,24 +1,53 @@
-/*
- * ! This is php-compatible version of grammar "pegjs/examples/arithmetics.pegjs"
- *
- * Classic example grammar, which recognizes simple arithmetic expressions like
- * "2*(3+4)". The parser generated from this grammar then computes their value.
- */
+//
+// ! This is php-compatible version of grammar "peggy/examples/arithmetics.pegjs"
+//
+// Simple Arithmetics Grammar
+// ==========================
+//
+// Accepts expressions like "(2 * (3 + 4) - 5) / 6" and computes their value.
+{{
+if (!function_exists(__NAMESPACE__ . "\\calculate")) {
+    function calculate($result, $element) {
+        $operator = $element[1];
+        $operand = $element[3];
 
-start
-  = additive
+        if ($operator === "+") {
+            return $result + $operand;
+        }
+        if ($operator === "-") {
+            return $result - $operand;
+        }
+        if ($operator === "*") {
+            return $result * $operand;
+        }
+        if ($operator === "/") {
+            return $result / $operand;
+        }
+    }
+}
+}}
 
-additive
-  = left:multiplicative "+" right:additive { return $left + $right; }
-  / multiplicative
+Expression
+  = head:Term tail:(_ ("+" / "-") _ Term)*
+  {
+    return array_reduce($tail, __NAMESPACE__ . "\\calculate", $head);
+  }
 
-multiplicative
-  = left:primary "*" right:multiplicative { return $left * $right; }
-  / primary
+Term
+  = head:Factor tail:(_ ("*" / "/") _ Factor)*
+  {
+    return array_reduce($tail, __NAMESPACE__ . "\\calculate", $head);
+  }
 
-primary
-  = integer
-  / "(" additive:additive ")" { return $additive; }
+Factor
+  = "(" _ @Expression _ ")"
+  / Integer
 
-integer "integer"
-  = digits:$[0-9]+ { return intval($digits); }
+Integer "integer"
+  = _ [0-9]+
+  {
+    return intval($this->text());
+  }
+
+_ "whitespace"
+  = [ \t\n\r]*
