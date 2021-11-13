@@ -1,11 +1,12 @@
 <?php
 $examples = array(
-    "Digits"      => "output/digits.php",
+    "Digits" => "output/digits.php",
     "Arithmetics" => "output/arithmetics.php",
-    "Json"        => "output/json.php",
-    "Css"         => "output/css.php",
-    "Javascript"  => "output/javascript.php",
-    "FizzBuzz"    => "output/fizzbuzz.php"
+    "Json" => "output/json.php",
+    "Css" => "output/css.php",
+    "Javascript" => "output/javascript.php",
+    "FizzBuzz" => "output/fizzbuzz.php",
+    "SourceMappings" => "output/source-mappings.php"
 );
 
 $output = null;

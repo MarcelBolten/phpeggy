@@ -6,12 +6,13 @@ const phpeggy = require("../src/phpeggy.js");
 
 const examples
 = {
-  "Digits":      "digits.pegjs",
+  "Digits": "digits.pegjs",
   "Arithmetics": "arithmetics.pegjs",
-  "Json":        "json.pegjs",
-  "Css":         "css.pegjs",
-  "Javascript":  "javascript.pegjs",
-  "FizzBuzz":    "fizzbuzz.pegjs",
+  "Json": "json.pegjs",
+  "Css": "css.pegjs",
+  "Javascript": "javascript.pegjs",
+  "FizzBuzz": "fizzbuzz.pegjs",
+  "SourceMappings": "source-mappings.pegjs",
 };
 
 function generateParser(input_file, output_file, classname) {
@@ -20,10 +21,12 @@ function generateParser(input_file, output_file, classname) {
       throw err;
     }
 
+    console.info("Generating Parser for grammar: ", input_file);
     fs.writeFile(
       output_file,
       peggy.generate(data.toString(), {
         cache: true,
+        grammarSource: input_file,
         plugins: [phpeggy],
         phpeggy: {
           parserNamespace: "Parser",
@@ -52,4 +55,3 @@ for (const classname in examples) {
     );
   }
 }
-
