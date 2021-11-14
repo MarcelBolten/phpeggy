@@ -13,6 +13,7 @@ const examples
   "Javascript": "javascript.pegjs",
   "FizzBuzz": "fizzbuzz.pegjs",
   "SourceMappings": "source-mappings.pegjs",
+  "XML": "xml.pegjs",
 };
 
 function generateParser(input_file, output_file, classname) {

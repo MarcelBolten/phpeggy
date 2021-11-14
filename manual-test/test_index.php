@@ -6,6 +6,7 @@ $examples = array(
     "Css" => "output/css.php",
     "Javascript" => "output/javascript.php",
     "FizzBuzz" => "output/fizzbuzz.php",
+    "XML" => "output/xml.php",
     "SourceMappings" => "output/source-mappings.php"
 );
 
@@ -13,6 +14,7 @@ $output = null;
 $classname = null;
 $parsing_time = null;
 $error = null;
+$errorFormated = null;
 
 if (isset($_POST["code"], $_POST["parser"]) && isset($examples[$_POST["parser"]])) {
     $classname = $_POST["parser"];

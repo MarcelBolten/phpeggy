@@ -36,7 +36,7 @@ count
 comment "comment"
   = _ "/*" (!"*/" .)* "*/" _
 
-end_comment
+end_comment "end of line comment"
   = _ "//" [^\n]+
 
 line
