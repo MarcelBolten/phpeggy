@@ -43,7 +43,7 @@ if (!function_exists(__NAMESPACE__ . "\\convertAttr")) {
     function convertAttr($attrs) {
         $ret = [];
         foreach ($attrs as $attr) {
-            if ($ret[$attr["name"]]) {
+            if (array_key_exists($attr["name"], $ret)) {
                 $this->error("Duplicate attribute $name");
             }
             $ret[$attr["name"]] = $attr["value"];
