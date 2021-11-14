@@ -35,7 +35,7 @@ if (isset($_POST["code"], $_POST["parser"]) && isset($examples[$_POST["parser"]]
             $error = "Syntax error: " . $ex->getMessage() . " At line " . $ex->grammarLine . " column " . $ex->grammarColumn . " offset " . $ex->grammarOffset;
             $errorFormated = print_r($ex->format(array(array("source" => "Input string", "text" => $_POST["code"]))), true);
         }
-        if ($pass) {
+        if ($pass && $_POST["repetitions"]) {
             $repetitions = min(ceil(10/($end1-$start1)), 1000);
             for ($i=0; $i<$repetitions; $i++) {
                 $parser->parse($_POST["code"], array("grammarSource" => "Input string"));
@@ -113,7 +113,12 @@ if (isset($_POST["code"], $_POST["parser"]) && isset($examples[$_POST["parser"]]
                             if (isset($_POST["code"])) echo htmlspecialchars($_POST["code"]);
                         ?></textarea>
                     </div>
-                    <div><input type="submit" value="Test"></div>
+                    <div>
+                        <input type="checkbox" id="repetitions" name="repetitions" value="1"<?php echo $_POST["repetitions"] ? " checked" : ""; ?>>
+                        <label for="repetitions">Run parser multiple times (max. 1000 times or approx. 10 seconds)</label>
+                        <br>
+                        <input type="submit" value="Test">
+                    </div>
                 </form>
             </div>
             <div class="col2">
@@ -125,8 +130,10 @@ if (isset($_POST["code"], $_POST["parser"]) && isset($examples[$_POST["parser"]]
                     if ($error) echo "<div class=\"error\">" . htmlspecialchars($error) . "</div>";
                     if ($errorFormated) echo "<div class=\"error\"><pre>" . htmlspecialchars($errorFormated) . "</pre></div>";
                     if ($parsing_time !== null) {
-                        echo "<h2>Parsing time</h2>";
-                        echo "<div>" . htmlspecialchars($parsing_time/$repetitions) . " s. (mean of " . $repetitions . " repetitions)</div>";
+                        echo sprintf("<h2>Parsing time: %1.2e s.</h2>", $parsing_time/$repetitions);
+                        if ($_POST["repetitions"]) {
+                            echo "<div>Mean of $repetitions repetitions. Total time: " . sprintf("%1.2e", $parsing_time) . " s.</div>";
+                        }
                     }
                 ?>
             </div>
