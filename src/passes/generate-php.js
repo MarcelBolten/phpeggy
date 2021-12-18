@@ -769,7 +769,7 @@ module.exports = function(ast, options) {
     '                    $filler = $this->peg_padEnd("", $s->line !== 0 ? (int) floor(log10($s->line) + 1) : 1);',
     "                    $line = $src[$s->line - 1];",
     "                    $last = $s->line === $e->line ? $e->column : strlen($line) + 1;",
-    '                    $hatLen = ($last - $s->column) || 1;',
+    "                    $hatLen = $last - $s->column ?: 1;",
     '                    $str .= "\\n --> " . $loc . "\\n"',
     '                        . $filler . " |\\n"',
     '                        . $s->line . " | " . $line . "\\n"',
