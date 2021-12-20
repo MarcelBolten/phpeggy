@@ -181,55 +181,61 @@ if (!class_exists("PHPeggy\\SyntaxError", false)) {
     }
 }
 
-class pegExpectation
-{
-    /** @var ?string $type */
-    public $type;
-    /** @var ?string $description */
-    public $description;
-    /** @var ?string $value */
-    public $value;
-    /** @var ?string $ignoreCase */
-    public $ignoreCase;
-
-    public function __construct(string $type = null, string $description = null, string $value = null, string $ignoreCase = null)
+if (!class_exists("PHPeggy\\pegExpectation", false)) {
+    class pegExpectation
     {
-        $this->type = $type;
-        $this->description = $description;
-        $this->value = $value;
-        $this->ignoreCase = $ignoreCase;
+        /** @var ?string $type */
+        public $type;
+        /** @var ?string $description */
+        public $description;
+        /** @var ?string $value */
+        public $value;
+        /** @var ?string $ignoreCase */
+        public $ignoreCase;
+
+        public function __construct(string $type = null, string $description = null, string $value = null, string $ignoreCase = null)
+        {
+            $this->type = $type;
+            $this->description = $description;
+            $this->value = $value;
+            $this->ignoreCase = $ignoreCase;
+        }
     }
 }
 
-class pegCacheItem
-{
-    /** @var int $nextPos */
-    public $nextPos;
-    /** @var mixed $result */
-    public $result;
-
-    /** @param mixed $result */
-    public function __construct(int $nextPos, $result)
+if (!class_exists("PHPeggy\\pegCacheItem", false)) {
+    class pegCacheItem
     {
-        $this->nextPos = $nextPos;
-        $this->result = $result;
+        /** @var int $nextPos */
+        public $nextPos;
+        /** @var mixed $result */
+        public $result;
+
+        /** @param mixed $result */
+        public function __construct(int $nextPos, $result)
+        {
+            $this->nextPos = $nextPos;
+            $this->result = $result;
+        }
     }
 }
 
-class pegCachedPosDetails
-{
-    /** @var int $line */
-    public $line;
-    /** @var int $column */
-    public $column;
-    /** @var bool $seenCR */
-    public $seenCR;
-
-    public function __construct(int $line = 1, int $column = 1, bool $seenCR = false)
+if (!class_exists("PHPeggy\\pegCachedPosDetails", false)) {
+    class pegCachedPosDetails
     {
-        $this->line = $line;
-        $this->column = $column;
-        $this->seenCR = $seenCR;
+        /** @var int $line */
+        public $line;
+        /** @var int $column */
+        public $column;
+        /** @var bool $seenCR */
+        public $seenCR;
+
+        public function __construct(int $line = 1, int $column = 1, bool $seenCR = false)
+        {
+            $this->line = $line;
+            $this->column = $column;
+            $this->seenCR = $seenCR;
+        }
     }
 }
 class Parser
