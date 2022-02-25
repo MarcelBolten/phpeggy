@@ -835,7 +835,7 @@ module.exports = function(ast, options) {
   parts.push([
     '    if (isset($options["startRule"])) {',
     '      if (!(isset($peg_startRuleFunctions[$options["startRule"]]))) {',
-    '        throw new ' + phpGlobalNamespacePrefix + 'Exception("Can\'t start parsing from rule \\"" + $options["startRule"] + "\\".");',
+    '        throw new ' + phpGlobalNamespacePrefix + 'Exception("Can\'t start parsing from rule \\"" . $options["startRule"] . "\\".");',
     '      }',
     '',
     '      $peg_startRuleFunction = $peg_startRuleFunctions[$options["startRule"]];',

@@ -1862,7 +1862,7 @@ class php52_compat_Parser {
     $peg_startRuleFunction  = array($this, "peg_parseBlock_List");
     if (isset($options["startRule"])) {
       if (!(isset($peg_startRuleFunctions[$options["startRule"]]))) {
-        throw new Exception("Can't start parsing from rule \"" + $options["startRule"] + "\".");
+        throw new Exception("Can't start parsing from rule \"" . $options["startRule"] . "\".");
       }
 
       $peg_startRuleFunction = $peg_startRuleFunctions[$options["startRule"]];
