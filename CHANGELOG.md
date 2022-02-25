@@ -3,6 +3,15 @@ Change Log
 
 This file documents all notable changes to PHPeggy.
 
+1.0.1
+-----
+
+Released: 2022-02-25
+
+### Patch
+
+Fix php string concatenation (#1)
+
 1.0.0
 -----
 
