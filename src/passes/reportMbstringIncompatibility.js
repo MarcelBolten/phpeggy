@@ -11,8 +11,8 @@ module.exports = function(ast, options) {
 
   function ciErrorMessage(type) {
     return "Case-insensitive " + type + " matching requires the "
-    + "`mbstring` PHP extension, but it is disabled "
-    + "via `mbstringAllowed: false`.";
+      + "`mbstring` PHP extension, but it is disabled "
+      + "via `mbstringAllowed: false`.";
   }
 
   const check = visitor.build({
