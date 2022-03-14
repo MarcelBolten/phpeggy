@@ -1111,7 +1111,7 @@ module.exports = function(ast, options) {
     "    throw $this->peg_buildException($message, null, $this->peg_reportedPos);",
     "}",
     "",
-    "private function peg_advancePos(pegCachedPosDetails &$details, int $startPos, int $endPos): void",
+    "private function peg_advancePos(pegCachedPosDetails $details, int $startPos, int $endPos): void",
     "{",
     "    for ($p = $startPos; $p < $endPos; $p++) {",
     "        $ch = $this->input_substr($p, 1);",
