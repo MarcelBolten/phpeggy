@@ -1,0 +1,32 @@
+version: '3'
+services:
+  web:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+    volumes:
+      - ./docker/nginx.conf:/etc/nginx/conf.d/default.conf
+      - phpeggy-data:/app
+    links:
+      - php
+    depends_on:
+      - php
+  php:
+    environment:
+      # TODO: Remove it when psalm no longer tries to create a cache directory
+      # https://github.com/vimeo/psalm/issues/4267
+      - XDG_CACHE_HOME=/tmp
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    volumes:
+      - phpeggy-data:/app
+
+volumes:
+  phpeggy-data:
+    name: phpeggy-data
+    driver: local
+    driver_opts:
+      type: 'none'
+      o: 'bind'
+      device: '/home/marcel/phpeggy'

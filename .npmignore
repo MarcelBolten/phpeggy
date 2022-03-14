@@ -1,5 +1,6 @@
 .git/
 .github/
+docker/
 manual-test/
 node_modules/
 src/.eslintrc.json
@@ -13,5 +14,6 @@ vendor/
 CHANGELOG.md
 composer.json
 composer.lock
+docker-compose.yml
 phpstan.neon
 psalm.xml
