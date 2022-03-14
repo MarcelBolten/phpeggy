@@ -1,11 +1,13 @@
+.git/
 .github/
-bin/
 manual-test/
+node_modules/
 src/.eslintrc.json
 test/
 vendor/
 .eslintrc.js
 .gitattributes
+.gitignore
 .nvmrc
 .php-cs-fixer.dist.php
 CHANGELOG.md
