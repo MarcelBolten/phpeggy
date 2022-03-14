@@ -6,6 +6,7 @@ node_modules/
 src/.eslintrc.json
 test/
 vendor/
+.dockerignore
 .eslintrc.js
 .gitattributes
 .gitignore
