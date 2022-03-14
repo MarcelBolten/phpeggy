@@ -189,6 +189,7 @@ if (!class_exists("PHPeggy\\pegCachedPosDetails", false)) {
         }
     }
 }
+
 class Parser
 {
     /** @var int $peg_currPos */
