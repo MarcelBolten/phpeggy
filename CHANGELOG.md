@@ -25,6 +25,15 @@ Released: TBD
 - Use PHP-CS-Fixer to check generated PHP parsers
 - Use Psalm and PHPStan for static analysis
 
+1.0.1
+-----
+
+Released: 2022-02-25
+
+### Patch
+
+Fix php string concatenation (#1)
+
 1.0.0
 -----
 
