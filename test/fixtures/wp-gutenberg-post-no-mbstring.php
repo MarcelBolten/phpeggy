@@ -108,7 +108,7 @@ if (!class_exists("PHPeggy\\SyntaxError", false)) {
     {
         /** @var string $name */
         public $name = "SyntaxError";
-        /** @var ?array<int, pegExpectation> $expected */
+        /** @var array<int, pegExpectation>|null $expected */
         public $expected;
         /** @var string $found */
         public $found;
@@ -122,7 +122,7 @@ if (!class_exists("PHPeggy\\SyntaxError", false)) {
         public $location;
 
         /**
-         * @param ?array<int, pegExpectation> $expected
+         * @param array<int, pegExpectation>|null $expected
          */
         public function __construct(?string $message, ?array $expected, string $found, int $offset, int $line, int $column, pegLocation $location)
         {
@@ -184,13 +184,13 @@ if (!class_exists("PHPeggy\\SyntaxError", false)) {
 if (!class_exists("PHPeggy\\pegExpectation", false)) {
     class pegExpectation
     {
-        /** @var ?string $type */
+        /** @var string|null $type */
         public $type;
-        /** @var ?string $description */
+        /** @var string|null $description */
         public $description;
-        /** @var ?string $value */
+        /** @var string|null $value */
         public $value;
-        /** @var ?string $ignoreCase */
+        /** @var string|null $ignoreCase */
         public $ignoreCase;
 
         public function __construct(string $type = null, string $description = null, string $value = null, string $ignoreCase = null)
@@ -581,7 +581,7 @@ class Parser
         }
     }
 
-    /** @param array<int, pegExpectation> $expected */
+    /** @param array<int, pegExpectation>|null $expected */
     private function peg_buildException(?string $message, ?array $expected, int $pos): SyntaxError
     {
         $posDetails = $this->peg_computePosDetails($pos);
