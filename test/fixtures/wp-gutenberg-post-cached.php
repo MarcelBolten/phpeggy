@@ -579,11 +579,9 @@ class Parser
 
     private function peg_buildException_expectedComparator(pegExpectation $a, pegExpectation $b): int
     {
-        $a = (array) $a;
-        $b = (array) $b;
-        if ($a["description"] < $b["description"]) {
+        if ($a->description < $b->description) {
             return -1;
-        } elseif ($a["description"] > $b["description"]) {
+        } elseif ($a->description > $b->description) {
             return 1;
         } else {
             return 0;
