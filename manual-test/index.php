@@ -7,7 +7,8 @@ $examples = array(
     "Javascript" => "output/javascript.php",
     "FizzBuzz" => "output/fizzbuzz.php",
     "XML" => "output/xml.php",
-    "SourceMappings" => "output/source-mappings.php"
+    "SourceMappings" => "output/source-mappings.php",
+    "Minimal" => "output/minimal.php"
 );
 
 $output = null;

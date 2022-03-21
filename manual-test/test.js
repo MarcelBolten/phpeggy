@@ -14,6 +14,7 @@ const examples
   "FizzBuzz": "fizzbuzz.pegjs",
   "SourceMappings": "source-mappings.pegjs",
   "XML": "xml.pegjs",
+  "Minimal": "minimal.pegjs",
 };
 
 function generateParser(input_file, output_file, classname) {
