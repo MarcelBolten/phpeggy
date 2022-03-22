@@ -26,3 +26,5 @@ ENV COMPOSER_HOME=/composer
 COPY --from=composerVersionWorkaround /usr/bin/composer /usr/bin/composer
 
 RUN apk upgrade -U -a && apk add --no-cache npm
+
+WORKDIR /app

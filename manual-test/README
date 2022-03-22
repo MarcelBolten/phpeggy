@@ -4,5 +4,5 @@
    # npm run build-manual-test
    to generate example parsers
 
-2. Open in browser test_index.php
-   to test generated parsers
+2. Open localhost in your browser
+   to test the generated parsers
