@@ -24,7 +24,9 @@
 "use strict";
 
 exports.use = function(config, options) {
-  config.passes.check.push(require("./passes/reportMbstringIncompatibility"));
+  config.passes.check.push(
+    require("./passes/report-mbstring-incompatibility")
+  );
   config.passes.generate = [
     require("./passes/generate-bytecode-php"),
     require("./passes/generate-php"),
