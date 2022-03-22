@@ -277,6 +277,25 @@ if (!class_exists("PHPeggy\\pegPosition", false)) {
     }
 }
 
+if (!class_exists("PHPeggy\\pegRange", false)) {
+    class pegRange
+    {
+        /** @var string $source */
+        public $source;
+        /** @var int $start */
+        public $start;
+        /** @var int $end */
+        public $end;
+
+        public function __construct(string $source, int $start, int $end)
+        {
+            $this->source = $source;
+            $this->start = $start;
+            $this->end = $end;
+        }
+    }
+}
+
 class Parser
 {
     /** @var int $peg_currPos */
@@ -471,10 +490,10 @@ class Parser
         return $this->peg_reportedPos;
     }
 
-    /** @return array<string, string|int> */
-    private function range(): array
+    /** @return pegRange */
+    private function range(): pegRange
     {
-        return ["source" => $this->peg_source, "start" => $this->peg_reportedPos, "end" => $this->peg_currPos];
+        return new pegRange($this->peg_source, $this->peg_reportedPos, $this->peg_currPos);
     }
 
     private function location(bool $fail = false): pegLocation
