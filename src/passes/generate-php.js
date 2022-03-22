@@ -28,8 +28,8 @@ const op = require("../opcodes");
 const internalUtils = require("../utils");
 const phpeggyVersion = require("../../package.json").version;
 const peggyVersion = require("peggy/package.json").version;
-const dataStorageClasses = require("./generate-php-data-storage-classes");
-const privateMethods = require("./generate-php-private-methods");
+const dataStorageClasses = require("./generate-php/data-storage-classes");
+const privateMethods = require("./generate-php/private-methods");
 
 /* Generates parser PHP code. */
 module.exports = function(ast, options) {
