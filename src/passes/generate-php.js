@@ -988,9 +988,6 @@ module.exports = function(ast, options) {
     "    return $substr;",
     "}",
     "",
-  ].join("\n")));
-
-  parts.push(indent(4, [
     "private function text(): string",
     "{",
     "    return $this->input_substr($this->peg_reportedPos, $this->peg_currPos - $this->peg_reportedPos);",
