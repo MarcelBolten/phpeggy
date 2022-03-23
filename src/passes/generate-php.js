@@ -170,16 +170,17 @@ module.exports = function(ast, options) {
 
   function generateFunctions() {
     return ast.functions.map(
-      (f, i) => "/**\n"
-        + f.params.map(param => " * @param mixed $" + param).join("\n")
-        + "\n * @return mixed\n */\n"
-        + "private function peg_f" + i
-        + "("
-        + f.params.map(param => "$" + param).join(", ")
-        + ")\n"
-        + "{\n"
-        + "    " + internalUtils.extractPhpCode(f.body).trim()
-        + "\n}\n"
+      (f, i) => [
+        "/**",
+        f.params.map(param => " * @param mixed $" + param).join("\n"),
+        " * @return mixed",
+        " */",
+        "private function peg_f" + i + "(" + f.params.map(param => "$" + param).join(", ") + ")",
+        "{",
+        "    " + internalUtils.extractPhpCode(f.body).trim(),
+        "}",
+        "",
+      ].join("\n")
     ).join("\n");
   }
 
@@ -708,10 +709,12 @@ module.exports = function(ast, options) {
       ast.topLevelInitializer.code.trim()
     );
     if (topLevelInitializerCode !== "") {
-      parts.push("/* BEGIN global initializer code */");
-      parts.push(topLevelInitializerCode);
-      parts.push("/* END global initializer code */");
-      parts.push("");
+      parts.push([
+        "/* BEGIN global initializer code */",
+        topLevelInitializerCode,
+        "/* END global initializer code */",
+        "",
+      ].join("\n"));
     }
   }
 
@@ -835,8 +838,10 @@ module.exports = function(ast, options) {
     "",
   ].join("\n")));
 
-  parts.push(indent(4, generateTablesDeclaration()));
-  parts.push("");
+  parts.push(indent(4, [
+    generateTablesDeclaration(),
+    "",
+  ].join("\n")));
 
   parts.push(indent(4, [
     "public function __construct()",
@@ -911,19 +916,25 @@ module.exports = function(ast, options) {
       ast.initializer.code.trim()
     );
     if (initializerCode !== "") {
-      parts.push("");
-      parts.push(indent(8, "/* BEGIN initializer code */"));
-      parts.push(indent(8, initializerCode));
-      parts.push(indent(8, "/* END initializer code */"));
+      parts.push(indent(8, [
+        "",
+        "/* BEGIN initializer code */",
+        initializerCode,
+        "/* END initializer code */",
+      ].join("\n")));
     }
   }
 
-  parts.push("");
-  parts.push(indent(8, "$peg_result = call_user_func($peg_startRuleFunction);"));
+  parts.push(indent(8, [
+    "",
+    "$peg_result = call_user_func($peg_startRuleFunction);",
+  ].join("\n")));
 
   if (options.cache) {
-    parts.push("");
-    parts.push(indent(8, "$this->peg_cache = [];"));
+    parts.push(indent(8, [
+      "",
+      "$this->peg_cache = [];",
+    ].join("\n")));
   }
 
   if (mbstringAllowed) {
