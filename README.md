@@ -13,7 +13,7 @@ PHPeggy is the successor of [`phpegjs`](https://github.com/nylen/phpegjs) which 
 
 There are a few API changes compared to the most recent `phpegjs` release.
 - Options specific to PHPeggy have to be passed to `phpeggy` and not to `phpegjs`.
-- PHP >=7.3 is required
+- PHP >=7.4 is required
 
 Follow these steps to upgrade:
 

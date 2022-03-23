@@ -11,7 +11,7 @@ Released: TBD
 ### Major Changes
 
 - Use types in PHP when possible.
-- PHP >=7.3 is required.
+- PHP >=7.4 is required.
 - Keep up with Peggy development up to version 1.2.0:
   Implementation of global initializer blocks and plucking (see https://github.com/peggyjs/peggy/blob/main/CHANGELOG.md#major-changes)
   Cleanup bytecode generator, PHP code is now exclusively in `generate-php.js`

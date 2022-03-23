@@ -7,7 +7,7 @@ $config = new PhpCsFixer\Config();
 
 return $config->setRules(array(
     '@PSR12' => true,
-    '@PHP73Migration' => true,
+    '@PHP74Migration' => true,
     ))
     ->setFinder($finder)
 ;

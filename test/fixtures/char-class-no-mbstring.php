@@ -57,20 +57,13 @@ if (!function_exists("PHPeggy\\peg_char_class_test")) {
 if (!class_exists("PHPeggy\\SyntaxError", false)) {
     class SyntaxError extends \Exception
     {
-        /** @var string $name */
-        public $name = "SyntaxError";
-        /** @var array<int, pegExpectation>|null $expected */
-        public $expected;
-        /** @var string $found */
-        public $found;
-        /** @var int $grammarOffset */
-        public $grammarOffset;
-        /** @var int $grammarLine */
-        public $grammarLine;
-        /** @var int $grammarColumn */
-        public $grammarColumn;
-        /** @var pegLocation $location */
-        public $location;
+        public string $name = "SyntaxError";
+        public ?array $expected;
+        public string $found;
+        public int $grammarOffset;
+        public int $grammarLine;
+        public int $grammarColumn;
+        public pegLocation $location;
 
         /**
          * @param array<int, pegExpectation>|null $expected
@@ -135,14 +128,10 @@ if (!class_exists("PHPeggy\\SyntaxError", false)) {
 if (!class_exists("PHPeggy\\pegExpectation", false)) {
     class pegExpectation
     {
-        /** @var string|null $type */
-        public $type;
-        /** @var string|null $description */
-        public $description;
-        /** @var string|null $value */
-        public $value;
-        /** @var string|null $ignoreCase */
-        public $ignoreCase;
+        public ?string $type;
+        public ?string $description;
+        public ?string $value;
+        public ?string $ignoreCase;
 
         public function __construct(string $type = null, string $description = null, string $value = null, string $ignoreCase = null)
         {
@@ -157,8 +146,7 @@ if (!class_exists("PHPeggy\\pegExpectation", false)) {
 if (!class_exists("PHPeggy\\pegCacheItem", false)) {
     class pegCacheItem
     {
-        /** @var int $nextPos */
-        public $nextPos;
+        public int $nextPos;
         /** @var mixed $result */
         public $result;
 
@@ -174,12 +162,9 @@ if (!class_exists("PHPeggy\\pegCacheItem", false)) {
 if (!class_exists("PHPeggy\\pegCachedPosDetails", false)) {
     class pegCachedPosDetails
     {
-        /** @var int $line */
-        public $line;
-        /** @var int $column */
-        public $column;
-        /** @var bool $seenCR */
-        public $seenCR;
+        public int $line;
+        public int $column;
+        public bool $seenCR;
 
         public function __construct(int $line = 1, int $column = 1, bool $seenCR = false)
         {
@@ -193,12 +178,9 @@ if (!class_exists("PHPeggy\\pegCachedPosDetails", false)) {
 if (!class_exists("PHPeggy\\pegLocation", false)) {
     class pegLocation
     {
-        /** @var string $source */
-        public $source;
-        /** @var pegPosition $start */
-        public $start;
-        /** @var pegPosition $end */
-        public $end;
+        public string $source;
+        public pegPosition $start;
+        public pegPosition $end;
 
         public function __construct(string $source, pegPosition $start, pegPosition $end)
         {
@@ -212,12 +194,9 @@ if (!class_exists("PHPeggy\\pegLocation", false)) {
 if (!class_exists("PHPeggy\\pegPosition", false)) {
     class pegPosition
     {
-        /** @var int $offset */
-        public $offset;
-        /** @var int $line */
-        public $line;
-        /** @var int $column */
-        public $column;
+        public int $offset;
+        public int $line;
+        public int $column;
 
         public function __construct(int $offset, int $line, int $column)
         {
@@ -231,12 +210,9 @@ if (!class_exists("PHPeggy\\pegPosition", false)) {
 if (!class_exists("PHPeggy\\pegRange", false)) {
     class pegRange
     {
-        /** @var string $source */
-        public $source;
-        /** @var int $start */
-        public $start;
-        /** @var int $end */
-        public $end;
+        public string $source;
+        public int $start;
+        public int $end;
 
         public function __construct(string $source, int $start, int $end)
         {
@@ -249,57 +225,41 @@ if (!class_exists("PHPeggy\\pegRange", false)) {
 
 class Parser
 {
-    /** @var int $peg_currPos */
-    private $peg_currPos = 0;
-    /** @var int $peg_reportedPos */
-    private $peg_reportedPos = 0;
-    /** @var int $peg_cachedPos */
-    private $peg_cachedPos = 0;
-    /** @var pegCachedPosDetails $peg_cachedPosDetails */
-    private $peg_cachedPosDetails;
-    /** @var int $peg_maxFailPos */
-    private $peg_maxFailPos = 0;
+    private int $peg_currPos = 0;
+    private int $peg_reportedPos = 0;
+    private int $peg_cachedPos = 0;
+    private pegCachedPosDetails $peg_cachedPosDetails;
+    private int $peg_maxFailPos = 0;
     /** @var array<int, pegExpectation> $peg_maxFailExpected */
-    private $peg_maxFailExpected = [];
-    /** @var int $peg_silentFails */
-    private $peg_silentFails = 0;
+    private array $peg_maxFailExpected = [];
+    private int $peg_silentFails = 0;
     /** @var array<int, string> $input */
-    private $input = [];
-    /** @var int $input_length */
-    private $input_length = 0;
-    /** @var \stdClass $peg_FAILED */
-    private $peg_FAILED;
-    /** @var string $peg_source */
-    private $peg_source = "";
+    private array $input = [];
+    private int $input_length = 0;
+    private \stdClass $peg_FAILED;
+    private string $peg_source = "";
 
     /** @var array<int, array<int, int>> $peg_c0 */
-    private $peg_c0 = [[97,122], [65,90], [48,57]];
+    private array $peg_c0 = [[97,122], [65,90], [48,57]];
     /** @var array<int, array<int, int>> $peg_c1 */
-    private $peg_c1 = [[39,39], [34,34]];
+    private array $peg_c1 = [[39,39], [34,34]];
     /** @var array<int, array<int, int>> $peg_c2 */
-    private $peg_c2 = [[255,256]];
+    private array $peg_c2 = [[255,256]];
     /** @var array<int, array<int, int>> $peg_c3 */
-    private $peg_c3 = [[11904,12245], [13312,19903], [19968,40908]];
+    private array $peg_c3 = [[11904,12245], [13312,19903], [19968,40908]];
     /** @var array<int, array<int, int>> $peg_c4 */
-    private $peg_c4 = [[55357,55357]];
+    private array $peg_c4 = [[55357,55357]];
     /** @var array<int, array<int, int>> $peg_c5 */
-    private $peg_c5 = [[56489,56489]];
+    private array $peg_c5 = [[56489,56489]];
     /** @var array<int, array<int, int>> $peg_c6 */
-    private $peg_c6 = [[32,32], [9,9], [13,13], [10,10]];
-    /** @var pegExpectation $peg_e0 */
-    private $peg_e0;
-    /** @var pegExpectation $peg_e1 */
-    private $peg_e1;
-    /** @var pegExpectation $peg_e2 */
-    private $peg_e2;
-    /** @var pegExpectation $peg_e3 */
-    private $peg_e3;
-    /** @var pegExpectation $peg_e4 */
-    private $peg_e4;
-    /** @var pegExpectation $peg_e5 */
-    private $peg_e5;
-    /** @var pegExpectation $peg_e6 */
-    private $peg_e6;
+    private array $peg_c6 = [[32,32], [9,9], [13,13], [10,10]];
+    private pegExpectation $peg_e0;
+    private pegExpectation $peg_e1;
+    private pegExpectation $peg_e2;
+    private pegExpectation $peg_e3;
+    private pegExpectation $peg_e4;
+    private pegExpectation $peg_e5;
+    private pegExpectation $peg_e6;
 
     public function __construct()
     {
@@ -398,7 +358,6 @@ class Parser
         return $this->peg_reportedPos;
     }
 
-    /** @return pegRange */
     private function range(): pegRange
     {
         return new pegRange($this->peg_source, $this->peg_reportedPos, $this->peg_currPos);
@@ -424,14 +383,12 @@ class Parser
 
     private function line(): int
     {
-        $compute_pd = $this->peg_computePosDetails($this->peg_reportedPos);
-        return $compute_pd->line;
+        return $this->peg_computePosDetails($this->peg_reportedPos)->line;
     }
 
     private function column(): int
     {
-        $compute_pd = $this->peg_computePosDetails($this->peg_reportedPos);
-        return $compute_pd->column;
+        return $this->peg_computePosDetails($this->peg_reportedPos)->column;
     }
 
     private function expected(string $description): void

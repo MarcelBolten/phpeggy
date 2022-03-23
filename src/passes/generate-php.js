@@ -100,16 +100,14 @@ module.exports = function(ast, options) {
     }
 
     const literals = ast.literals.map(
-      (l, i) => "/** @var string $peg_l" + i + " */\n"
-        + "private $peg_l" + i + " = " + buildLiteral(l) + ";"
+      (l, i) => "private string $peg_l" + i + " = " + buildLiteral(l) + ";"
     );
     const classes = ast.classes.map(
-      (c, i) => "/** @var " + (mbstringAllowed ? "string" : "array<int, array<int, int>>") + " $peg_c" + i + " */\n"
-        + "private $peg_c" + i + " = " + buildRegexp(c) + ";"
+      (c, i) => (mbstringAllowed ? "" : "/** @var array<int, array<int, int>> $peg_c" + i + " */\n")
+        + "private " + (mbstringAllowed ? "string" : "array") +  " $peg_c" + i + " = " + buildRegexp(c) + ";"
     );
     const expectations = ast.expectations.map(
-      (e, i) => "/** @var pegExpectation $peg_e" + i + " */\n"
-        + "private $peg_e" + i + ";"
+      (e, i) => "private pegExpectation $peg_e" + i + ";"
     );
 
     return [
@@ -723,20 +721,13 @@ module.exports = function(ast, options) {
     'if (!class_exists("' + phpGlobalNamePrefixOrNamespaceEscaped + 'SyntaxError", false)) {',
     "    class SyntaxError extends " + phpGlobalNamespacePrefix + "Exception",
     "    {",
-    "        /** @var string $name */",
-    '        public $name = "SyntaxError";',
-    "        /** @var array<int, pegExpectation>|null $expected */",
-    "        public $expected;",
-    "        /** @var string $found */",
-    "        public $found;",
-    "        /** @var int $grammarOffset */",
-    "        public $grammarOffset;",
-    "        /** @var int $grammarLine */",
-    "        public $grammarLine;",
-    "        /** @var int $grammarColumn */",
-    "        public $grammarColumn;",
-    "        /** @var pegLocation $location */",
-    "        public $location;",
+    '        public string $name = "SyntaxError";',
+    "        public ?array $expected;",
+    "        public string $found;",
+    "        public int $grammarOffset;",
+    "        public int $grammarLine;",
+    "        public int $grammarColumn;",
+    "        public pegLocation $location;",
     "",
     "        /**",
     "         * @param array<int, pegExpectation>|null $expected",
@@ -810,31 +801,22 @@ module.exports = function(ast, options) {
 
   parts.push(indent(4, [
     ...options.cache
-      ? ["/** @var array<int, pegCacheItem> */", "public $peg_cache = [];", ""]
+      ? ["/** @var array<int, pegCacheItem> */", "public array $peg_cache = [];", ""]
       : [],
 
-    "/** @var int $peg_currPos */",
-    "private $peg_currPos = 0;",
-    "/** @var int $peg_reportedPos */",
-    "private $peg_reportedPos = 0;",
-    "/** @var int $peg_cachedPos */",
-    "private $peg_cachedPos = 0;",
-    "/** @var pegCachedPosDetails $peg_cachedPosDetails */",
-    "private $peg_cachedPosDetails;",
-    "/** @var int $peg_maxFailPos */",
-    "private $peg_maxFailPos = 0;",
+    "private int $peg_currPos = 0;",
+    "private int $peg_reportedPos = 0;",
+    "private int $peg_cachedPos = 0;",
+    "private pegCachedPosDetails $peg_cachedPosDetails;",
+    "private int $peg_maxFailPos = 0;",
     "/** @var array<int, pegExpectation> $peg_maxFailExpected */",
-    "private $peg_maxFailExpected = [];",
-    "/** @var int $peg_silentFails */",
-    "private $peg_silentFails = 0;", // 0 = report failures, > 0 = silence failures
+    "private array $peg_maxFailExpected = [];",
+    "private int $peg_silentFails = 0;", // 0 = report failures, > 0 = silence failures
     "/** @var array<int, string> $input */",
-    "private $input = [];",
-    "/** @var int $input_length */",
-    "private $input_length = 0;",
-    "/** @var " + phpGlobalNamespacePrefix + "stdClass $peg_FAILED */",
-    "private $peg_FAILED;",
-    "/** @var string $peg_source */",
-    'private $peg_source = "";',
+    "private array $input = [];",
+    "private int $input_length = 0;",
+    "private " + phpGlobalNamespacePrefix + "stdClass $peg_FAILED;",
+    'private string $peg_source = "";',
     "",
   ].join("\n")));
 
