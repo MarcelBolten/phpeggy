@@ -7,7 +7,7 @@ FROM php:8.0.16-fpm-alpine3.14
 
 ARG PHAN_VERSION=5.3.2
 ARG PHP_DOCUMENTOR_VERSION=v3.3.0
-ARG PHP_METRICS_VERSION=v2.7.3
+ARG PHP_METRICS_VERSION=v2.8.0
 
 #Phan
 ADD https://github.com/phan/phan/releases/download/$PHAN_VERSION/phan.phar /usr/bin/phan
@@ -18,7 +18,8 @@ ADD https://github.com/phpDocumentor/phpDocumentor/releases/download/$PHP_DOCUME
 RUN chmod +rx /usr/bin/phpDocumentor
 
 #PhpMetrics
-ADD https://github.com/phpmetrics/PhpMetrics/releases/download/$PHP_METRICS_VERSION/phpmetrics.phar /usr/bin/phpmetrics
+#ADD https://github.com/phpmetrics/PhpMetrics/releases/download/$PHP_METRICS_VERSION/phpmetrics.phar /usr/bin/phpmetrics
+ADD https://github.com/phpmetrics/PhpMetrics/raw/$PHP_METRICS_VERSION/releases/phpmetrics.phar /usr/bin/phpmetrics
 RUN chmod +rx /usr/bin/phpmetrics
 
 # COMPOSER
