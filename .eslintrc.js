@@ -4,9 +4,10 @@ module.exports = {
   root: true,
   extends: "@peggyjs",
   ignorePatterns: [
-    "bin/",
+    "docker/",
     "examples/",
-    "test/fixtures",
     "node_modules/",
+    "test/fixtures",
+    "vendor/",
   ],
 };
