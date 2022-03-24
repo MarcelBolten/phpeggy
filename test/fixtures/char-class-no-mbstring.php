@@ -304,6 +304,7 @@ class Parser
             $peg_startRuleFunction = $peg_startRuleFunctions[$options["startRule"]];
         }
 
+        /* @var mixed $peg_result */
         $peg_result = call_user_func($peg_startRuleFunction);
 
         if ($peg_result !== $this->peg_FAILED && $this->peg_currPos === $this->input_length) {
@@ -493,8 +494,8 @@ class Parser
             $expectedDesc = count($expected) > 1
                 ? join(", ", array_slice($expectedDescs, 0, -1))
                     . " or "
-                    . $expectedDescs[count($expected) - 1]
-                : $expectedDescs[0];
+                    . ($expectedDescs[count($expected) - 1] ?? "")
+                : $expectedDescs[0] ?? "";
 
             $foundDesc = $found ? json_encode($found) : "end of input";
 
