@@ -7,7 +7,7 @@ FROM php:8.0.16-fpm-alpine3.14
 
 ARG PHAN_VERSION=5.3.2
 ARG PHP_DOCUMENTOR_VERSION=v3.3.0
-ARG PHP_METRICS_VERSION=v2.8.0
+ARG PHP_METRICS_VERSION=v2.8.1
 
 #Phan
 ADD https://github.com/phan/phan/releases/download/$PHAN_VERSION/phan.phar /usr/bin/phan
