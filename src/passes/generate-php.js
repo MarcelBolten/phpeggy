@@ -666,7 +666,9 @@ module.exports = function(ast, options) {
     phpGlobalNamespacePrefix
   ));
 
-  parts.push(dataStorageClasses(phpGlobalNamePrefixOrNamespaceEscaped));
+  parts.push(dataStorageClasses(
+    phpGlobalNamePrefixOrNamespaceEscaped
+  ));
 
   parts.push([
     "class " + phpParserClass,
@@ -787,9 +789,6 @@ module.exports = function(ast, options) {
     '    $peg_startRuleFunction = $peg_startRuleFunctions[$options["startRule"]];',
     "}",
     "",
-  ].join("\n")));
-
-  parts.push(indent(8, [
     "/* @var mixed $peg_result */",
     "$peg_result = call_user_func($peg_startRuleFunction);",
     "",
