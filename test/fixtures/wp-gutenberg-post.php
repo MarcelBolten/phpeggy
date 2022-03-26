@@ -44,16 +44,18 @@ use function usort;
 /* chr_unicode - get unicode character from its char code */
 if (!function_exists("PHPeggy\\chr_unicode")) {
     /** @param float|int $code */
-    function chr_unicode($code): string
-    {
+    function chr_unicode(
+        $code
+    ): string {
         return html_entity_decode("&#" . (int) $code .";", ENT_QUOTES, "UTF-8");
     }
 }
 
 /* ord_unicode - get unicode char code from string */
 if (!function_exists("PHPeggy\\ord_unicode")) {
-    function ord_unicode(string $character): int
-    {
+    function ord_unicode(
+        string $character
+    ): int {
         if (strlen($character) === 1) {
             return ord($character);
         }
@@ -70,8 +72,10 @@ if (!function_exists("PHPeggy\\ord_unicode")) {
 
 /* peg_regex_test - multibyte regex test */
 if (!function_exists("PHPeggy\\peg_regex_test")) {
-    function peg_regex_test(string $pattern, string $string): bool
-    {
+    function peg_regex_test(
+        string $pattern,
+        string $string
+    ): bool {
         if (substr($pattern, -1) === "i") {
             return (bool) mb_eregi(substr($pattern, 1, -2), $string);
         } else {
@@ -144,8 +148,15 @@ if (!class_exists("PHPeggy\\SyntaxError", false)) {
         /**
          * @param array<int, pegExpectation>|null $expected
          */
-        public function __construct(?string $message, ?array $expected, string $found, int $offset, int $line, int $column, pegLocation $location)
-        {
+        public function __construct(
+            ?string $message,
+            ?array $expected,
+            string $found,
+            int $offset,
+            int $line,
+            int $column,
+            pegLocation $location
+        ) {
             parent::__construct($message ?? "", 0);
             $this->expected = $expected;
             $this->found = $found;
@@ -158,8 +169,9 @@ if (!class_exists("PHPeggy\\SyntaxError", false)) {
         /**
          * @param array<int, array<string, string>> $sources
          */
-        public function format(array $sources): string
-        {
+        public function format(
+            array $sources
+        ): string {
             $str = $this->name . ": " . $this->message;
             if (!empty($this->location->source)) {
                 $src = null;
@@ -189,8 +201,11 @@ if (!class_exists("PHPeggy\\SyntaxError", false)) {
             return $str;
         }
 
-        private function peg_padEnd(string $str, int $targetLength, string $padString = " "): string
-        {
+        private function peg_padEnd(
+            string $str,
+            int $targetLength,
+            string $padString = " "
+        ): string {
             if (strlen($str) > $targetLength) {
                 return $str;
             }
@@ -209,8 +224,12 @@ if (!class_exists("PHPeggy\\pegExpectation", false)) {
         public ?string $value;
         public ?string $ignoreCase;
 
-        public function __construct(string $type = null, string $description = null, string $value = null, string $ignoreCase = null)
-        {
+        public function __construct(
+            string $type = null,
+            string $description = null,
+            string $value = null,
+            string $ignoreCase = null
+        ) {
             $this->type = $type;
             $this->description = $description;
             $this->value = $value;
@@ -227,8 +246,10 @@ if (!class_exists("PHPeggy\\pegCacheItem", false)) {
         public $result;
 
         /** @param mixed $result */
-        public function __construct(int $nextPos, $result)
-        {
+        public function __construct(
+            int $nextPos,
+            $result
+        ) {
             $this->nextPos = $nextPos;
             $this->result = $result;
         }
@@ -242,8 +263,11 @@ if (!class_exists("PHPeggy\\pegCachedPosDetails", false)) {
         public int $column;
         public bool $seenCR;
 
-        public function __construct(int $line = 1, int $column = 1, bool $seenCR = false)
-        {
+        public function __construct(
+            int $line = 1,
+            int $column = 1,
+            bool $seenCR = false
+        ) {
             $this->line = $line;
             $this->column = $column;
             $this->seenCR = $seenCR;
@@ -258,8 +282,11 @@ if (!class_exists("PHPeggy\\pegLocation", false)) {
         public pegPosition $start;
         public pegPosition $end;
 
-        public function __construct(string $source, pegPosition $start, pegPosition $end)
-        {
+        public function __construct(
+            string $source,
+            pegPosition $start,
+            pegPosition $end
+        ) {
             $this->source = $source;
             $this->start = $start;
             $this->end = $end;
@@ -274,8 +301,11 @@ if (!class_exists("PHPeggy\\pegPosition", false)) {
         public int $line;
         public int $column;
 
-        public function __construct(int $offset, int $line, int $column)
-        {
+        public function __construct(
+            int $offset,
+            int $line,
+            int $column
+        ) {
             $this->offset = $offset;
             $this->line = $line;
             $this->column = $column;
@@ -290,8 +320,11 @@ if (!class_exists("PHPeggy\\pegRange", false)) {
         public int $start;
         public int $end;
 
-        public function __construct(string $source, int $start, int $end)
-        {
+        public function __construct(
+            string $source,
+            int $start,
+            int $end
+        ) {
             $this->source = $source;
             $this->start = $start;
             $this->end = $end;
@@ -372,10 +405,14 @@ class Parser
     /**
      * @param string|array<int, string> $input
      * @param array<int, mixed> $args
+     * @throws \Exception
+     * @throws SyntaxError
      * @return mixed
      */
-    public function parse($input, array ...$args)
-    {
+    public function parse(
+        $input,
+        array ...$args
+    ) {
         /** @var array<string, string> $options */
         $options = $args[0] ?? [];
         $this->cleanup_state();
@@ -436,8 +473,10 @@ class Parser
         $this->peg_source = "";
     }
 
-    private function input_substr(int $start, int $length): string
-    {
+    private function input_substr(
+        int $start,
+        int $length
+    ): string {
         if ($length === 1 && $start < $this->input_length) {
             return $this->input[$start];
         }
@@ -464,8 +503,9 @@ class Parser
         return new pegRange($this->peg_source, $this->peg_reportedPos, $this->peg_currPos);
     }
 
-    private function location(bool $fail = false): pegLocation
-    {
+    private function location(
+        bool $fail = false
+    ): pegLocation {
         $start = $this->peg_reportedPos;
         $end = $this->peg_currPos;
         if ($fail) {
@@ -492,8 +532,12 @@ class Parser
         return $this->peg_computePosDetails($this->peg_reportedPos)->column;
     }
 
-    private function expected(string $description): void
-    {
+    /**
+     * @throws SyntaxError
+     */
+    private function expected(
+        string $description
+    ): void {
         throw $this->peg_buildException(
             null,
             [new pegExpectation("other", $description)],
@@ -501,13 +545,20 @@ class Parser
         );
     }
 
-    private function error(string $message): void
-    {
+    /**
+     * @throws SyntaxError
+     */
+    private function error(
+        string $message
+    ): void {
         throw $this->peg_buildException($message, null, $this->peg_reportedPos);
     }
 
-    private function peg_advancePos(pegCachedPosDetails $details, int $startPos, int $endPos): void
-    {
+    private function peg_advancePos(
+        pegCachedPosDetails $details,
+        int $startPos,
+        int $endPos
+    ): void {
         for ($p = $startPos; $p < $endPos; $p++) {
             $ch = $this->input_substr($p, 1);
             if ($ch === "\n") {
@@ -527,8 +578,9 @@ class Parser
         }
     }
 
-    private function peg_computePosDetails(int $pos): pegCachedPosDetails
-    {
+    private function peg_computePosDetails(
+        int $pos
+    ): pegCachedPosDetails {
         if ($this->peg_cachedPos !== $pos) {
             if ($this->peg_cachedPos > $pos) {
                 $this->peg_cachedPos = 0;
@@ -541,8 +593,9 @@ class Parser
         return $this->peg_cachedPosDetails;
     }
 
-    private function peg_fail(pegExpectation $expected): void
-    {
+    private function peg_fail(
+        pegExpectation $expected
+    ): void {
         if ($this->peg_currPos < $this->peg_maxFailPos) {
             return;
         }
@@ -555,8 +608,10 @@ class Parser
         $this->peg_maxFailExpected[] = $expected;
     }
 
-    private function peg_buildException_expectedComparator(pegExpectation $a, pegExpectation $b): int
-    {
+    private function peg_buildException_expectedComparator(
+        pegExpectation $a,
+        pegExpectation $b
+    ): int {
         if ($a->description < $b->description) {
             return -1;
         } elseif ($a->description > $b->description) {
@@ -567,8 +622,11 @@ class Parser
     }
 
     /** @param array<int, pegExpectation>|null $expected */
-    private function peg_buildException(?string $message, ?array $expected, int $pos): SyntaxError
-    {
+    private function peg_buildException(
+        ?string $message,
+        ?array $expected,
+        int $pos
+    ): SyntaxError {
         $posDetails = $this->peg_computePosDetails($pos);
         $found = $pos < $this->input_length ? $this->input[$pos] : null;
 
@@ -619,8 +677,11 @@ class Parser
      * @param mixed $html
      * @return mixed
      */
-    private function peg_f0($pre, $t, $html)
-    {
+    private function peg_f0(
+        $pre,
+        $t,
+        $html
+    ) {
         return [$t, $html];
     }
 
@@ -630,8 +691,11 @@ class Parser
      * @param mixed $post
      * @return mixed
      */
-    private function peg_f1($pre, $ts, $post)
-    {
+    private function peg_f1(
+        $pre,
+        $ts,
+        $post
+    ) {
         return peg_join_blocks($pre, $ts, $post);
     }
 
@@ -640,8 +704,10 @@ class Parser
      * @param mixed $noTeaser
      * @return mixed
      */
-    private function peg_f2($customText, $noTeaser)
-    {
+    private function peg_f2(
+        $customText,
+        $noTeaser
+    ) {
         $attrs = ['noTeaser' => (bool) $noTeaser];
         if (!empty($customText)) {
             $attrs['customText'] = $customText;
@@ -659,8 +725,10 @@ class Parser
      * @param mixed $a
      * @return mixed
      */
-    private function peg_f3($blockName, $a)
-    {
+    private function peg_f3(
+        $blockName,
+        $a
+    ) {
         return $a;
     }
 
@@ -669,8 +737,10 @@ class Parser
      * @param mixed $attrs
      * @return mixed
      */
-    private function peg_f4($blockName, $attrs)
-    {
+    private function peg_f4(
+        $blockName,
+        $attrs
+    ) {
         return [
             'blockName' => $blockName,
             'attrs' => $attrs,
@@ -686,8 +756,11 @@ class Parser
      * @param mixed $e
      * @return mixed
      */
-    private function peg_f5($s, $children, $e)
-    {
+    private function peg_f5(
+        $s,
+        $children,
+        $e
+    ) {
         [$innerHTML, $innerBlocks] = peg_array_partition($children, 'is_string');
 
         return [
@@ -704,8 +777,10 @@ class Parser
      * @param mixed $attrs
      * @return mixed
      */
-    private function peg_f6($blockName, $attrs)
-    {
+    private function peg_f6(
+        $blockName,
+        $attrs
+    ) {
         return [
             'blockName' => $blockName,
             'attrs' => $attrs,
@@ -716,8 +791,9 @@ class Parser
      * @param mixed $blockName
      * @return mixed
      */
-    private function peg_f7($blockName)
-    {
+    private function peg_f7(
+        $blockName
+    ) {
         return [
             'blockName' => $blockName,
         ];
@@ -727,8 +803,9 @@ class Parser
      * @param mixed $type
      * @return mixed
      */
-    private function peg_f8($type)
-    {
+    private function peg_f8(
+        $type
+    ) {
         return "core/$type";
     }
 
@@ -736,8 +813,9 @@ class Parser
      * @param mixed $attrs
      * @return mixed
      */
-    private function peg_f9($attrs)
-    {
+    private function peg_f9(
+        $attrs
+    ) {
         return json_decode($attrs, true);
     }
 
