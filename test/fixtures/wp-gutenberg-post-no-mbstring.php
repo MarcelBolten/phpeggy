@@ -36,7 +36,7 @@ use function strlen;
 use function substr;
 use function usort;
 
-/* BEGIN Useful functions */
+/* BEGIN Utility functions */
 /* chr_unicode - get unicode character from its char code */
 if (!function_exists("PHPeggy\\chr_unicode")) {
     /** @param float|int $code */
@@ -82,7 +82,7 @@ if (!function_exists("PHPeggy\\peg_char_class_test")) {
         return false;
     }
 }
-/* END Useful functions */
+/* END Utility functions */
 
 /* BEGIN global initializer code */
 // The `maybeJSON` function is not needed in PHP because its return semantics

@@ -8,7 +8,7 @@
 
 declare(strict_types=1);
 
-/* BEGIN Useful functions */
+/* BEGIN Utility functions */
 /* chr_unicode - get unicode character from its char code */
 if (!function_exists("chr_unicode")) {
     /** @param float|int $code */
@@ -51,6 +51,7 @@ if (!function_exists("peg_regex_test")) {
         }
     }
 }
+/* END Utility functions */
 
 /* Syntax error exception */
 if (!class_exists("SyntaxError", false)) {

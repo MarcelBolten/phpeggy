@@ -5,7 +5,7 @@ module.exports = function(
   mbstringAllowed
 ) {
   return [
-    "/* BEGIN Useful functions */",
+    "/* BEGIN Utility functions */",
     "/* chr_unicode - get unicode character from its char code */",
     'if (!function_exists("' + phpGlobalNamePrefixOrNamespaceEscaped + 'chr_unicode")) {',
     "    /** @param float|int $code */",
@@ -56,7 +56,6 @@ module.exports = function(
           "        }",
           "    }",
           "}",
-          "",
         ]
       : [
           /*
@@ -79,8 +78,8 @@ module.exports = function(
           "        return false;",
           "    }",
           "}",
-          "/* END Useful functions */",
-          "",
         ],
+    "/* END Utility functions */",
+    "",
   ].join("\n");
 };

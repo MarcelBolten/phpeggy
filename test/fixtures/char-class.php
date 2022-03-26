@@ -40,7 +40,7 @@ use function strlen;
 use function substr;
 use function usort;
 
-/* BEGIN Useful functions */
+/* BEGIN Utility functions */
 /* chr_unicode - get unicode character from its char code */
 if (!function_exists("PHPeggy\\chr_unicode")) {
     /** @param float|int $code */
@@ -83,6 +83,7 @@ if (!function_exists("PHPeggy\\peg_regex_test")) {
         }
     }
 }
+/* END Utility functions */
 
 /* Syntax error exception */
 if (!class_exists("PHPeggy\\SyntaxError", false)) {
