@@ -635,6 +635,10 @@ module.exports = function(ast, options) {
     parts.push([
       "namespace " + phpNamespace + ";",
       "",
+      /* 
+       * Import all functions definately used by the generated parser
+       * and also import function frequently used in grammer files.
+       */
       "use function array_fill;",
       "use function array_merge;",
       "use function array_slice;",
