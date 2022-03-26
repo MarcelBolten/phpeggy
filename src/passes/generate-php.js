@@ -894,7 +894,7 @@ module.exports = function(ast, options) {
     "/**",
     " * @param string|array<int, string> $input",
     " * @param array<int, mixed> $args",
-    " * @throws Exception",
+    " * @throws " + phpGlobalNamespacePrefix + "Exception",
     " * @throws SyntaxError",
     " * @return mixed",
     " */",
