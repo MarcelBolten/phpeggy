@@ -635,7 +635,7 @@ module.exports = function(ast, options) {
     parts.push([
       "namespace " + phpNamespace + ";",
       "",
-      /* 
+      /*
        * Import all functions definately used by the generated parser
        * and also import function frequently used in grammer files.
        */
@@ -798,6 +798,7 @@ module.exports = function(ast, options) {
     "",
     '    $peg_startRuleFunction = $peg_startRuleFunctions[$options["startRule"]];',
     "}",
+    "",
   ].join("\n")));
 
   if (ast.initializer) {
@@ -806,36 +807,35 @@ module.exports = function(ast, options) {
     );
     if (initializerCode !== "") {
       parts.push(indent(8, [
-        "",
         "/* BEGIN initializer code */",
         initializerCode,
         "/* END initializer code */",
+        "",
       ].join("\n")));
     }
   }
 
   parts.push(indent(8, [
-    "",
     "/* @var mixed $peg_result */",
     "$peg_result = call_user_func($peg_startRuleFunction);",
+    "",
   ].join("\n")));
 
   if (options.cache) {
     parts.push(indent(8, [
-      "",
       "$this->peg_cache = [];",
+      "",
     ].join("\n")));
   }
 
   if (mbstringAllowed) {
     parts.push(indent(8, [
-      "",
       "mb_regex_encoding($old_regex_encoding);",
+      "",
     ].join("\n")));
   }
 
   parts.push(indent(8, [
-    "",
     "if ($peg_result !== $this->peg_FAILED && $this->peg_currPos === $this->input_length) {",
     "    // Free up memory",
     "    $this->cleanup_state();",
