@@ -29,7 +29,7 @@ const internalUtils = require("../utils");
 const phpeggyVersion = require("../../package.json").version;
 const peggyVersion = require("peggy/package.json").version;
 
-/* Load static parser parts */
+// Load static parser parts
 const syntaxErrorClass = require("./generate-php/syntax-error-class");
 const dataStorageClasses = require("./generate-php/data-storage-classes");
 const privateMethods = require("./generate-php/private-methods");
@@ -236,9 +236,11 @@ module.exports = function(ast, options) {
     }
 
     function inputSubstr(start, len) {
-      // If we can guarantee that `start` is within the bounds of
-      // the array, replace this with a direct array access when
-      // `len === 1`.  Currently we cannot guarantee this.
+      /*
+       * If we can guarantee that `start` is within the bounds of
+       * the array, replace this with a direct array access when
+       * `len === 1`.  Currently we cannot guarantee this.
+       */
       return "$this->input_substr(" + start + ", " + len + ")";
     }
 
@@ -759,14 +761,31 @@ module.exports = function(ast, options) {
     "    $options = $args[0] ?? [];",
     "    $this->cleanup_state();",
     "",
-    "    if (is_array($input)) {",
-    "        $this->input = $input;",
-    "    } else {",
-    '        preg_match_all("/./us", $input, $match);',
-    "        $this->input = $match[0];",
-    "    }",
-    "    $this->input_length = count($this->input);",
-    '    $this->peg_source = $options["grammarSource"] ?? "";',
+  ].join("\n")));
+
+  if (ast.initializer) {
+    const initializerCode = internalUtils.extractPhpCode(
+      ast.initializer.code.trim()
+    );
+    if (initializerCode !== "") {
+      parts.push(indent(8, [
+        "/* BEGIN initializer code */",
+        initializerCode,
+        "/* END initializer code */",
+        "",
+      ].join("\n")));
+    }
+  }
+
+  parts.push(indent(8, [
+    "if (is_array($input)) {",
+    "    $this->input = $input;",
+    "} else {",
+    '    preg_match_all("/./us", $input, $match);',
+    "    $this->input = $match[0];",
+    "}",
+    "$this->input_length = count($this->input);",
+    '$this->peg_source = $options["grammarSource"] ?? "";',
     "",
   ].join("\n")));
 
@@ -800,20 +819,6 @@ module.exports = function(ast, options) {
     "}",
     "",
   ].join("\n")));
-
-  if (ast.initializer) {
-    const initializerCode = internalUtils.extractPhpCode(
-      ast.initializer.code.trim()
-    );
-    if (initializerCode !== "") {
-      parts.push(indent(8, [
-        "/* BEGIN initializer code */",
-        initializerCode,
-        "/* END initializer code */",
-        "",
-      ].join("\n")));
-    }
-  }
 
   parts.push(indent(8, [
     "/* @var mixed $peg_result */",
