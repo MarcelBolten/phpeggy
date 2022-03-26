@@ -30,10 +30,11 @@ const phpeggyVersion = require("../../package.json").version;
 const peggyVersion = require("peggy/package.json").version;
 
 // Load static parser parts
+const utilityFunctions = require("./generate-php/utility-functions");
+const phpImports = require("./generate-php/php-imports");
 const syntaxErrorClass = require("./generate-php/syntax-error-class");
 const dataStorageClasses = require("./generate-php/data-storage-classes");
 const privateMethods = require("./generate-php/private-methods");
-const utilityFunctions = require("./generate-php/utility-functions");
 
 /* Generates parser PHP code. */
 module.exports = function(ast, options) {
@@ -637,39 +638,7 @@ module.exports = function(ast, options) {
     parts.push([
       "namespace " + phpNamespace + ";",
       "",
-      /*
-       * Import all functions definately used by the generated parser
-       * and also import function frequently used in grammer files.
-       */
-      "use function array_fill;",
-      "use function array_merge;",
-      "use function array_slice;",
-      "use function array_splice;",
-      "use function call_user_func;",
-      "use function class_exists;",
-      "use function count;",
-      "use function floatval;",
-      "use function floor;",
-      "use function function_exists;",
-      "use function hexdec;",
-      "use function html_entity_decode;",
-      "use function implode;",
-      "use function intval;",
-      "use function json_encode;",
-      "use function log10;",
-      ...mbstringAllowed
-        ? ["use function mb_eregi;", "use function mb_regex_encoding;", "use function mb_strlen;", "use function mb_strtolower;"]
-        : [],
-      "use function min;",
-      "use function ord;",
-      "use function preg_match_all;",
-      "use function preg_split;",
-      "use function str_repeat;",
-      "use function str_replace;",
-      "use function strlen;",
-      "use function substr;",
-      "use function usort;",
-      "",
+      phpImports(mbstringAllowed),
     ].join("\n"));
   }
 
