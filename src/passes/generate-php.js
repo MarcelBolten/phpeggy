@@ -28,6 +28,9 @@ const op = require("../opcodes");
 const internalUtils = require("../utils");
 const phpeggyVersion = require("../../package.json").version;
 const peggyVersion = require("peggy/package.json").version;
+
+/* Load static parser parts */
+const syntaxErrorClass = require("./generate-php/syntax-error-class");
 const dataStorageClasses = require("./generate-php/data-storage-classes");
 const privateMethods = require("./generate-php/private-methods");
 const utilityFunctions = require("./generate-php/utility-functions");
@@ -683,92 +686,10 @@ module.exports = function(ast, options) {
     }
   }
 
-  parts.push([
-    "/* Syntax error exception */",
-    'if (!class_exists("' + phpGlobalNamePrefixOrNamespaceEscaped + 'SyntaxError", false)) {',
-    "    class SyntaxError extends " + phpGlobalNamespacePrefix + "Exception",
-    "    {",
-    '        public string $name = "SyntaxError";',
-    "        public ?array $expected;",
-    "        public string $found;",
-    "        public int $grammarOffset;",
-    "        public int $grammarLine;",
-    "        public int $grammarColumn;",
-    "        public pegLocation $location;",
-    "",
-    "        /**",
-    "         * @param array<int, pegExpectation>|null $expected",
-    "         */",
-    "        public function __construct(",
-    "            ?string $message,",
-    "            ?array $expected,",
-    "            string $found,",
-    "            int $offset,",
-    "            int $line,",
-    "            int $column,",
-    "            pegLocation $location",
-    "        ) {",
-    '            parent::__construct($message ?? "", 0);',
-    "            $this->expected = $expected;",
-    "            $this->found = $found;",
-    "            $this->grammarOffset = $offset;",
-    "            $this->grammarLine = $line;",
-    "            $this->grammarColumn = $column;",
-    "            $this->location = $location;",
-    "        }",
-    "",
-    "        /**",
-    "         * @param array<int, array<string, string>> $sources",
-    "         */",
-    "        public function format(",
-    "            array $sources",
-    // $sources = [["source" => "User input", "text" => $user_input], ["source" => "User input2", "text" => $user_input2]]
-    "        ): string {",
-    '            $str = $this->name . ": " . $this->message;',
-    "            if (!empty($this->location->source)) {",
-    "                $src = null;",
-    "                for ($k = 0; $k < count($sources); $k++) {",
-    '                    if ($sources[$k]["source"] === $this->location->source) {',
-    '                        $src = preg_split("/\\r\\n|\\n|\\r/", $sources[$k]["text"]);',
-    "                        break;",
-    "                    }",
-    "                }",
-    "                $start = $this->location->start;",
-    '                $loc = $this->location->source . ":" . $start->line . ":" . $start->column;',
-    "                if ($src) {",
-    "                    $end = $this->location->end;",
-    '                    $filler = $this->peg_padEnd("", $start->line !== 0 ? (int) floor(log10($start->line) + 1) : 1);',
-    "                    $line = $src[$start->line - 1];",
-    "                    $last = $start->line === $end->line ? $end->column : strlen($line) + 1;",
-    "                    $hatLen = $last - $start->column ?: 1;",
-    '                    $str .= "\\n --> " . $loc . "\\n"',
-    '                        . $filler . " |\\n"',
-    '                        . $start->line . " | " . $line . "\\n"',
-    '                        . $filler . " | " . $this->peg_padEnd("", $start->column - 1)',
-    '                        . $this->peg_padEnd("", $hatLen, "^");',
-    "                } else {",
-    '                    $str .= "\\n at " . $loc;',
-    "                }",
-    "            }",
-    "            return $str;",
-    "        }",
-    "",
-    "        private function peg_padEnd(",
-    "            string $str,",
-    "            int $targetLength,",
-    '            string $padString = " "',
-    "        ): string {",
-    "            if (strlen($str) > $targetLength) {",
-    "                return $str;",
-    "            }",
-    "            $targetLength -= strlen($str);",
-    "            $padString .= str_repeat($padString, $targetLength);",
-    "            return $str . substr($padString, 0, $targetLength);",
-    "        }",
-    "    }",
-    "}",
-    "",
-  ].join("\n"));
+  parts.push(syntaxErrorClass(
+    phpGlobalNamePrefixOrNamespaceEscaped,
+    phpGlobalNamespacePrefix
+  ));
 
   parts.push(dataStorageClasses(phpGlobalNamePrefixOrNamespaceEscaped));
 
