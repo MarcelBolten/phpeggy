@@ -80,7 +80,7 @@ module.exports = function(ast, options) {
       } else {
         /*
          * IE considers regexps /[]/ and /[^]/ as syntactically invalid, so we
-         * translate them into euqivalents it can handle.
+         * translate them into equivalents it can handle.
          */
         regexp = cls.inverted ? "/^[\\S\\s]/" : "/^(?!)/";
       }
