@@ -60,9 +60,9 @@ if (!function_exists("PHPeggy\\ord_unicode")) {
         if (substr($json, 7, 2) === "\u") {
             $utf16_2 = (int) hexdec(substr($json, 9, 4));
             return 0x10000 + (($utf16_1 & 0x3ff) << 10) + ($utf16_2 & 0x3ff);
-        } else {
-            return $utf16_1;
         }
+
+        return $utf16_1;
     }
 }
 
@@ -79,6 +79,7 @@ if (!function_exists("PHPeggy\\peg_char_class_test")) {
                 return true;
             }
         }
+
         return false;
     }
 }
@@ -614,11 +615,13 @@ class Parser
     ): int {
         if ($a->description < $b->description) {
             return -1;
-        } elseif ($a->description > $b->description) {
-            return 1;
-        } else {
-            return 0;
         }
+
+        if ($a->description > $b->description) {
+            return 1;
+        }
+
+        return 0;
     }
 
     /** @param array<int, pegExpectation>|null $expected */

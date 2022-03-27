@@ -64,9 +64,9 @@ if (!function_exists("PHPeggy\\ord_unicode")) {
         if (substr($json, 7, 2) === "\u") {
             $utf16_2 = (int) hexdec(substr($json, 9, 4));
             return 0x10000 + (($utf16_1 & 0x3ff) << 10) + ($utf16_2 & 0x3ff);
-        } else {
-            return $utf16_1;
         }
+
+        return $utf16_1;
     }
 }
 
@@ -76,11 +76,11 @@ if (!function_exists("PHPeggy\\peg_regex_test")) {
         string $pattern,
         string $string
     ): bool {
-        if (substr($pattern, -1) === "i") {
+        if ($pattern[-1] === "i") {
             return (bool) mb_eregi(substr($pattern, 1, -2), $string);
-        } else {
-            return (bool) mb_ereg(substr($pattern, 1, -1), $string);
         }
+
+        return (bool) mb_ereg(substr($pattern, 1, -1), $string);
     }
 }
 /* END Utility functions */
@@ -615,11 +615,13 @@ class Parser
     ): int {
         if ($a->description < $b->description) {
             return -1;
-        } elseif ($a->description > $b->description) {
-            return 1;
-        } else {
-            return 0;
         }
+
+        if ($a->description > $b->description) {
+            return 1;
+        }
+
+        return 0;
     }
 
     /** @param array<int, pegExpectation>|null $expected */
