@@ -60,7 +60,7 @@ module.exports = function(
       : [
           /*
            * Case-insensitive character classes are disallowed via passes.check in file
-           * `reportMbstringIncompatibility.js` if the `mbstringAllowed` option is set to false.
+           * `report-mbstring-incompatibility.js` if the `mbstringAllowed` option is set to false.
            */
           "/* peg_char_class_test - simple character class test */",
           'if (!function_exists("' + phpGlobalNamePrefixOrNamespaceEscaped + 'peg_char_class_test")) {',
