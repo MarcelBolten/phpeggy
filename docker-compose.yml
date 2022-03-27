@@ -22,6 +22,8 @@ services:
       context: .
       dockerfile: docker/Dockerfile
     volumes:
+      - ./docker/xdebug.ini:/usr/local/etc/php/conf.d/xdebug.ini
+      - ./docker/xdebug_out:/tmp/xdebug_out
       - phpeggy-data:/app
 
 volumes:

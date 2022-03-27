@@ -3,7 +3,7 @@
 ARG COMPOSER_VERSION=2.2.7
 FROM composer:${COMPOSER_VERSION} AS composerVersionWorkaround
 
-FROM php:8.0.16-fpm-alpine3.14
+FROM php:8.0.17-fpm-alpine3.15
 
 ARG PHAN_VERSION=5.3.2
 ARG PHP_DOCUMENTOR_VERSION=v3.3.0
@@ -26,6 +26,10 @@ RUN chmod +rx /usr/bin/phpmetrics
 ENV COMPOSER_HOME=/composer
 COPY --from=composerVersionWorkaround /usr/bin/composer /usr/bin/composer
 
-RUN apk upgrade -U -a && apk add --no-cache npm
+RUN apk upgrade -U -a && apk add --no-cache \
+    npm \
+    php8-pecl-xdebug
+
+RUN ln -s /usr/lib/php8/modules/xdebug.so /usr/local/lib/php/extensions/no-debug-non-zts-20200930/
 
 WORKDIR /app
