@@ -49,7 +49,7 @@ module.exports = function(
           "        string $pattern,",
           "        string $string",
           "    ): bool {",
-          '        if (substr($pattern, -1) === "i") {',
+          '        if ($pattern[-1] === "i") {',
           "            return (bool) mb_eregi(substr($pattern, 1, -2), $string);",
           "        }",
           "",
