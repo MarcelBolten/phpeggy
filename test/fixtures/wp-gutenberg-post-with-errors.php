@@ -566,15 +566,7 @@ class Parser
         pegExpectation $a,
         pegExpectation $b
     ): int {
-        if ($a->description < $b->description) {
-            return -1;
-        }
-
-        if ($a->description > $b->description) {
-            return 1;
-        }
-
-        return 0;
+        return $a->description <=> $b->description;
     }
 
     /** @param array<int, pegExpectation>|null $expected */
