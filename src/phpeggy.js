@@ -35,10 +35,10 @@ exports.use = function(config, options) {
   if (!options.phpeggy) {
     options.phpeggy = {};
   }
-  if (options.phpeggy.parserNamespace === undefined) {
+  if (typeof options.phpeggy.parserNamespace === "undefined") {
     options.phpeggy.parserNamespace = "PHPeggy";
   }
-  if (options.phpeggy.parserClassName === undefined) {
+  if (typeof options.phpeggy.parserClassName === "undefined") {
     options.phpeggy.parserClassName = "Parser";
   }
   if (typeof options.phpeggy.mbstringAllowed === "undefined") {
