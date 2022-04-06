@@ -15,7 +15,7 @@ $output = null;
 $classname = null;
 $parsing_time = null;
 $error = null;
-$errorFormated = null;
+$errorFormatted = null;
 
 if (isset($_POST["code"], $_POST["parser"]) && isset($examples[$_POST["parser"]])) {
     $classname = $_POST["parser"];
@@ -34,7 +34,7 @@ if (isset($_POST["code"], $_POST["parser"]) && isset($examples[$_POST["parser"]]
             $pass = true;
         } catch (Parser\SyntaxError $ex) {
             $error = "Syntax error: " . $ex->getMessage() . " At line " . $ex->grammarLine . " column " . $ex->grammarColumn . " offset " . $ex->grammarOffset;
-            $errorFormated = print_r($ex->format(array(array("source" => "Input string", "text" => $_POST["code"]))), true);
+            $errorFormatted = print_r($ex->format(array(array("source" => "Input string", "text" => $_POST["code"]))), true);
         }
         if ($pass && isset($_POST["repetitions"])) {
             $repetitions = min(ceil(10/($end1-$start1)), 1000);
@@ -129,7 +129,7 @@ if (isset($_POST["code"], $_POST["parser"]) && isset($examples[$_POST["parser"]]
                 ?></div>
                 <?php
                     if ($error) echo "<div class=\"error\">" . htmlspecialchars($error) . "</div>";
-                    if ($errorFormated) echo "<div class=\"error\"><pre>" . htmlspecialchars($errorFormated) . "</pre></div>";
+                    if ($errorFormatted) echo "<div class=\"error\"><pre>" . htmlspecialchars($errorFormatted) . "</pre></div>";
                     if ($parsing_time !== null) {
                         echo sprintf("<h2>Parsing time: %1.2e s.</h2>", $parsing_time/$repetitions);
                         if (isset($_POST["repetitions"])) {
