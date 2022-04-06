@@ -32,12 +32,6 @@ exports.use = function(config, options) {
     require("./passes/generate-php"),
   ];
   options.output = "source";
-  if (options.phppegjs) {
-    options.phpeggy = options.phppegjs;
-  }
-  if (options.phpegjs) {
-    options.phpeggy = options.phpegjs;
-  }
   if (!options.phpeggy) {
     options.phpeggy = {};
   }
