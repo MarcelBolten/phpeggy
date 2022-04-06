@@ -10,59 +10,29 @@ declare(strict_types=1);
 
 namespace PHPeggy;
 
-use function array_fill;
-use function array_merge;
-use function array_slice;
-use function array_splice;
-use function call_user_func;
-use function class_exists;
-use function count;
-use function floatval;
-use function floor;
-use function function_exists;
-use function hexdec;
-use function html_entity_decode;
-use function implode;
-use function intval;
-use function json_encode;
-use function log10;
-use function mb_eregi;
-use function mb_regex_encoding;
-use function mb_strlen;
-use function mb_strtolower;
-use function min;
-use function ord;
-use function preg_match_all;
-use function preg_split;
-use function str_repeat;
-use function str_replace;
-use function strlen;
-use function substr;
-use function usort;
-
 /* BEGIN Utility functions */
 /* chr_unicode - get unicode character from its char code */
-if (!function_exists("PHPeggy\\chr_unicode")) {
+if (!\function_exists("PHPeggy\\chr_unicode")) {
     /** @param float|int $code */
     function chr_unicode(
         $code
     ): string {
-        return html_entity_decode("&#" . (int) $code .";", ENT_QUOTES, "UTF-8");
+        return \html_entity_decode("&#" . (int) $code .";", ENT_QUOTES, "UTF-8");
     }
 }
 
 /* ord_unicode - get unicode char code from string */
-if (!function_exists("PHPeggy\\ord_unicode")) {
+if (!\function_exists("PHPeggy\\ord_unicode")) {
     function ord_unicode(
         string $character
     ): int {
-        if (strlen($character) === 1) {
-            return ord($character);
+        if (\strlen($character) === 1) {
+            return \ord($character);
         }
-        $json = json_encode($character, JSON_THROW_ON_ERROR);
-        $utf16_1 = (int) hexdec(substr($json, 3, 4));
+        $json = \json_encode($character, JSON_THROW_ON_ERROR);
+        $utf16_1 = (int) \hexdec(substr($json, 3, 4));
         if (substr($json, 7, 2) === "\u") {
-            $utf16_2 = (int) hexdec(substr($json, 9, 4));
+            $utf16_2 = (int) \hexdec(\substr($json, 9, 4));
             return 0x10000 + (($utf16_1 & 0x3ff) << 10) + ($utf16_2 & 0x3ff);
         }
 
@@ -71,16 +41,16 @@ if (!function_exists("PHPeggy\\ord_unicode")) {
 }
 
 /* peg_regex_test - multibyte regex test */
-if (!function_exists("PHPeggy\\peg_regex_test")) {
+if (!\function_exists("PHPeggy\\peg_regex_test")) {
     function peg_regex_test(
         string $pattern,
         string $string
     ): bool {
         if ($pattern[-1] === "i") {
-            return (bool) mb_eregi(substr($pattern, 1, -2), $string);
+            return (bool) \mb_eregi(\substr($pattern, 1, -2), $string);
         }
 
-        return (bool) mb_ereg(substr($pattern, 1, -1), $string);
+        return (bool) \mb_ereg(\substr($pattern, 1, -1), $string);
     }
 }
 /* END Utility functions */
@@ -91,7 +61,7 @@ if (!function_exists("PHPeggy\\peg_regex_test")) {
 /* END global initializer code */
 
 /* Syntax error exception */
-if (!class_exists("PHPeggy\\SyntaxError", false)) {
+if (!\class_exists("PHPeggy\\SyntaxError", false)) {
     class SyntaxError extends \Exception
     {
         public string $name = "SyntaxError";
@@ -132,9 +102,9 @@ if (!class_exists("PHPeggy\\SyntaxError", false)) {
             $str = $this->name . ": " . $this->message;
             if (!empty($this->location->source)) {
                 $src = null;
-                for ($k = 0; $k < count($sources); $k++) {
+                for ($k = 0; $k < \count($sources); $k++) {
                     if ($sources[$k]["source"] === $this->location->source) {
-                        $src = preg_split("/\r\n|\n|\r/", $sources[$k]["text"]);
+                        $src = \preg_split("/\r\n|\n|\r/", $sources[$k]["text"]);
                         break;
                     }
                 }
@@ -142,9 +112,9 @@ if (!class_exists("PHPeggy\\SyntaxError", false)) {
                 $loc = $this->location->source . ":" . $start->line . ":" . $start->column;
                 if ($src) {
                     $end = $this->location->end;
-                    $filler = $this->peg_padEnd("", $start->line !== 0 ? (int) floor(log10($start->line) + 1) : 1);
+                    $filler = $this->peg_padEnd("", $start->line !== 0 ? (int) \floor(\log10($start->line) + 1) : 1);
                     $line = $src[$start->line - 1];
-                    $last = $start->line === $end->line ? $end->column : strlen($line) + 1;
+                    $last = $start->line === $end->line ? $end->column : \strlen($line) + 1;
                     $hatLen = $last - $start->column ?: 1;
                     $str .= "\n --> " . $loc . "\n"
                         . $filler . " |\n"
@@ -163,17 +133,17 @@ if (!class_exists("PHPeggy\\SyntaxError", false)) {
             int $targetLength,
             string $padString = " "
         ): string {
-            if (strlen($str) > $targetLength) {
+            if (\strlen($str) > $targetLength) {
                 return $str;
             }
-            $targetLength -= strlen($str);
-            $padString .= str_repeat($padString, $targetLength);
-            return $str . substr($padString, 0, $targetLength);
+            $targetLength -= \strlen($str);
+            $padString .= \str_repeat($padString, $targetLength);
+            return $str . \substr($padString, 0, $targetLength);
         }
     }
 }
 
-if (!class_exists("PHPeggy\\pegExpectation", false)) {
+if (!\class_exists("PHPeggy\\pegExpectation", false)) {
     class pegExpectation
     {
         public ?string $type;
@@ -195,7 +165,7 @@ if (!class_exists("PHPeggy\\pegExpectation", false)) {
     }
 }
 
-if (!class_exists("PHPeggy\\pegCacheItem", false)) {
+if (!\class_exists("PHPeggy\\pegCacheItem", false)) {
     class pegCacheItem
     {
         public int $nextPos;
@@ -213,7 +183,7 @@ if (!class_exists("PHPeggy\\pegCacheItem", false)) {
     }
 }
 
-if (!class_exists("PHPeggy\\pegCachedPosDetails", false)) {
+if (!\class_exists("PHPeggy\\pegCachedPosDetails", false)) {
     class pegCachedPosDetails
     {
         public int $line;
@@ -232,7 +202,7 @@ if (!class_exists("PHPeggy\\pegCachedPosDetails", false)) {
     }
 }
 
-if (!class_exists("PHPeggy\\pegLocation", false)) {
+if (!\class_exists("PHPeggy\\pegLocation", false)) {
     class pegLocation
     {
         public string $source;
@@ -251,7 +221,7 @@ if (!class_exists("PHPeggy\\pegLocation", false)) {
     }
 }
 
-if (!class_exists("PHPeggy\\pegPosition", false)) {
+if (!\class_exists("PHPeggy\\pegPosition", false)) {
     class pegPosition
     {
         public int $offset;
@@ -270,7 +240,7 @@ if (!class_exists("PHPeggy\\pegPosition", false)) {
     }
 }
 
-if (!class_exists("PHPeggy\\pegRange", false)) {
+if (!\class_exists("PHPeggy\\pegRange", false)) {
     class pegRange
     {
         public string $source;
@@ -374,14 +344,14 @@ class Parser
         if (is_array($input)) {
             $this->input = $input;
         } else {
-            preg_match_all("/./us", $input, $match);
+            \preg_match_all("/./us", $input, $match);
             $this->input = $match[0];
         }
-        $this->input_length = count($this->input);
+        $this->input_length = \count($this->input);
         $this->peg_source = $options["grammarSource"] ?? "";
 
-        $old_regex_encoding = (string) mb_regex_encoding();
-        mb_regex_encoding("UTF-8");
+        $old_regex_encoding = (string) \mb_regex_encoding();
+        \mb_regex_encoding("UTF-8");
 
         $peg_startRuleFunctions = ["Document" => [$this, "peg_parse_Document"]];
         $peg_startRuleFunction = [$this, "peg_parse_Document"];
@@ -394,9 +364,9 @@ class Parser
         }
 
         /* @var mixed $peg_result */
-        $peg_result = call_user_func($peg_startRuleFunction);
+        $peg_result = \call_user_func($peg_startRuleFunction);
 
-        mb_regex_encoding($old_regex_encoding);
+        \mb_regex_encoding($old_regex_encoding);
 
         if ($peg_result !== $this->peg_FAILED && $this->peg_currPos === $this->input_length) {
             // Free up memory
@@ -435,7 +405,7 @@ class Parser
             return $this->input[$start];
         }
         $substr = "";
-        $max = min($start + $length, $this->input_length);
+        $max = \min($start + $length, $this->input_length);
         for ($i = $start; $i < $max; $i++) {
             $substr .= $this->input[$i];
         }
@@ -464,7 +434,7 @@ class Parser
         $end = $this->peg_currPos;
         if ($fail) {
             $start = $this->peg_maxFailPos;
-            $end = $this->peg_maxFailPos + ($this->peg_maxFailPos < count($this->input) ? 1 : 0);
+            $end = $this->peg_maxFailPos + ($this->peg_maxFailPos < \count($this->input) ? 1 : 0);
         }
         $compute_pd_start = clone $this->peg_computePosDetails($start);
         $compute_pd_end = clone $this->peg_computePosDetails($end);
@@ -579,11 +549,11 @@ class Parser
         $found = $pos < $this->input_length ? $this->input[$pos] : null;
 
         if ($expected !== null) {
-            usort($expected, [$this, "peg_buildException_expectedComparator"]);
+            \usort($expected, [$this, "peg_buildException_expectedComparator"]);
             $i = 1;
-            while ($i < count($expected)) {
+            while ($i < \count($expected)) {
                 if ($expected[$i - 1] === $expected[$i]) {
-                    array_splice($expected, $i, 1);
+                    \array_splice($expected, $i, 1);
                 } else {
                     $i++;
                 }
@@ -591,19 +561,19 @@ class Parser
         }
 
         if ($message === null && $expected !== null) {
-            $expectedDescs = array_fill(0, count($expected), null);
+            $expectedDescs = \array_fill(0, \count($expected), null);
 
-            for ($i = 0; $i < count($expected); $i++) {
+            for ($i = 0; $i < \count($expected); $i++) {
                 $expectedDescs[$i] = $expected[$i]->description;
             }
 
-            $expectedDesc = count($expected) > 1
-                ? join(", ", array_slice($expectedDescs, 0, -1))
+            $expectedDesc = \count($expected) > 1
+                ? join(", ", \array_slice($expectedDescs, 0, -1))
                     . " or "
-                    . ($expectedDescs[count($expected) - 1] ?? "")
+                    . ($expectedDescs[\count($expected) - 1] ?? "")
                 : $expectedDescs[0] ?? "";
 
-            $foundDesc = $found ? json_encode($found) : "end of input";
+            $foundDesc = $found ? \json_encode($found) : "end of input";
 
             $message = "Expected " . $expectedDesc . " but " . $foundDesc . " found.";
         }

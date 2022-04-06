@@ -31,7 +31,6 @@ const peggyVersion = require("peggy/package.json").version;
 
 // Load static parser parts
 const utilityFunctions = require("./generate-php/utility-functions");
-const phpImports = require("./generate-php/php-imports");
 const syntaxErrorClass = require("./generate-php/syntax-error-class");
 const dataStorageClasses = require("./generate-php/data-storage-classes");
 const privateMethods = require("./generate-php/private-methods");
@@ -491,7 +490,7 @@ module.exports = function(ast, options) {
 
           case op.MATCH_STRING_IC:   // MATCH_STRING_IC s, a, f, ...
             compileCondition(
-              "mb_strtolower("
+              "\\mb_strtolower("
               + inputSubstr(
                 "$this->peg_currPos",
                 ast.literals[bc[ip + 1]].length
@@ -638,7 +637,6 @@ module.exports = function(ast, options) {
     parts.push([
       "namespace " + phpNamespace + ";",
       "",
-      phpImports(mbstringAllowed),
     ].join("\n"));
   }
 
@@ -752,18 +750,18 @@ module.exports = function(ast, options) {
     "if (is_array($input)) {",
     "    $this->input = $input;",
     "} else {",
-    '    preg_match_all("/./us", $input, $match);',
+    '    \\preg_match_all("/./us", $input, $match);',
     "    $this->input = $match[0];",
     "}",
-    "$this->input_length = count($this->input);",
+    "$this->input_length = \\count($this->input);",
     '$this->peg_source = $options["grammarSource"] ?? "";',
     "",
   ].join("\n")));
 
   if (mbstringAllowed) {
     parts.push(indent(8, [
-      "$old_regex_encoding = (string) mb_regex_encoding();",
-      'mb_regex_encoding("UTF-8");',
+      "$old_regex_encoding = (string) \\mb_regex_encoding();",
+      '\\mb_regex_encoding("UTF-8");',
       "",
     ].join("\n")));
   }
@@ -790,7 +788,7 @@ module.exports = function(ast, options) {
     "}",
     "",
     "/* @var mixed $peg_result */",
-    "$peg_result = call_user_func($peg_startRuleFunction);",
+    "$peg_result = \\call_user_func($peg_startRuleFunction);",
     "",
   ].join("\n")));
 
@@ -803,7 +801,7 @@ module.exports = function(ast, options) {
 
   if (mbstringAllowed) {
     parts.push(indent(8, [
-      "mb_regex_encoding($old_regex_encoding);",
+      "\\mb_regex_encoding($old_regex_encoding);",
       "",
     ].join("\n")));
   }
