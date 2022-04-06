@@ -47,4 +47,7 @@ exports.use = function(config, options) {
   if (options.phpeggy.parserClassName === undefined) {
     options.phpeggy.parserClassName = "Parser";
   }
+  if (typeof options.phpeggy.mbstringAllowed === "undefined") {
+    options.phpeggy.mbstringAllowed = true;
+  }
 };

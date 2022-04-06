@@ -3,11 +3,7 @@
 const visitor = require("peggy/lib/compiler/visitor");
 
 module.exports = function(ast, options) {
-  const mbstringAllowed = (
-    typeof options.phpeggy.mbstringAllowed === "undefined"
-      ? true
-      : options.phpeggy.mbstringAllowed
-  );
+  const mbstringAllowed = options.phpeggy.mbstringAllowed;
 
   function ciErrorMessage(type) {
     return "Case-insensitive " + type + " matching requires the "

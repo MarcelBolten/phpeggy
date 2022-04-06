@@ -40,6 +40,7 @@ module.exports = function(ast, options) {
   let phpGlobalNamespacePrefix, phpGlobalNamePrefixOrNamespaceEscaped;
   const phpNamespace = options.phpeggy.parserNamespace;
   const phpParserClass = options.phpeggy.parserClassName;
+  const mbstringAllowed = options.phpeggy.mbstringAllowed;
   if (phpNamespace) {
     phpGlobalNamespacePrefix = "\\";
     // For use within double quoted strings inside generated code, ensure there is a double backslash
@@ -48,12 +49,6 @@ module.exports = function(ast, options) {
     phpGlobalNamespacePrefix = "";
     phpGlobalNamePrefixOrNamespaceEscaped = "";
   }
-
-  const mbstringAllowed = (
-    typeof options.phpeggy.mbstringAllowed === "undefined"
-      ? true
-      : options.phpeggy.mbstringAllowed
-  );
 
   /* Only indent non-empty lines to avoid trailing whitespace. */
   function indent(numberOfSpaces, code) {
