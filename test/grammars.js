@@ -55,9 +55,9 @@ if (!match) {
 console.log("PHP version: " + match[0].trim());
 const major = Number(match[1]);
 const minor = Number(match[2]);
-if (major < 7 || (major === 7 && minor < 3)) {
+if (major < 7 || (major === 7 && minor < 4)) {
   throw new Error(
-    "This library requires at least PHP 7.3."
+    "This library requires at least PHP 7.4."
   );
 }
 console.log("Running tests");
