@@ -53,7 +53,7 @@ WP_Block_Balanced
     return [
         'blockName' => $s['blockName'],
         'attrs' => $s['attrs'],
-        'rawContent' => implode('', $ts),
+        'rawContent' => \implode('', $ts),
     ];
     ?> **/
 
@@ -100,7 +100,7 @@ WP_Block_Name
 WP_Block_Attributes
   = attrs:$("{" (!("}" WS+ """/"? "-->") .)* "}")
   {
-    /** <?php return json_decode($attrs, true); ?> **/
+    /** <?php return \json_decode($attrs, true); ?> **/
     return maybeJSON(attrs);
   }
 

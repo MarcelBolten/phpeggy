@@ -51,14 +51,14 @@
 // are the same as `json_decode`
 
 // array arguments are backwards because of PHP
-if (!function_exists(__NAMESPACE__ . "\\peg_array_partition")) {
+if (!\function_exists(__NAMESPACE__ . "\\peg_array_partition")) {
     function peg_array_partition(array $array, callable $predicate): array
     {
         $truthy = [];
         $falsey = [];
 
         foreach ($array as $item) {
-            call_user_func($predicate, $item)
+            \call_user_func($predicate, $item)
                 ? $truthy[] = $item
                 : $falsey[] = $item;
         }
@@ -67,7 +67,7 @@ if (!function_exists(__NAMESPACE__ . "\\peg_array_partition")) {
     }
 }
 
-if (!function_exists(__NAMESPACE__ . "\\peg_join_blocks")) {
+if (!\function_exists(__NAMESPACE__ . "\\peg_join_blocks")) {
     function peg_join_blocks(string $pre, array $tokens, string $post): array
     {
         $blocks = [];
@@ -229,7 +229,7 @@ Block_Balanced
         'blockName' => $s['blockName'],
         'attrs' => $s['attrs'],
         'innerBlocks' => $innerBlocks,
-        'innerHTML' => implode('', $innerHTML),
+        'innerHTML' => \implode('', $innerHTML),
         'outerHTML' => $this->text(),
     ];
     ?> **/
@@ -300,7 +300,7 @@ Block_Name_Part
 Block_Attributes
   = attrs:$("{" (!("}" WS+ """/"? "-->") .)* "}")
   {
-    /** <?php return json_decode($attrs, true); ?> **/
+    /** <?php return \json_decode($attrs, true); ?> **/
     return maybeJSON(attrs);
   }
 

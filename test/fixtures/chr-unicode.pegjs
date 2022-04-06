@@ -8,7 +8,7 @@ Thing
 
 Chr_Unicode_Test
   = "\\x" hex_code:[0-9a-f]i+ {
-    $chr = chr_unicode(hexdec(implode('', $hex_code)));
+    $chr = chr_unicode(\hexdec(\implode('', $hex_code)));
     return [
       'chr' => $chr,
       'ord' => ord_unicode($chr),
@@ -17,10 +17,10 @@ Chr_Unicode_Test
 
 Comment
   = delim:"//" text:[^\r\n]* {
-    return $delim . implode('', $text);
+    return $delim . \implode('', $text);
   }
 
 Whitespace
   = content:[ \t\r\n]+ {
-    return implode('', $content);
+    return \implode('', $content);
   }

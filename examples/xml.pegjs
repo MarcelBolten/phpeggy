@@ -3,7 +3,7 @@
 //
 // See: https://www.w3.org/TR/REC-xml/
 {{
-if (!function_exists(__NAMESPACE__ . "\\add")) {
+if (!\function_exists(__NAMESPACE__ . "\\add")) {
     function add($obj, $props) {
         foreach ($props as $key => $value) {
             if ($value) {
@@ -14,12 +14,12 @@ if (!function_exists(__NAMESPACE__ . "\\add")) {
     }
 }
 
-if (!function_exists(__NAMESPACE__ . "\\clumpStrings")) {
+if (!\function_exists(__NAMESPACE__ . "\\clumpStrings")) {
     function clumpStrings($vals) {
         $ret = [];
         $lastStr = '';
         foreach ($vals as $val) {
-            if (is_string($val)) {
+            if (\is_string($val)) {
                 $lastStr += $val;
             } else {
                 if ($lastStr) {
@@ -43,7 +43,7 @@ if (!function_exists(__NAMESPACE__ . "\\convertAttr")) {
     function convertAttr($attrs) {
         $ret = [];
         foreach ($attrs as $attr) {
-            if (array_key_exists($attr["name"], $ret)) {
+            if (\array_key_exists($attr["name"], $ret)) {
                 $this->error("Duplicate attribute $name");
             }
             $ret[$attr["name"]] = $attr["value"];
@@ -205,7 +205,7 @@ DeclSep
 intSubset
   = sub:(markupdecl / DeclSep)*
   {
-      return array_filter($sub);
+      return \array_filter($sub);
   }
 
 markupdecl
@@ -444,7 +444,7 @@ CharRef
   {
       return [
           "type" => "charref",
-          "value" => intval($value, 10),
+          "value" => \intval($value, 10),
           "base" => 10,
       ];
   }
@@ -453,7 +453,7 @@ CharRef
   {
       return [
           "type" => "charref",
-          "value" => intval($value, 16),
+          "value" => \intval($value, 16),
           "base" => 16,
       ];
   }

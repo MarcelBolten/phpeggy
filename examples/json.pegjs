@@ -17,7 +17,7 @@ members
   = head:pair tail:("," _ pair)* {
       $result = [];
       $result[$head[0]] = $head[1];
-      for ($i = 0; $i < count($tail); $i++) {
+      for ($i = 0; $i < \count($tail); $i++) {
         $result[$tail[$i][2][0]] = $tail[$i][2][1];
       }
       return $result;
@@ -33,7 +33,7 @@ array
 elements
   = head:value tail:("," _ value)* {
       $result = [$head];
-      for ($i = 0; $i < count($tail); $i++) {
+      for ($i = 0; $i < \count($tail); $i++) {
         $result[] = $tail[$i][2];
       }
       return $result;
@@ -50,12 +50,12 @@ value
 
 /* ===== Lexical Elements ===== */
 
-string "string"
+string "double-quoted string"
   = '"' '"' _ { return ""; }
   / '"' @chars '"' _
 
 chars
-  = chars:char+ { return join("", $chars); }
+  = chars:char+ { return \implode("", $chars); }
 
 char
   // In the original JSON grammar: "any-Unicode-character-except-"-or-\-or-control-character"
@@ -69,14 +69,14 @@ char
   / "\\r" { return "\r"; }
   / "\\t" { return "\t"; }
   / "\\u" digits:$(hexDigit hexDigit hexDigit hexDigit) {
-      return chr_unicode(intval($digits, 16));
+      return chr_unicode(\intval($digits, 16));
     }
 
 number "number"
-  = parts:$(int frac exp) _ { return floatval($parts); }
-  / parts:$(int frac) _ { return floatval($parts); }
-  / parts:$(int exp) _ { return floatval($parts); }
-  / parts:$(int) _ { return floatval($parts); }
+  = parts:$(int frac exp) _ { return \floatval($parts); }
+  / parts:$(int frac) _ { return \floatval($parts); }
+  / parts:$(int exp) _ { return \floatval($parts); }
+  / parts:$(int) _ { return \floatval($parts); }
 
 int
   = digit19 digits

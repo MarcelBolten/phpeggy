@@ -46,5 +46,5 @@ Pile_Of_Poo
 Whitespace
   = content:[ \t\r\n]+
   {
-    return implode('', $content);
+    return \implode('', $content);
   }
