@@ -13,7 +13,7 @@ PHPeggy is the successor of [`phpegjs`](https://github.com/nylen/phpegjs) which 
 
 There are a few API changes compared to the most recent `phpegjs` release.
 - Options specific to PHPeggy have to be passed to `phpeggy` and not to `phpegjs`.
-- PHP >=7.4 is required
+- PHP ≥7.4 is required
 
 Follow these steps to upgrade:
 
@@ -104,7 +104,7 @@ Here are the options available to pass this way:
     but this will also disable several features of Peggy (case-insensitive
     string matching, case-insensitive character classes, and empty character
     classes). Attempting to use these features with `mbstringAllowed: false`
-    will cause `check` to throw an error.
+    will cause `passes.check` to throw an error.
 
 Using the Parser
 ----------------
