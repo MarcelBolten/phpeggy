@@ -29,8 +29,8 @@ if (!\function_exists("PHPeggy\\ord_unicode")) {
         if (\strlen($character) === 1) {
             return \ord($character);
         }
-        $json = \json_encode($character, JSON_THROW_ON_ERROR);
-        $utf16_1 = (int) \hexdec(substr($json, 3, 4));
+        $json = \json_encode($character, \JSON_THROW_ON_ERROR);
+        $utf16_1 = (int) \hexdec(\substr($json, 3, 4));
         if (substr($json, 7, 2) === "\u") {
             $utf16_2 = (int) \hexdec(\substr($json, 9, 4));
             return 0x10000 + (($utf16_1 & 0x3ff) << 10) + ($utf16_2 & 0x3ff);
@@ -64,14 +64,14 @@ if (!\function_exists("PHPeggy\\peg_char_class_test")) {
 // are the same as `json_decode`
 
 // array arguments are backwards because of PHP
-if (!function_exists(__NAMESPACE__ . "\\peg_array_partition")) {
+if (!\function_exists(__NAMESPACE__ . "\\peg_array_partition")) {
     function peg_array_partition(array $array, callable $predicate): array
     {
         $truthy = [];
         $falsey = [];
 
         foreach ($array as $item) {
-            call_user_func($predicate, $item)
+            \call_user_func($predicate, $item)
                 ? $truthy[] = $item
                 : $falsey[] = $item;
         }
@@ -80,7 +80,7 @@ if (!function_exists(__NAMESPACE__ . "\\peg_array_partition")) {
     }
 }
 
-if (!function_exists(__NAMESPACE__ . "\\peg_join_blocks")) {
+if (!\function_exists(__NAMESPACE__ . "\\peg_join_blocks")) {
     function peg_join_blocks(string $pre, array $tokens, string $post): array
     {
         $blocks = [];
@@ -724,7 +724,7 @@ class Parser
             'blockName'  => $s['blockName'],
             'attrs'      => $s['attrs'],
             'innerBlocks'  => $innerBlocks,
-            'innerHTML'  => implode('', $innerHTML),
+            'innerHTML'  => \implode('', $innerHTML),
             'outerHTML' => $this->text(),
         ];
     }
@@ -773,7 +773,7 @@ class Parser
     private function peg_f8(
         $attrs
     ) {
-        return json_decode($attrs, true);
+        return \json_decode($attrs, true);
     }
 
     /** @return mixed */

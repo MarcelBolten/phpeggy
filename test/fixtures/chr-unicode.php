@@ -29,8 +29,8 @@ if (!\function_exists("PHPeggy\\ord_unicode")) {
         if (\strlen($character) === 1) {
             return \ord($character);
         }
-        $json = \json_encode($character, JSON_THROW_ON_ERROR);
-        $utf16_1 = (int) \hexdec(substr($json, 3, 4));
+        $json = \json_encode($character, \JSON_THROW_ON_ERROR);
+        $utf16_1 = (int) \hexdec(\substr($json, 3, 4));
         if (substr($json, 7, 2) === "\u") {
             $utf16_2 = (int) \hexdec(\substr($json, 9, 4));
             return 0x10000 + (($utf16_1 & 0x3ff) << 10) + ($utf16_2 & 0x3ff);
@@ -562,7 +562,7 @@ class Parser
     private function peg_f0(
         $hex_code
     ) {
-        $chr = chr_unicode(hexdec(implode('', $hex_code)));
+        $chr = chr_unicode(\hexdec(\implode('', $hex_code)));
         return [
           'chr' => $chr,
           'ord' => ord_unicode($chr),
@@ -578,7 +578,7 @@ class Parser
         $delim,
         $text
     ) {
-        return $delim . implode('', $text);
+        return $delim . \implode('', $text);
     }
 
     /**
@@ -588,7 +588,7 @@ class Parser
     private function peg_f2(
         $content
     ) {
-        return implode('', $content);
+        return \implode('', $content);
     }
 
     /** @return mixed */
