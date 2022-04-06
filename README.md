@@ -128,15 +128,33 @@ try {
 You can use the following snippet to format parsing errors:
 
 ```php
-catch (PHPeggy\SyntaxError $ex) {
-    $message = "Syntax error: " . $ex->getMessage() . ' at line ' . $ex->grammarLine . ' column ' . $ex->grammarColumn . ' offset ' . $ex->grammarOffset;
+catch (PHPeggy\SyntaxError $e) {
+    $message = "Syntax error: " . $e->getMessage() . " at line " . $e->grammarLine . " column " . $e->grammarColumn . " offset " . $e->grammarOffset;
 }
 ```
 
+Or use the SyntaxError::format() method:
+
+```php
+catch (PHPeggy\SyntaxError $e) {
+    $errorFormatted = $e->format(array(array("source" => "User input", "text" => $user_input)));
+}
+```
+
+Which will look similar to:
+
+```
+SyntaxError: Expected "a" but "b" found.
+ --> Input string:1:1
+  |
+1 | b
+  | ^
+```
+
 Note that the generated PHP parser will call `preg_match_all( '/./us', ... )`
-on the input string.  This may be undesirable for projects that need to
+on the input string. This may be undesirable for projects that need to
 maintain compatibility with PCRE versions that are missing Unicode support
-(WordPress, for example).  To avoid this call, split the input string into an
+(WordPress, for example). To avoid this call, split the input string into an
 array (one array element per UTF-8 character) and pass this array into
 `$parser->parse()` instead of the string input.
 
@@ -162,7 +180,7 @@ PHPeggy rule:
 ```php
 media_list = head:medium tail:("," S* medium)* {
   $result = [$head];
-  for ($i = 0; $i < count($tail); $i++) {
+  for ($i = 0; $i < \count($tail); $i++) {
     $result[] = $tail[$i][2];
   }
   return $result;
@@ -176,7 +194,7 @@ languages using a special comment syntax:
 media_list = head:medium tail:("," S* medium)* {
   /** <?php
   $result = [$head];
-  for ($i = 0; $i < count($tail); $i++) {
+  for ($i = 0; $i < \count($tail); $i++) {
     $result[] = $tail[$i][2];
   }
   return $result;
