@@ -109,6 +109,7 @@ if (!\class_exists("PHPeggy\\SyntaxError", false)) {
     class SyntaxError extends \Exception
     {
         public string $name = "SyntaxError";
+        /** @var pegExpectation[]|null $expected */
         public ?array $expected;
         public string $found;
         public int $grammarOffset;

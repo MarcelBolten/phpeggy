@@ -10,6 +10,7 @@ module.exports = function(
     "    class SyntaxError extends " + phpGlobalNamespacePrefix + "Exception",
     "    {",
     '        public string $name = "SyntaxError";',
+    "        /** @var pegExpectation[]|null $expected */",
     "        public ?array $expected;",
     "        public string $found;",
     "        public int $grammarOffset;",

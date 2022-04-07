@@ -72,7 +72,7 @@ if (!\function_exists(__NAMESPACE__ . "\\peg_join_blocks")) {
     {
         $blocks = [];
 
-        if (! empty($pre)) {
+        if (!empty($pre)) {
             $blocks[] = ['attrs' => [], 'innerHTML' => $pre];
         }
 
