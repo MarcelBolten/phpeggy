@@ -161,7 +161,7 @@ array (one array element per UTF-8 character) and pass this array into
 Grammar Syntax and Semantics
 ----------------------------
 
-See documentation of [Peggy](https://github.com/peggyjs/peggy/tree/v1.2.0#grammar-syntax-and-semantics) with one difference: action blocks should be written in PHP.
+See [documentation of Peggy](https://github.com/peggyjs/peggy/tree/v1.2.0#grammar-syntax-and-semantics) with one difference: action blocks should be written in PHP.
 
 Original Peggy rule:
 
