@@ -647,7 +647,7 @@ module.exports = function(ast, options) {
 
   parts.push(indent(4, [
     ...options.cache
-      ? ["/** @var array<int, pegCacheItem> */", "public array $peg_cache = [];", ""]
+      ? ["/** @var pegCacheItem[] */", "public array $peg_cache = [];", ""]
       : [],
 
     "private int $peg_currPos = 0;",
@@ -655,10 +655,10 @@ module.exports = function(ast, options) {
     "private int $peg_cachedPos = 0;",
     "private pegCachedPosDetails $peg_cachedPosDetails;",
     "private int $peg_maxFailPos = 0;",
-    "/** @var array<int, pegExpectation> $peg_maxFailExpected */",
+    "/** @var pegExpectation[] $peg_maxFailExpected */",
     "private array $peg_maxFailExpected = [];",
     "private int $peg_silentFails = 0;", // 0 = report failures, > 0 = silence failures
-    "/** @var array<int, string> $input */",
+    "/** @var string[] $input */",
     "private array $input = [];",
     "private int $input_length = 0;",
     "private " + phpGlobalNamespacePrefix + "stdClass $peg_FAILED;",
@@ -688,8 +688,8 @@ module.exports = function(ast, options) {
   // START public function parse
   parts.push(indent(4, [
     "/**",
-    " * @param string|array<int, string> $input",
-    " * @param array<int, mixed> $args",
+    " * @param string|string[] $input",
+    " * @param mixed[] $args",
     " * @throws " + phpGlobalNamespacePrefix + "Exception",
     " * @throws SyntaxError",
     " * @return mixed",

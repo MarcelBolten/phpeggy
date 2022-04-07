@@ -18,7 +18,7 @@ module.exports = function(
     "        public pegLocation $location;",
     "",
     "        /**",
-    "         * @param array<int, pegExpectation>|null $expected",
+    "         * @param pegExpectation[]|null $expected",
     "         */",
     "        public function __construct(",
     "            ?string $message,",

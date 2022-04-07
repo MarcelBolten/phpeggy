@@ -164,7 +164,7 @@ module.exports = function(useCache) {
     "    return $a->description <=> $b->description;",
     "}",
     "",
-    "/** @param array<int, pegExpectation>|null $expected */",
+    "/** @param pegExpectation[]|null $expected */",
     "private function peg_buildException(",
     "    ?string $message,",
     "    ?array $expected,",
