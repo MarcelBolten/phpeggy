@@ -68,7 +68,7 @@ if (!\class_exists("PHPeggy\\SyntaxError", false)) {
         public pegLocation $location;
 
         /**
-         * @param array<int, pegExpectation>|null $expected
+         * @param pegExpectation[]|null $expected
          */
         public function __construct(
             ?string $message,
@@ -261,10 +261,10 @@ class Parser
     private int $peg_cachedPos = 0;
     private pegCachedPosDetails $peg_cachedPosDetails;
     private int $peg_maxFailPos = 0;
-    /** @var array<int, pegExpectation> $peg_maxFailExpected */
+    /** @var pegExpectation[] $peg_maxFailExpected */
     private array $peg_maxFailExpected = [];
     private int $peg_silentFails = 0;
-    /** @var array<int, string> $input */
+    /** @var string[] $input */
     private array $input = [];
     private int $input_length = 0;
     private \stdClass $peg_FAILED;
@@ -293,8 +293,8 @@ class Parser
     }
 
     /**
-     * @param string|array<int, string> $input
-     * @param array<int, mixed> $args
+     * @param string|string[] $input
+     * @param mixed[] $args
      * @throws \Exception
      * @throws SyntaxError
      * @return mixed
@@ -307,7 +307,7 @@ class Parser
         $options = $args[0] ?? [];
         $this->cleanup_state();
 
-        if (is_array($input)) {
+        if (\is_array($input)) {
             $this->input = $input;
         } else {
             \preg_match_all("/./us", $input, $match);
@@ -505,7 +505,7 @@ class Parser
         return $a->description <=> $b->description;
     }
 
-    /** @param array<int, pegExpectation>|null $expected */
+    /** @param pegExpectation[]|null $expected */
     private function peg_buildException(
         ?string $message,
         ?array $expected,

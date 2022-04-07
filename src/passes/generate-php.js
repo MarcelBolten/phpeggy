@@ -719,7 +719,7 @@ module.exports = function(ast, options) {
   }
 
   parts.push(indent(8, [
-    "if (is_array($input)) {",
+    "if (\\is_array($input)) {",
     "    $this->input = $input;",
     "} else {",
     '    \\preg_match_all("/./us", $input, $match);',
