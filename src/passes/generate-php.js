@@ -62,7 +62,7 @@ module.exports = function(ast, options) {
       } else {
         classIndex = "["
           + cls.value.map(part => {
-            if (!(part instanceof Array)) {
+            if (!Array.isArray(part)) {
               part = [part, part];
             }
             return "["
