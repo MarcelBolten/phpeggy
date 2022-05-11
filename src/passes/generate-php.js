@@ -60,7 +60,7 @@ module.exports = function(ast, options) {
       if (mbstringAllowed) {
         classIndex = internalUtils.quotePhp(regexp);
       } else {
-        const classArray = "["
+        classIndex = "["
           + cls.value.map(part => {
             if (!(part instanceof Array)) {
               part = [part, part];
@@ -70,7 +70,6 @@ module.exports = function(ast, options) {
               + part[1].charCodeAt(0) + "]";
           }).join(", ")
           + "]";
-        classIndex = classArray;
       }
       return classIndex;
     }
