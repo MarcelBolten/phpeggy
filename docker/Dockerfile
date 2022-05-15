@@ -1,12 +1,13 @@
+# syntax=docker/dockerfile:1.3
 # Workaround see https://github.com/docker/for-mac/issues/2155#issuecomment-571462709
 # important "any arguments used in FROM commands need to be defined before the first build stage"
-ARG COMPOSER_VERSION=2.2.7
+ARG COMPOSER_VERSION=2.3.5
 FROM composer:${COMPOSER_VERSION} AS composerVersionWorkaround
 
-FROM php:8.0.17-fpm-alpine3.15
+FROM php:8.0-fpm-alpine3.15
 
 ARG PHAN_VERSION=5.3.2
-ARG PHP_DOCUMENTOR_VERSION=v3.3.0
+ARG PHP_DOCUMENTOR_VERSION=v3.3.1
 ARG PHP_METRICS_VERSION=v2.8.1
 
 #Phan
@@ -18,8 +19,7 @@ ADD https://github.com/phpDocumentor/phpDocumentor/releases/download/$PHP_DOCUME
 RUN chmod +rx /usr/bin/phpDocumentor
 
 #PhpMetrics
-#ADD https://github.com/phpmetrics/PhpMetrics/releases/download/$PHP_METRICS_VERSION/phpmetrics.phar /usr/bin/phpmetrics
-ADD https://github.com/phpmetrics/PhpMetrics/raw/$PHP_METRICS_VERSION/releases/phpmetrics.phar /usr/bin/phpmetrics
+ADD https://github.com/phpmetrics/PhpMetrics/releases/download/$PHP_METRICS_VERSION/phpmetrics.phar /usr/bin/phpmetrics
 RUN chmod +rx /usr/bin/phpmetrics
 
 # COMPOSER
