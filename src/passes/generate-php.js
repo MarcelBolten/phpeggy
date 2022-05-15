@@ -86,9 +86,9 @@ module.exports = function(ast, options) {
     );
 
     return [
-      ...literals ?? [],
-      ...classes ?? [],
-      ...expectations ?? [],
+      ...literals ? literals : [],
+      ...classes ? classes : [],
+      ...expectations ? expectations : [],
     ].join("\n");
   }
 
@@ -137,7 +137,7 @@ module.exports = function(ast, options) {
     );
 
     return [
-      ...expectations ?? [],
+      ...expectations ? expectations : [],
     ].join("\n");
   }
 
