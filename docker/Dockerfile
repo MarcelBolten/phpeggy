@@ -31,5 +31,6 @@ RUN apk upgrade -U -a && apk add --no-cache \
     php8-pecl-xdebug
 
 RUN ln -s /usr/lib/php8/modules/xdebug.so /usr/local/lib/php/extensions/no-debug-non-zts-20200930/
+RUN echo 'memory_limit = 1024M' >> /usr/local/etc/php/conf.d/docker-php-memlimit.ini
 
 WORKDIR /app
