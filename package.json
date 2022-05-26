@@ -4,12 +4,13 @@
   "description": "PHP target for Peggy parser generator",
   "main": "src/phpeggy.js",
   "peerDependencies": {
-    "peggy": "1.0.0"
+    "peggy": "peggyjs/peggy#1.3"
   },
   "devDependencies": {
     "chai": "^4.3.3",
     "mocha": "^9.1.2",
-    "peggy": "1.0.0"
+    "peggy": "peggyjs/peggy#1.3",
+    "source-map-generator": "^0.8.0"
   },
   "scripts": {
     "test": "mocha"
