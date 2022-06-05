@@ -7,34 +7,34 @@
 // Accepts expressions like "(2 * (3 + 4) - 5) / 6" and computes their value.
 {{
 if (!function_exists(__NAMESPACE__ . "\\calculate")) {
-    function calculate($result, $element) {
-        $operator = $element[1];
+    function calculate(float $result, array $element): float
+    {
         $operand = $element[3];
 
-        if ($operator === "+") {
-            return $result + $operand;
-        }
-        if ($operator === "-") {
-            return $result - $operand;
-        }
-        if ($operator === "*") {
-            return $result * $operand;
-        }
-        if ($operator === "/") {
-            return $result / $operand;
+        switch ($element[1]) {
+            case "+":
+                return $result + $operand;
+            case "-":
+                return $result - $operand;
+            case "*":
+                return $result * $operand;
+            case "/":
+                return $result / $operand;
+            default:
+                return 0;
         }
     }
 }
 }}
 
 Expression
-  = head:Term tail:(_ ("+" / "-") _ Term)*
+  = head:Term tail:(_ [+-] _ Term)*
   {
     return array_reduce($tail, __NAMESPACE__ . "\\calculate", $head);
   }
 
 Term
-  = head:Factor tail:(_ ("*" / "/") _ Factor)*
+  = head:Factor tail:(_ [*/] _ Factor)*
   {
     return array_reduce($tail, __NAMESPACE__ . "\\calculate", $head);
   }
