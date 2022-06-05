@@ -4,8 +4,8 @@
 // See https://sourcemaps.info/spec.html
 // This grammar only parses the "mapping" field.
 {
-  // ub64.A = 0, etc.
-  $this->ub64 = array_flip(str_split("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"));
+// ub64.A = 0, etc.
+$this->ub64 = array_flip(str_split("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"));
 }
 
 // each group representing a line in the generated file is separated by a ”;”
@@ -72,7 +72,7 @@ source_fields
     $ret['source_line'] = $source_line;
     $ret['source_col'] = $source_col;
     if ($name) {
-      $ret['name'] = $name;
+        $ret['name'] = $name;
     }
     return $ret;
   }
@@ -85,7 +85,7 @@ field
     // Last 4 bits come from the top 4 bits of the end byte
     $last4 = ($end & 0x1e) >> 1;
     // Each continue byte has 5 bits.
-    return $sign * ((array_reduce($run, function($carry, $item) {
+    return $sign * ((array_reduce($run, function ($carry, $item) {
         return ($carry << 5) + $item;
     }, 0) << 4) + $last4);
   }

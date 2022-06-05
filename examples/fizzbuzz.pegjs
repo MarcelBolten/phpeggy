@@ -7,7 +7,8 @@ program (plus a few extensions) for correctness.
 */
 {{
 if (!function_exists(__NAMESPACE__ . "\\notFizzBuzz")) {
-    function notFizzBuzz($n) {
+    function notFizzBuzz(int $n): bool
+    {
         foreach ([3, 5] as $value) {
             if ($n % $value === 0) {
                 return false;

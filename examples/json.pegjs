@@ -18,7 +18,7 @@ members
       $result = [];
       $result[$head[0]] = $head[1];
       for ($i = 0; $i < \count($tail); $i++) {
-        $result[$tail[$i][2][0]] = $tail[$i][2][1];
+          $result[$tail[$i][2][0]] = $tail[$i][2][1];
       }
       return $result;
     }
@@ -34,7 +34,7 @@ elements
   = head:value tail:("," _ value)* {
       $result = [$head];
       for ($i = 0; $i < \count($tail); $i++) {
-        $result[] = $tail[$i][2];
+          $result[] = $tail[$i][2];
       }
       return $result;
     }

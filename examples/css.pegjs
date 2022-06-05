@@ -56,9 +56,9 @@ media
   = MEDIA_SYM S* media:media_list "{" S* rules:ruleset* "}" S*
   {
       return [
-        "type" => "media_rule",
-        "media" => $media,
-        "rules" => $rules,
+          "type" => "media_rule",
+          "media" => $media,
+          "rules" => $rules,
       ];
   }
 

@@ -275,15 +275,15 @@ CharacterEscapeSequence
 
 SingleEscapeCharacter
   = char_:['"\\bfnrtv] {
-      $ch = $char_;
-      $ch = str_replace("b", "\b", $ch);
-      $ch = str_replace("f", "\f", $ch);
-      $ch = str_replace("n", "\n", $ch);
-      $ch = str_replace("r", "\r", $ch);
-      $ch = str_replace("t", "\t", $ch);
-      $ch = str_replace("v", "\x0B", $ch); // IE does not recognize "\v".
-      return $ch;
-    }
+    $ch = $char_;
+    $ch = str_replace("b", "\b", $ch);
+    $ch = str_replace("f", "\f", $ch);
+    $ch = str_replace("n", "\n", $ch);
+    $ch = str_replace("r", "\r", $ch);
+    $ch = str_replace("t", "\t", $ch);
+    $ch = str_replace("v", "\x0B", $ch); // IE does not recognize "\v".
+    return $ch;
+  }
 
 NonEscapeCharacter
   = (!EscapeCharacter / LineTerminator) @SourceCharacter
@@ -636,7 +636,7 @@ NewExpression
       return [
        "type" => "NewOperator",
         "constructor" => $constructor,
-        "arguments" => [],  
+        "arguments" => [],
       ];
     }
 

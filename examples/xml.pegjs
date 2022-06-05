@@ -4,7 +4,8 @@
 // See: https://www.w3.org/TR/REC-xml/
 {{
 if (!\function_exists(__NAMESPACE__ . "\\add")) {
-    function add($obj, $props) {
+    function add($obj, $props)
+    {
         foreach ($props as $key => $value) {
             if ($value) {
                 $obj[$key] = $value;
@@ -15,7 +16,8 @@ if (!\function_exists(__NAMESPACE__ . "\\add")) {
 }
 
 if (!\function_exists(__NAMESPACE__ . "\\clumpStrings")) {
-    function clumpStrings($vals) {
+    function clumpStrings($vals)
+    {
         $ret = [];
         $lastStr = '';
         foreach ($vals as $val) {
@@ -40,7 +42,8 @@ if (!\function_exists(__NAMESPACE__ . "\\clumpStrings")) {
 $this->names = [];
 
 if (!function_exists(__NAMESPACE__ . "\\convertAttr")) {
-    function convertAttr($attrs) {
+    function convertAttr($attrs)
+    {
         $ret = [];
         foreach ($attrs as $attr) {
             if (\array_key_exists($attr["name"], $ret)) {
@@ -367,7 +370,7 @@ Mixed
   / '(' S? '#PCDATA' S? ')'
   {
       return [
-          "type" => "pcdata"
+          "type" => "pcdata",
       ];
   }
 
