@@ -265,6 +265,8 @@ class Parser
     private int $peg_silentFails = 0;
     /** @var string[] $input */
     private array $input = [];
+    /** @var array<string, string> $options */
+    private array $options = [];
     private int $input_length = 0;
     private stdClass $peg_FAILED;
     private string $peg_source = "";
@@ -287,8 +289,8 @@ class Parser
         $this->peg_e0 = new pegExpectation("literal", "\"\\\\x\"", "\\x", "false");
         $this->peg_e1 = new pegExpectation("class", "[0-9a-f]", "[0-9a-f]", "true");
         $this->peg_e2 = new pegExpectation("literal", "\"//\"", "//", "false");
-        $this->peg_e3 = new pegExpectation("class", "[\\r\\n]", "[\\r\\n]", "false");
-        $this->peg_e4 = new pegExpectation("class", "[ \\t\\r\\n]", "[ \\t\\r\\n]", "false");
+        $this->peg_e3 = new pegExpectation("class", "[\\r\\n]", "[\r\n]", "false");
+        $this->peg_e4 = new pegExpectation("class", "[ \\t\\r\\n]", "[ \t\r\n]", "false");
     }
 
     /**
@@ -302,9 +304,8 @@ class Parser
         $input,
         array ...$args
     ) {
-        /** @var array<string, string> $options */
-        $options = $args[0] ?? [];
         $this->cleanup_state();
+        $this->options = $args[0] ?? [];
 
         if (\is_array($input)) {
             $this->input = $input;
@@ -313,19 +314,19 @@ class Parser
             $this->input = $match[0];
         }
         $this->input_length = \count($this->input);
-        $this->peg_source = $options["grammarSource"] ?? "";
+        $this->peg_source = $this->options["grammarSource"] ?? "";
 
         $old_regex_encoding = (string) \mb_regex_encoding();
         \mb_regex_encoding("UTF-8");
 
         $peg_startRuleFunctions = ["Document" => [$this, "peg_parse_Document"]];
         $peg_startRuleFunction = [$this, "peg_parse_Document"];
-        if (isset($options["startRule"])) {
-            if (!(isset($peg_startRuleFunctions[$options["startRule"]]))) {
-                throw new Exception("Can't start parsing from rule \"" . $options["startRule"] . "\".");
+        if (isset($this->options["startRule"])) {
+            if (!(isset($peg_startRuleFunctions[$this->options["startRule"]]))) {
+                throw new Exception("Can't start parsing from rule \"" . $this->options["startRule"] . "\".");
             }
 
-            $peg_startRuleFunction = $peg_startRuleFunctions[$options["startRule"]];
+            $peg_startRuleFunction = $peg_startRuleFunctions[$this->options["startRule"]];
         }
 
         /* @var mixed $peg_result */
@@ -359,6 +360,7 @@ class Parser
         $this->peg_silentFails = 0;
         $this->input = [];
         $this->input_length = 0;
+        $this->options = [];
         $this->peg_source = "";
     }
 
@@ -440,7 +442,11 @@ class Parser
     private function error(
         string $message
     ): void {
-        throw $this->peg_buildException($message, null, $this->peg_reportedPos);
+        throw $this->peg_buildException(
+            $message,
+            null,
+            $this->peg_reportedPos,
+        );
     }
 
     private function peg_advancePos(

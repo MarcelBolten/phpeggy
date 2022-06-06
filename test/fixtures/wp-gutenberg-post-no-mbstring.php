@@ -59,55 +59,6 @@ if (!\function_exists("PHPeggy\\peg_char_class_test")) {
 }
 /* END Utility functions */
 
-/* BEGIN global initializer code */
-// The `maybeJSON` function is not needed in PHP because its return semantics
-// are the same as `json_decode`
-
-// array arguments are backwards because of PHP
-if (!\function_exists(__NAMESPACE__ . "\\peg_array_partition")) {
-    function peg_array_partition(array $array, callable $predicate): array
-    {
-        $truthy = [];
-        $falsey = [];
-
-        foreach ($array as $item) {
-            \call_user_func($predicate, $item)
-                ? $truthy[] = $item
-                : $falsey[] = $item;
-        }
-
-        return [$truthy, $falsey];
-    }
-}
-
-if (!\function_exists(__NAMESPACE__ . "\\peg_join_blocks")) {
-    function peg_join_blocks(string $pre, array $tokens, string $post): array
-    {
-        $blocks = [];
-
-        if (!empty($pre)) {
-            $blocks[] = ['attrs' => [], 'innerHTML' => $pre];
-        }
-
-        foreach ($tokens as $token) {
-            [$token, $html] = $token;
-
-            $blocks[] = $token;
-
-            if (!empty($html)) {
-                $blocks[] = ['attrs' => [], 'innerHTML' => $html];
-            }
-        }
-
-        if (!empty($post)) {
-            $blocks[] = ['attrs' => [], 'innerHTML' => $post];
-        }
-
-        return $blocks;
-    }
-}
-/* END global initializer code */
-
 /* Syntax error exception */
 if (!\class_exists("PHPeggy\\SyntaxError", false)) {
     class SyntaxError extends \Exception
@@ -320,6 +271,8 @@ class Parser
     private int $peg_silentFails = 0;
     /** @var string[] $input */
     private array $input = [];
+    /** @var array<string, string> $options */
+    private array $options = [];
     private int $input_length = 0;
     private \stdClass $peg_FAILED;
     private string $peg_source = "";
@@ -378,9 +331,9 @@ class Parser
         $this->peg_e10 = new pegExpectation("class", "[a-z0-9_-]", "[a-z0-9_-]", "false");
         $this->peg_e11 = new pegExpectation("literal", "\"{\"", "{", "false");
         $this->peg_e12 = new pegExpectation("literal", "\"}\"", "}", "false");
-        $this->peg_e13 = new pegExpectation("class", "[ \\t\\r\\n]", "[ \\t\\r\\n]", "false");
-        $this->peg_e14 = new pegExpectation("class", "[\\r\\n]", "[\\r\\n]", "false");
-        $this->peg_e15 = new pegExpectation("class", "[ \\t]", "[ \\t]", "false");
+        $this->peg_e13 = new pegExpectation("class", "[ \\t\\r\\n]", "[ \t\r\n]", "false");
+        $this->peg_e14 = new pegExpectation("class", "[\\r\\n]", "[\r\n]", "false");
+        $this->peg_e15 = new pegExpectation("class", "[ \\t]", "[ \t]", "false");
     }
 
     /**
@@ -394,9 +347,8 @@ class Parser
         $input,
         array ...$args
     ) {
-        /** @var array<string, string> $options */
-        $options = $args[0] ?? [];
         $this->cleanup_state();
+        $this->options = $args[0] ?? [];
 
         if (\is_array($input)) {
             $this->input = $input;
@@ -405,16 +357,16 @@ class Parser
             $this->input = $match[0];
         }
         $this->input_length = \count($this->input);
-        $this->peg_source = $options["grammarSource"] ?? "";
+        $this->peg_source = $this->options["grammarSource"] ?? "";
 
         $peg_startRuleFunctions = ["Block_List" => [$this, "peg_parse_Block_List"]];
         $peg_startRuleFunction = [$this, "peg_parse_Block_List"];
-        if (isset($options["startRule"])) {
-            if (!(isset($peg_startRuleFunctions[$options["startRule"]]))) {
-                throw new \Exception("Can't start parsing from rule \"" . $options["startRule"] . "\".");
+        if (isset($this->options["startRule"])) {
+            if (!(isset($peg_startRuleFunctions[$this->options["startRule"]]))) {
+                throw new \Exception("Can't start parsing from rule \"" . $this->options["startRule"] . "\".");
             }
 
-            $peg_startRuleFunction = $peg_startRuleFunctions[$options["startRule"]];
+            $peg_startRuleFunction = $peg_startRuleFunctions[$this->options["startRule"]];
         }
 
         /* @var mixed $peg_result */
@@ -446,6 +398,7 @@ class Parser
         $this->peg_silentFails = 0;
         $this->input = [];
         $this->input_length = 0;
+        $this->options = [];
         $this->peg_source = "";
     }
 
@@ -527,7 +480,11 @@ class Parser
     private function error(
         string $message
     ): void {
-        throw $this->peg_buildException($message, null, $this->peg_reportedPos);
+        throw $this->peg_buildException(
+            $message,
+            null,
+            $this->peg_reportedPos,
+        );
     }
 
     private function peg_advancePos(
@@ -666,7 +623,7 @@ class Parser
         $ts,
         $post
     ) {
-        return peg_join_blocks($pre, $ts, $post);
+        return $this->peg_join_blocks($pre, $ts, $post);
     }
 
     /**
@@ -719,7 +676,7 @@ class Parser
         $children,
         $e
     ) {
-        [$innerHTML, $innerBlocks] = peg_array_partition($children, 'is_string');
+        [$innerHTML, $innerBlocks] = $this->peg_array_partition($children, 'is_string');
 
         return [
             'blockName'  => $s['blockName'],
@@ -2157,4 +2114,49 @@ class Parser
 
         return $s0;
     }
+
+    /* BEGIN global initializer code */
+    // The `maybeJSON` function is not needed in PHP because its return semantics
+    // are the same as `json_decode`
+
+    // array arguments are backwards because of PHP
+    private function peg_array_partition(array $array, callable $predicate): array
+    {
+        $truthy = [];
+        $falsey = [];
+
+        foreach ($array as $item) {
+            \call_user_func($predicate, $item)
+                ? $truthy[] = $item
+                : $falsey[] = $item;
+        }
+
+        return [$truthy, $falsey];
+    }
+
+    private function peg_join_blocks(string $pre, array $tokens, string $post): array
+    {
+        $blocks = [];
+
+        if (!empty($pre)) {
+            $blocks[] = ['attrs' => [], 'innerHTML' => $pre];
+        }
+
+        foreach ($tokens as $token) {
+            [$token, $html] = $token;
+
+            $blocks[] = $token;
+
+            if (!empty($html)) {
+                $blocks[] = ['attrs' => [], 'innerHTML' => $html];
+            }
+        }
+
+        if (!empty($post)) {
+            $blocks[] = ['attrs' => [], 'innerHTML' => $post];
+        }
+
+        return $blocks;
+    }
+    /* END global initializer code */
 };

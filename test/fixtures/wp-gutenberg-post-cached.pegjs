@@ -51,47 +51,43 @@
 // are the same as `json_decode`
 
 // array arguments are backwards because of PHP
-if (!\function_exists(__NAMESPACE__ . "\\peg_array_partition")) {
-    function peg_array_partition(array $array, callable $predicate): array
-    {
-        $truthy = [];
-        $falsey = [];
+private function peg_array_partition(array $array, callable $predicate): array
+{
+    $truthy = [];
+    $falsey = [];
 
-        foreach ($array as $item) {
-            \call_user_func($predicate, $item)
-                ? $truthy[] = $item
-                : $falsey[] = $item;
-        }
-
-        return [$truthy, $falsey];
+    foreach ($array as $item) {
+        \call_user_func($predicate, $item)
+            ? $truthy[] = $item
+            : $falsey[] = $item;
     }
+
+    return [$truthy, $falsey];
 }
 
-if (!\function_exists(__NAMESPACE__ . "\\peg_join_blocks")) {
-    function peg_join_blocks(string $pre, array $tokens, string $post): array
-    {
-        $blocks = [];
+private function peg_join_blocks(string $pre, array $tokens, string $post): array
+{
+    $blocks = [];
 
-        if (!empty($pre)) {
-            $blocks[] = ['attrs' => [], 'innerHTML' => $pre];
-        }
-
-        foreach ($tokens as $token) {
-            [$token, $html] = $token;
-
-            $blocks[] = $token;
-
-            if (!empty($html)) {
-                $blocks[] = ['attrs' => [], 'innerHTML' => $html];
-            }
-        }
-
-        if (!empty($post)) {
-            $blocks[] = ['attrs' => [], 'innerHTML' => $post];
-        }
-
-        return $blocks;
+    if (!empty($pre)) {
+        $blocks[] = ['attrs' => [], 'innerHTML' => $pre];
     }
+
+    foreach ($tokens as $token) {
+        [$token, $html] = $token;
+
+        $blocks[] = $token;
+
+        if (!empty($html)) {
+            $blocks[] = ['attrs' => [], 'innerHTML' => $html];
+        }
+    }
+
+    if (!empty($post)) {
+        $blocks[] = ['attrs' => [], 'innerHTML' => $post];
+    }
+
+    return $blocks;
 }
 ?> **/
 
@@ -161,7 +157,7 @@ Block_List
   = pre:$(!Token .)*
     ts:(t:Token html:$((!Token .)*) { /** <?php return [$t, $html]; ?> **/ return [ t, html ] })*
     post:$(.*)
-  { /** <?php return peg_join_blocks($pre, $ts, $post); ?> **/
+  { /** <?php return $this->peg_join_blocks($pre, $ts, $post); ?> **/
     return joinBlocks( pre, ts, post );
   }
 
@@ -221,7 +217,7 @@ Block_Balanced
   = s:Block_Start children:(Token / $(!Block_End .))* e:Block_End
   {
     /** <?php
-    [$innerHTML, $innerBlocks] = peg_array_partition($children, 'is_string');
+    [$innerHTML, $innerBlocks] = $this->peg_array_partition($children, 'is_string');
 
     return [
         'blockName' => $s['blockName'],

@@ -55,11 +55,6 @@ if (!\function_exists("PHPeggy\\peg_regex_test")) {
 }
 /* END Utility functions */
 
-/* BEGIN global initializer code */
-// The `maybeJSON` function is not needed in PHP because its return semantics
-// are the same as `json_decode`
-/* END global initializer code */
-
 /* Syntax error exception */
 if (!\class_exists("PHPeggy\\SyntaxError", false)) {
     class SyntaxError extends \Exception
@@ -272,6 +267,8 @@ class Parser
     private int $peg_silentFails = 0;
     /** @var string[] $input */
     private array $input = [];
+    /** @var array<string, string> $options */
+    private array $options = [];
     private int $input_length = 0;
     private \stdClass $peg_FAILED;
     private string $peg_source = "";
@@ -322,9 +319,9 @@ class Parser
         $this->peg_e9 = new pegExpectation("class", "[a-zA-Z]", "[a-zA-Z]", "false");
         $this->peg_e10 = new pegExpectation("class", "[0-9]", "[0-9]", "false");
         $this->peg_e11 = new pegExpectation("class", "[-_]", "[-_]", "false");
-        $this->peg_e12 = new pegExpectation("class", "[ \\t\\r\\n]", "[ \\t\\r\\n]", "false");
-        $this->peg_e13 = new pegExpectation("class", "[\\r\\n]", "[\\r\\n]", "false");
-        $this->peg_e14 = new pegExpectation("class", "[ \\t]", "[ \\t]", "false");
+        $this->peg_e12 = new pegExpectation("class", "[ \\t\\r\\n]", "[ \t\r\n]", "false");
+        $this->peg_e13 = new pegExpectation("class", "[\\r\\n]", "[\r\n]", "false");
+        $this->peg_e14 = new pegExpectation("class", "[ \\t]", "[ \t]", "false");
     }
 
     /**
@@ -338,9 +335,8 @@ class Parser
         $input,
         array ...$args
     ) {
-        /** @var array<string, string> $options */
-        $options = $args[0] ?? [];
         $this->cleanup_state();
+        $this->options = $args[0] ?? [];
 
         if (\is_array($input)) {
             $this->input = $input;
@@ -349,19 +345,19 @@ class Parser
             $this->input = $match[0];
         }
         $this->input_length = \count($this->input);
-        $this->peg_source = $options["grammarSource"] ?? "";
+        $this->peg_source = $this->options["grammarSource"] ?? "";
 
         $old_regex_encoding = (string) \mb_regex_encoding();
         \mb_regex_encoding("UTF-8");
 
         $peg_startRuleFunctions = ["Document" => [$this, "peg_parse_Document"]];
         $peg_startRuleFunction = [$this, "peg_parse_Document"];
-        if (isset($options["startRule"])) {
-            if (!(isset($peg_startRuleFunctions[$options["startRule"]]))) {
-                throw new \Exception("Can't start parsing from rule \"" . $options["startRule"] . "\".");
+        if (isset($this->options["startRule"])) {
+            if (!(isset($peg_startRuleFunctions[$this->options["startRule"]]))) {
+                throw new \Exception("Can't start parsing from rule \"" . $this->options["startRule"] . "\".");
             }
 
-            $peg_startRuleFunction = $peg_startRuleFunctions[$options["startRule"]];
+            $peg_startRuleFunction = $peg_startRuleFunctions[$this->options["startRule"]];
         }
 
         /* @var mixed $peg_result */
@@ -395,6 +391,7 @@ class Parser
         $this->peg_silentFails = 0;
         $this->input = [];
         $this->input_length = 0;
+        $this->options = [];
         $this->peg_source = "";
     }
 
@@ -476,7 +473,11 @@ class Parser
     private function error(
         string $message
     ): void {
-        throw $this->peg_buildException($message, null, $this->peg_reportedPos);
+        throw $this->peg_buildException(
+            $message,
+            null,
+            $this->peg_reportedPos,
+        );
     }
 
     private function peg_advancePos(
@@ -1561,4 +1562,9 @@ class Parser
 
         return $s0;
     }
+
+    /* BEGIN global initializer code */
+    // The `maybeJSON` function is not needed in PHP because its return semantics
+    // are the same as `json_decode`
+    /* END global initializer code */
 };

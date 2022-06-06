@@ -271,6 +271,8 @@ class Parser
     private int $peg_silentFails = 0;
     /** @var string[] $input */
     private array $input = [];
+    /** @var array<string, string> $options */
+    private array $options = [];
     private int $input_length = 0;
     private \stdClass $peg_FAILED;
     private string $peg_source = "";
@@ -302,12 +304,12 @@ class Parser
         $this->peg_FAILED = new \stdClass();
         $this->peg_cachedPosDetails = new pegCachedPosDetails();
         $this->peg_e0 = new pegExpectation("class", "[a-zA-Z0-9]", "[a-zA-Z0-9]", "false");
-        $this->peg_e1 = new pegExpectation("class", "['\"]", "['\"]", "false");
-        $this->peg_e2 = new pegExpectation("class", "[\x{000FF}-\x{00100}]", "[\x{000FF}-\x{00100}]", "false");
-        $this->peg_e3 = new pegExpectation("class", "[\x{02E80}-\x{02FD5}\x{03400}-\x{04DBF}\x{04E00}-\x{09FCC}]", "[\x{02E80}-\x{02FD5}\x{03400}-\x{04DBF}\x{04E00}-\x{09FCC}]", "false");
-        $this->peg_e4 = new pegExpectation("class", "[\x{0D83D}]", "[\x{0D83D}]", "false");
-        $this->peg_e5 = new pegExpectation("class", "[\x{0DCA9}]", "[\x{0DCA9}]", "false");
-        $this->peg_e6 = new pegExpectation("class", "[ \\t\\r\\n]", "[ \\t\\r\\n]", "false");
+        $this->peg_e1 = new pegExpectation("class", "['\\\"]", "['\"]", "false");
+        $this->peg_e2 = new pegExpectation("class", "[\\x{000FF}-\\x{00100}]", "[\x{000FF}-\x{00100}]", "false");
+        $this->peg_e3 = new pegExpectation("class", "[\\x{02E80}-\\x{02FD5}\\x{03400}-\\x{04DBF}\\x{04E00}-\\x{09FCC}]", "[\x{02E80}-\x{02FD5}\x{03400}-\x{04DBF}\x{04E00}-\x{09FCC}]", "false");
+        $this->peg_e4 = new pegExpectation("class", "[\\x{0D83D}]", "[\x{0D83D}]", "false");
+        $this->peg_e5 = new pegExpectation("class", "[\\x{0DCA9}]", "[\x{0DCA9}]", "false");
+        $this->peg_e6 = new pegExpectation("class", "[ \\t\\r\\n]", "[ \t\r\n]", "false");
     }
 
     /**
@@ -321,9 +323,8 @@ class Parser
         $input,
         array ...$args
     ) {
-        /** @var array<string, string> $options */
-        $options = $args[0] ?? [];
         $this->cleanup_state();
+        $this->options = $args[0] ?? [];
 
         if (\is_array($input)) {
             $this->input = $input;
@@ -332,16 +333,16 @@ class Parser
             $this->input = $match[0];
         }
         $this->input_length = \count($this->input);
-        $this->peg_source = $options["grammarSource"] ?? "";
+        $this->peg_source = $this->options["grammarSource"] ?? "";
 
         $peg_startRuleFunctions = ["Document" => [$this, "peg_parse_Document"]];
         $peg_startRuleFunction = [$this, "peg_parse_Document"];
-        if (isset($options["startRule"])) {
-            if (!(isset($peg_startRuleFunctions[$options["startRule"]]))) {
-                throw new \Exception("Can't start parsing from rule \"" . $options["startRule"] . "\".");
+        if (isset($this->options["startRule"])) {
+            if (!(isset($peg_startRuleFunctions[$this->options["startRule"]]))) {
+                throw new \Exception("Can't start parsing from rule \"" . $this->options["startRule"] . "\".");
             }
 
-            $peg_startRuleFunction = $peg_startRuleFunctions[$options["startRule"]];
+            $peg_startRuleFunction = $peg_startRuleFunctions[$this->options["startRule"]];
         }
 
         /* @var mixed $peg_result */
@@ -373,6 +374,7 @@ class Parser
         $this->peg_silentFails = 0;
         $this->input = [];
         $this->input_length = 0;
+        $this->options = [];
         $this->peg_source = "";
     }
 
@@ -454,7 +456,11 @@ class Parser
     private function error(
         string $message
     ): void {
-        throw $this->peg_buildException($message, null, $this->peg_reportedPos);
+        throw $this->peg_buildException(
+            $message,
+            null,
+            $this->peg_reportedPos,
+        );
     }
 
     private function peg_advancePos(
