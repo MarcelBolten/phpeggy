@@ -616,20 +616,6 @@ module.exports = function(ast, options) {
     mbstringAllowed
   ));
 
-  if (ast.topLevelInitializer) {
-    const topLevelInitializerCode = internalUtils.extractPhpCode(
-      ast.topLevelInitializer.code.trim()
-    );
-    if (topLevelInitializerCode !== "") {
-      parts.push([
-        "/* BEGIN global initializer code */",
-        topLevelInitializerCode,
-        "/* END global initializer code */",
-        "",
-      ].join("\n"));
-    }
-  }
-
   parts.push(syntaxErrorClass(
     phpGlobalNamePrefixOrNamespaceEscaped,
     phpGlobalNamespacePrefix
@@ -703,20 +689,6 @@ module.exports = function(ast, options) {
     "",
   ].join("\n")));
 
-  if (ast.initializer) {
-    const initializerCode = internalUtils.extractPhpCode(
-      ast.initializer.code.trim()
-    );
-    if (initializerCode !== "") {
-      parts.push(indent(8, [
-        "/* BEGIN initializer code */",
-        initializerCode,
-        "/* END initializer code */",
-        "",
-      ].join("\n")));
-    }
-  }
-
   parts.push(indent(8, [
     "if (\\is_array($input)) {",
     "    $this->input = $input;",
@@ -735,6 +707,20 @@ module.exports = function(ast, options) {
       '\\mb_regex_encoding("UTF-8");',
       "",
     ].join("\n")));
+  }
+
+  if (ast.initializer) {
+    const initializerCode = internalUtils.extractPhpCode(
+      ast.initializer.code.trim()
+    );
+    if (initializerCode !== "") {
+      parts.push(indent(8, [
+        "/* BEGIN initializer code */",
+        initializerCode,
+        "/* END initializer code */",
+        "",
+      ].join("\n")));
+    }
   }
 
   const startRuleFunctions = "["
@@ -809,6 +795,20 @@ module.exports = function(ast, options) {
   });
   // Remove empty line
   parts.pop();
+
+  if (ast.topLevelInitializer) {
+    const topLevelInitializerCode = internalUtils.extractPhpCode(
+      ast.topLevelInitializer.code.trim()
+    );
+    if (topLevelInitializerCode !== "") {
+      parts.push(indent(4, [
+        "",
+        "/* BEGIN global initializer code */",
+        topLevelInitializerCode,
+        "/* END global initializer code */",
+      ].join("\n")));
+    }
+  }
 
   parts.push([
     "};",
