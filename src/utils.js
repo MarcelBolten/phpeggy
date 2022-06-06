@@ -69,7 +69,7 @@ function stringEscape(s) {
     .replace(/[\u1000-\uFFFF]/g, ch => "\\u" + hex(ch));
 }
 
-function quoteForPhpRegexp(s) {
+function escapePhpRegexp(s) {
   return s
     .replace(/\\/g, "\\\\")        // Backslash
     .replace(/\//g, "\\/")         // Closing slash
@@ -91,25 +91,30 @@ function quoteForPhpRegexp(s) {
     .replace(/[\xFF-\uFFFF]/g, ch => hex1(ch));
 }
 
-function quotePhp(s) {
-  return '"' + s
+function escapePhp(s) {
+  return s
     .replace(/\\/g, "\\\\")  // Backslash
     .replace(/"/g, '\\"')    // Closing quote character
     .replace(/\x08/g, "\\b") // Backspace
-    .replace(/\t/g, "\\\\t") // Horizontal tab
-    .replace(/\n/g, "\\\\n") // Line feed
-    .replace(/\f/g, "\\\\f") // Form feed
-    .replace(/\r/g, "\\\\r") // Carriage return
+    .replace(/\t/g, "\\t")   // Horizontal tab
+    .replace(/\n/g, "\\n")   // Line feed
+    .replace(/\v/g, "\\v")   // Vertical tab
+    .replace(/\f/g, "\\f")   // Form feed
+    .replace(/\r/g, "\\r")   // Carriage return
     .replace(/\$/g, "\\$")   // Dollar
     .replace(/[\x00-\x0F]/g, ch => "\\x0" + hex(ch))
     .replace(/[\x10-\x1F\x7F-\x9F]/g, ch => "\\x" + hex(ch))
-    .replace(/[\xFF-\uFFFF]/g, ch => hex1(ch))
-    + '"';
+    .replace(/[\xFF-\uFFFF]/g, ch => hex1(ch));
+}
+
+function quotePhp(s) {
+  return '"' + escapePhp(s) + '"';
 }
 
 module.exports = {
   quote,
   extractPhpCode,
-  quoteForPhpRegexp,
+  escapePhpRegexp,
+  escapePhp,
   quotePhp,
 };

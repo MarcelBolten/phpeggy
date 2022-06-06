@@ -34,7 +34,7 @@ module.exports = function(ast, options) {
 
   function generateTablesDeclaration() {
     function buildLiteral(literal) {
-      return internalUtils.quote(literal);
+      return internalUtils.quotePhp(literal);
     }
 
     function buildRegexp(cls) {
@@ -44,10 +44,10 @@ module.exports = function(ast, options) {
         regexp = "/^["
           + (cls.inverted ? "^" : "")
           + cls.value.map(part => Array.isArray(part)
-            ? internalUtils.quoteForPhpRegexp(part[0])
+            ? internalUtils.escapePhpRegexp(part[0])
               + "-"
-              + internalUtils.quoteForPhpRegexp(part[1])
-            : internalUtils.quoteForPhpRegexp(part)).join("")
+              + internalUtils.escapePhpRegexp(part[1])
+            : internalUtils.escapePhpRegexp(part)).join("")
           + "]/" + (cls.ignoreCase ? "i" : "");
       } else {
         /*
@@ -96,15 +96,15 @@ module.exports = function(ast, options) {
     function buildExpectation(e) {
       switch (e.type) {
         case "rule": {
-          return 'new pegExpectation("other", ' + internalUtils.quote(e.value) + ")";
+          return 'new pegExpectation("other", ' + internalUtils.quotePhp(e.value) + ")";
         }
 
         case "literal": {
           return "new pegExpectation("
             + ['"literal",',
-              internalUtils.quote(internalUtils.quote(e.value)) + ",",
-              internalUtils.quote(e.value) + ",",
-              internalUtils.quote(e.ignoreCase.toString())].join(" ")
+              internalUtils.quotePhp(internalUtils.quotePhp(e.value)) + ",",
+              internalUtils.quotePhp(e.value) + ",",
+              internalUtils.quotePhp(e.ignoreCase.toString())].join(" ")
             + ")";
         }
 
@@ -119,9 +119,9 @@ module.exports = function(ast, options) {
 
           return "new pegExpectation("
             + ['"class",',
+              internalUtils.quotePhp(internalUtils.escapePhp(rawText)) + ",",
               internalUtils.quotePhp(rawText) + ",",
-              internalUtils.quotePhp(rawText) + ",",
-              internalUtils.quote(e.ignoreCase.toString())].join(" ")
+              internalUtils.quotePhp(e.ignoreCase.toString())].join(" ")
             + ")";
         }
 
