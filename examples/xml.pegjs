@@ -3,58 +3,51 @@
 //
 // See: https://www.w3.org/TR/REC-xml/
 {{
-if (!\function_exists(__NAMESPACE__ . "\\add")) {
-    function add($obj, $props)
-    {
-        foreach ($props as $key => $value) {
-            if ($value) {
-                $obj[$key] = $value;
-            }
+private array $names = [];
+
+private function add(array $obj, array $props): array
+{
+    foreach ($props as $key => $value) {
+        if ($value) {
+            $obj[$key] = $value;
         }
-        return $obj;
     }
+    return $obj;
 }
 
-if (!\function_exists(__NAMESPACE__ . "\\clumpStrings")) {
-    function clumpStrings($vals)
-    {
-        $ret = [];
-        $lastStr = '';
-        foreach ($vals as $val) {
-            if (\is_string($val)) {
-                $lastStr += $val;
-            } else {
-                if ($lastStr) {
-                    $ret[] = $lastStr;
-                    $lastStr = '';
-                }
-                $ret[] = $val;
+private function clumpStrings(array $vals)
+{
+    $ret = [];
+    $lastStr = '';
+    foreach ($vals as $val) {
+        if (\is_string($val)) {
+            $lastStr .= $val;
+        } else {
+            if ($lastStr) {
+                $ret[] = $lastStr;
+                $lastStr = '';
             }
+            $ret[] = $val;
         }
-        if ($lastStr) {
-            $ret = $lastStr;
-        }
-        return $ret;
     }
+    if ($lastStr) {
+        $ret = $lastStr;
+    }
+    return $ret;
+}
+
+private function convertAttr(array $attrs): array
+{
+    $ret = [];
+    foreach ($attrs as $attr) {
+        if (\array_key_exists($attr["name"], $ret)) {
+            $this->error("Duplicate attribute " . $attr["name"]);
+        }
+        $ret[$attr["name"]] = $attr["value"];
+    }
+    return $ret;
 }
 }}
-{
-$this->names = [];
-
-if (!function_exists(__NAMESPACE__ . "\\convertAttr")) {
-    function convertAttr($attrs)
-    {
-        $ret = [];
-        foreach ($attrs as $attr) {
-            if (\array_key_exists($attr["name"], $ret)) {
-                $this->error("Duplicate attribute $name");
-            }
-            $ret[$attr["name"]] = $attr["value"];
-        }
-        return $ret;
-    }
-}
-}
 
 // Document
 document = prolog element Misc*
@@ -103,11 +96,11 @@ Nmtokens
 EntityValue
   = '"' vals:([^%&"] / PEReference / Reference)* '"'
   {
-      return clumpStrings($vals);
+      return $this->clumpStrings($vals);
   }
   / "'" vals:([^%&'] / PEReference / Reference)* "'"
   {
-      return clumpStrings($vals);
+      return $this->clumpStrings($vals);
   }
 AttValue
   = '"' @$([^<&"] / Reference)* '"'
@@ -160,7 +153,7 @@ CDEnd = ']]>'
 prolog
   = xmldecl:XMLDecl? Misc* doctypedecl:(@doctypedecl Misc*)?
   {
-      return add(
+      return $this->add(
           ["type" => "prolog"],
           ["xmldecl" => $xmldecl, "doctypedecl" => $doctypedecl]
       );
@@ -168,7 +161,7 @@ prolog
 XMLDecl
   = '<?xml' version:VersionInfo encoding:EncodingDecl? standalone:SDDecl? S? '?>'
   {
-      return add(
+      return $this->add(
           ["type" => "xmldecl", "version" => $version],
           ["encoding" => $encoding, "standalone" => $standalone]
       );
@@ -192,7 +185,7 @@ Misc
 doctypedecl
   = '<!DOCTYPE' S name:Name externalID:(S @ExternalID)? S? intSubset:('[' @intSubset ']' S?)? '>'
   {
-      return add(
+      return $this->add(
           ["type" => "doctypedecl", "name" => $name],
           ["externalID" => $externalID, "intSubset" => $intSubset]
       );
@@ -241,7 +234,7 @@ STag
       return [
           "type" => "element",
           "name" => $name,
-          "attr" => convertAttr($attr),
+          "attr" => $this->convertAttr($attr),
       ];
   }
 
@@ -296,7 +289,7 @@ EmptyElemTag
       return [
           "type" => "element",
           "name" => $name,
-          "attr" => convertAttr($attr),
+          "attr" => $this->convertAttr($attr),
       ];
   }
 
@@ -391,7 +384,7 @@ AttDef
       return [
           "type" => "attdef",
           "name" => $name,
-          "type" => $type,
+          "atttype" => $type,
           "default" => $def,
       ];
   }

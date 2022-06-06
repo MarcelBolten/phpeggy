@@ -6,20 +6,20 @@ It parses the output of a fizz-buzz (https://en.wikipedia.org/wiki/Fizz_buzz)
 program (plus a few extensions) for correctness.
 */
 {{
-if (!function_exists(__NAMESPACE__ . "\\notFizzBuzz")) {
-    function notFizzBuzz(int $n): bool
-    {
-        foreach ([3, 5] as $value) {
-            if ($n % $value === 0) {
-                return false;
-            }
+private int $currentNumber = 1;
+
+private function notFizzBuzz(int $n): bool
+{
+    foreach ([3, 5] as $value) {
+        if ($n % $value === 0) {
+            return false;
         }
-        return true;
     }
+    return true;
 }
 }}
 {
-$this->currentNumber = isset($options["start"]) && is_numeric($options["start"]) ? $options["start"] : 1;
+$this->currentNumber = isset($this->options["start"]) && is_numeric($this->options["start"]) ? $this->options["start"] : 1;
 }
 
 top = c:count* {
@@ -41,7 +41,7 @@ end_comment "end of line comment"
   = _ "//" [^\n]+
 
 line
-  = @n:number &{ return ($n === $this->currentNumber) && notFizzBuzz($n); }
+  = @n:number &{ return ($n === $this->currentNumber) && $this->notFizzBuzz($n); }
   / fizzbuzz
   / fizz
   / buzz

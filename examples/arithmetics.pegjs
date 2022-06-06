@@ -6,23 +6,21 @@
 //
 // Accepts expressions like "(2 * (3 + 4) - 5) / 6" and computes their value.
 {{
-if (!function_exists(__NAMESPACE__ . "\\calculate")) {
-    function calculate(float $result, array $element): float
-    {
-        $operand = $element[3];
+private function calculate(float $result, array $element): float
+{
+    $operand = $element[3];
 
-        switch ($element[1]) {
-            case "+":
-                return $result + $operand;
-            case "-":
-                return $result - $operand;
-            case "*":
-                return $result * $operand;
-            case "/":
-                return $result / $operand;
-            default:
-                return 0;
-        }
+    switch ($element[1]) {
+        case "+":
+            return $result + $operand;
+        case "-":
+            return $result - $operand;
+        case "*":
+            return $result * $operand;
+        case "/":
+            return $result / $operand;
+        default:
+            return 0;
     }
 }
 }}
@@ -30,13 +28,13 @@ if (!function_exists(__NAMESPACE__ . "\\calculate")) {
 Expression
   = head:Term tail:(_ [+-] _ Term)*
   {
-    return array_reduce($tail, __NAMESPACE__ . "\\calculate", $head);
+    return array_reduce($tail, [$this, 'calculate'], $head);
   }
 
 Term
   = head:Factor tail:(_ [*/] _ Factor)*
   {
-    return array_reduce($tail, __NAMESPACE__ . "\\calculate", $head);
+    return array_reduce($tail, [$this, 'calculate'], $head);
   }
 
 Factor

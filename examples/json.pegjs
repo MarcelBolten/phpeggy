@@ -15,13 +15,13 @@ object
 
 members
   = head:pair tail:("," _ pair)* {
-      $result = [];
-      $result[$head[0]] = $head[1];
-      for ($i = 0; $i < \count($tail); $i++) {
-          $result[$tail[$i][2][0]] = $tail[$i][2][1];
-      }
-      return $result;
+    $result = [];
+    $result[$head[0]] = $head[1];
+    for ($i = 0; $i < \count($tail); $i++) {
+        $result[$tail[$i][2][0]] = $tail[$i][2][1];
     }
+    return $result;
+  }
 
 pair
   = name:string ":" _ value:value { return [$name, $value]; }
@@ -32,12 +32,12 @@ array
 
 elements
   = head:value tail:("," _ value)* {
-      $result = [$head];
-      for ($i = 0; $i < \count($tail); $i++) {
-          $result[] = $tail[$i][2];
-      }
-      return $result;
+    $result = [$head];
+    for ($i = 0; $i < \count($tail); $i++) {
+        $result[] = $tail[$i][2];
     }
+    return $result;
+  }
 
 value
   = string

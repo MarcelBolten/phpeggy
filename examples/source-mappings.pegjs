@@ -3,9 +3,12 @@
 //
 // See https://sourcemaps.info/spec.html
 // This grammar only parses the "mapping" field.
+{{
+private array $ub64 = [];
+}}
 {
-// ub64.A = 0, etc.
-$this->ub64 = array_flip(str_split("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"));
+// ub64['A'] = 0, etc.
+$this->ub64 = \array_flip(\str_split("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"));
 }
 
 // each group representing a line in the generated file is separated by a ”;”
@@ -85,12 +88,12 @@ field
     // Last 4 bits come from the top 4 bits of the end byte
     $last4 = ($end & 0x1e) >> 1;
     // Each continue byte has 5 bits.
-    return $sign * ((array_reduce($run, function ($carry, $item) {
+    return $sign * ((\array_reduce($run, function (int $carry, int $item): int {
         return ($carry << 5) + $item;
     }, 0) << 4) + $last4);
   }
 
-// The top bit (bit 5) set means "continue". ub64.g = 32, which is the first of those.
+// The top bit (bit 5) set means "continue". ub64['g'] = 32, which is the first of those.
 vlq_continue
   = c:[ghijklmnopqrstuvwxyz0123456789+/]
   {
