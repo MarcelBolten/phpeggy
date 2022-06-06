@@ -4,16 +4,16 @@
   "description": "PHP target for Peggy parser generator",
   "main": "src/phpeggy.js",
   "peerDependencies": {
-    "peggy": "^1.2.0"
+    "peggy": "^2.0.1"
   },
   "devDependencies": {
-    "@peggyjs/eslint-config": "^1.0.1",
+    "@peggyjs/eslint-config": "^2.0.0",
     "@typescript-eslint/eslint-plugin": "^5.16.0",
     "@typescript-eslint/parser": "^5.16.0",
     "chai": "^4.3.3",
     "eslint": "^8.11.0",
     "mocha": "^9.1.2",
-    "peggy": "^1.2.0",
+    "peggy": "^2.0.1",
     "typescript": "^4.3.2"
   },
   "scripts": {
