@@ -18,6 +18,7 @@ module.exports = function(useCache) {
     "    $this->peg_silentFails = 0;",
     "    $this->input = [];",
     "    $this->input_length = 0;",
+    "    $this->options = [];",
     '    $this->peg_source = "";',
     "}",
     "",

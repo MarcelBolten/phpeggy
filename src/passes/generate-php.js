@@ -645,6 +645,8 @@ module.exports = function(ast, options) {
     "private int $peg_silentFails = 0;", // 0 = report failures, > 0 = silence failures
     "/** @var string[] $input */",
     "private array $input = [];",
+    "/** @var array<string, string> $options */",
+    "private array $options = [];",
     "private int $input_length = 0;",
     "private " + phpGlobalNamespacePrefix + "stdClass $peg_FAILED;",
     'private string $peg_source = "";',
@@ -683,9 +685,8 @@ module.exports = function(ast, options) {
     "    $input,",
     "    array ...$args",
     ") {",
-    "    /** @var array<string, string> $options */",
-    "    $options = $args[0] ?? [];",
     "    $this->cleanup_state();",
+    "    $this->options = $args[0] ?? [];",
     "",
   ].join("\n")));
 
@@ -697,7 +698,7 @@ module.exports = function(ast, options) {
     "    $this->input = $match[0];",
     "}",
     "$this->input_length = \\count($this->input);",
-    '$this->peg_source = $options["grammarSource"] ?? "";',
+    '$this->peg_source = $this->options["grammarSource"] ?? "";',
     "",
   ].join("\n")));
 
@@ -736,12 +737,12 @@ module.exports = function(ast, options) {
   ].join("\n")));
 
   parts.push(indent(8, [
-    'if (isset($options["startRule"])) {',
-    '    if (!(isset($peg_startRuleFunctions[$options["startRule"]]))) {',
-    "        throw new " + phpGlobalNamespacePrefix + 'Exception("Can\'t start parsing from rule \\"" . $options["startRule"] . "\\".");',
+    'if (isset($this->options["startRule"])) {',
+    '    if (!(isset($peg_startRuleFunctions[$this->options["startRule"]]))) {',
+    "        throw new " + phpGlobalNamespacePrefix + 'Exception("Can\'t start parsing from rule \\"" . $this->options["startRule"] . "\\".");',
     "    }",
     "",
-    '    $peg_startRuleFunction = $peg_startRuleFunctions[$options["startRule"]];',
+    '    $peg_startRuleFunction = $peg_startRuleFunctions[$this->options["startRule"]];',
     "}",
     "",
     "/* @var mixed $peg_result */",
