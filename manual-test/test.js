@@ -15,6 +15,7 @@ const examples
   "SourceMappings": "source-mappings.pegjs",
   "XML": "xml.pegjs",
   "Minimal": "minimal.pegjs",
+  "SemVer": "semver.peggy",
 };
 
 function generateParser(input_file, output_file, classname) {

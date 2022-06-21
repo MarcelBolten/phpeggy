@@ -8,7 +8,8 @@ $examples = array(
     "FizzBuzz" => "output/fizzbuzz.php",
     "XML" => "output/xml.php",
     "SourceMappings" => "output/source-mappings.php",
-    "Minimal" => "output/minimal.php"
+    "Minimal" => "output/minimal.php",
+    "SemVer" => "output/semver.php",
 );
 
 $output = null;
