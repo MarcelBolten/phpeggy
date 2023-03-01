@@ -50,10 +50,10 @@ module.exports = function(
           "        string $string",
           "    ): bool {",
           '        if ($pattern[-1] === "i") {',
-          "            return (bool) \\mb_eregi(\\substr($pattern, 1, -2), $string);",
+          "            return \\mb_eregi(\\substr($pattern, 1, -2), $string);",
           "        }",
           "",
-          "        return (bool) \\mb_ereg(\\substr($pattern, 1, -1), $string);",
+          "        return \\mb_ereg(\\substr($pattern, 1, -1), $string);",
           "    }",
           "}",
         ]

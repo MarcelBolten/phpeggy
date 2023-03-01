@@ -14,10 +14,6 @@ services:
       - php
   php:
     container_name: phpeggy_php
-    environment:
-      # TODO: Remove it when psalm no longer tries to create a cache directory
-      # https://github.com/vimeo/psalm/issues/4267
-      - XDG_CACHE_HOME=/tmp
     build:
       context: .
       dockerfile: docker/Dockerfile
