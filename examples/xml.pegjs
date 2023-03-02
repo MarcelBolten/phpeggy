@@ -81,14 +81,14 @@ Name
 Names
   = head:Name tail:(' ' @Name)*
   {
-      return [$head, ...$tail];
+    return [$head, ...$tail];
   }
 Nmtoken
   = $NameChar+
 Nmtokens
   = head:Nmtoken tail:(' ' @Nmtoken)*
   {
-      return [$head, ...$tail];
+    return [$head, ...$tail];
   }
 
 // Literals
@@ -96,11 +96,11 @@ Nmtokens
 EntityValue
   = '"' vals:([^%&"] / PEReference / Reference)* '"'
   {
-      return $this->clumpStrings($vals);
+    return $this->clumpStrings($vals);
   }
   / "'" vals:([^%&'] / PEReference / Reference)* "'"
   {
-      return $this->clumpStrings($vals);
+    return $this->clumpStrings($vals);
   }
 AttValue
   = '"' @$([^<&"] / Reference)* '"'
@@ -119,20 +119,20 @@ PubidChar
 CharData
   = value:$(!CDEnd [^<&])*
   {
-      return $value ? [
-          "type" => "chardata",
-          "value" => $value,
-      ] : null;
+    return $value ? [
+        "type" => "chardata",
+        "value" => $value,
+    ] : null;
   }
 
 // Comments
 
 Comment = '<!--' value:(!'--' @Char)* '-->'
   {
-      return [
-          "type" => "comment",
-          "value" => implode('', $value),
-      ];
+    return [
+        "type" => "comment",
+        "value" => implode('', $value),
+    ];
   }
 
 // Processing Instructions
@@ -153,18 +153,18 @@ CDEnd = ']]>'
 prolog
   = xmldecl:XMLDecl? Misc* doctypedecl:(@doctypedecl Misc*)?
   {
-      return $this->add(
-          ["type" => "prolog"],
-          ["xmldecl" => $xmldecl, "doctypedecl" => $doctypedecl]
-      );
+    return $this->add(
+        ["type" => "prolog"],
+        ["xmldecl" => $xmldecl, "doctypedecl" => $doctypedecl]
+    );
   }
 XMLDecl
   = '<?xml' version:VersionInfo encoding:EncodingDecl? standalone:SDDecl? S? '?>'
   {
-      return $this->add(
-          ["type" => "xmldecl", "version" => $version],
-          ["encoding" => $encoding, "standalone" => $standalone]
-      );
+    return $this->add(
+        ["type" => "xmldecl", "version" => $version],
+        ["encoding" => $encoding, "standalone" => $standalone]
+    );
   }
 VersionInfo = S 'version' Eq @("'" @VersionNum "'" / '"' @VersionNum '"')
 Eq = S? '=' S?
@@ -174,10 +174,10 @@ Misc
   / PI
   / value:S
   {
-      return [
-        "type" => "chardata",
-        "value" => $value,
-      ];
+    return [
+      "type" => "chardata",
+      "value" => $value,
+    ];
   }
 
 // Document Type Definition
@@ -185,23 +185,23 @@ Misc
 doctypedecl
   = '<!DOCTYPE' S name:Name externalID:(S @ExternalID)? S? intSubset:('[' @intSubset ']' S?)? '>'
   {
-      return $this->add(
-          ["type" => "doctypedecl", "name" => $name],
-          ["externalID" => $externalID, "intSubset" => $intSubset]
-      );
+    return $this->add(
+        ["type" => "doctypedecl", "name" => $name],
+        ["externalID" => $externalID, "intSubset" => $intSubset]
+    );
   }
 
 DeclSep
   = PEReference
   / S
   {
-      return null;
+    return null;
   }
 
 intSubset
   = sub:(markupdecl / DeclSep)*
   {
-      return \array_filter($sub);
+    return \array_filter($sub);
   }
 
 markupdecl
@@ -224,28 +224,28 @@ element
   = EmptyElemTag
   / start:STag c:content ETag
   {
-      $start["children"] = $c;
-      return $start;
+    $start["children"] = $c;
+    return $start;
   }
 
 STag
   = '<' name:pushName attr:(S @Attribute)* S? '>'
   {
-      return [
-          "type" => "element",
-          "name" => $name,
-          "attr" => $this->convertAttr($attr),
-      ];
+    return [
+        "type" => "element",
+        "name" => $name,
+        "attr" => $this->convertAttr($attr),
+    ];
   }
 
 Attribute
   = name:Name Eq value:AttValue
   {
-      return [
-          "type" => "attribute",
-          "name" => $name,
-          "value" => $value,
-      ];
+    return [
+        "type" => "attribute",
+        "name" => $name,
+        "value" => $value,
+    ];
   }
 
 ETag = '</' popName S? '>'
@@ -254,43 +254,43 @@ ETag = '</' popName S? '>'
 pushName
   = n:Name
   {
-     $this->names[] = $n;
-     return $n;
+    $this->names[] = $n;
+    return $n;
   }
 
 popName
   = @n:Name &{
-      $other = array_pop($this->names);
-      if ($other === $n) {
-          return true;
-      }
-      $this->error("Expected end tag $other but got $n");
+    $other = array_pop($this->names);
+    if ($other === $n) {
+        return true;
+    }
+    $this->error("Expected end tag $other but got $n");
   }
 
 content
   = c1:CharData? children:((element / Reference / CDSect / PI / Comment) CharData?)*
   {
-      $res = [];
-      if ($c1) {
+    $res = [];
+    if ($c1) {
         $res[] = $c1;
-      }
-      foreach ($children as $child) {
+    }
+    foreach ($children as $child) {
         $res[] = $child[0];
         if ($child[1]) {
-          $res[] = $child[1];
+            $res[] = $child[1];
         }
-      }
-      return $res;
+    }
+    return $res;
   }
 
 EmptyElemTag
   = '<' name:Name attr:(S @Attribute)* S? '/>'
   {
-      return [
-          "type" => "element",
-          "name" => $name,
-          "attr" => $this->convertAttr($attr),
-      ];
+    return [
+        "type" => "element",
+        "name" => $name,
+        "attr" => $this->convertAttr($attr),
+    ];
   }
 
 // Elements in the DTD
@@ -298,22 +298,22 @@ EmptyElemTag
 elementdecl
   = '<!ELEMENT' S name:Name S content:contentspec S? '>'
   {
-      return [
-          "type" => "elementdecl",
-          "name" => $name,
-          "content" => $content,
-      ];
+    return [
+        "type" => "elementdecl",
+        "name" => $name,
+        "content" => $content,
+    ];
   }
 
 contentspec
   = 'EMPTY'
   {
-      return ["type" => "empty"];
+    return ["type" => "empty"];
   }
 
   / 'ANY'
   {
-      return ["type" => "any"];
+    return ["type" => "any"];
   }
 
   / Mixed
@@ -321,50 +321,50 @@ contentspec
 children
   = c:(choice / seq) count:('?' / '*' / '+')?
   {
-      if ($count) {
-          return [$c, $count];
-      }
-      return $c;
+    if ($count) {
+        return [$c, $count];
+    }
+    return $c;
   }
 
 cp
   = c:(Name / choice / seq) count:('?' / '*' / '+')?
   {
-      if ($count) {
-          return [$c, $count];
-      }
-      return $c;
+    if ($count) {
+        return [$c, $count];
+    }
+    return $c;
   }
 
 choice
   = '(' S? head:cp tail:( S? '|' S? @cp )+ S? ')'
   {
-      return [
-          "type" => "choice",
-          "choices" => [$head, ...$tail],
-      ];
+    return [
+        "type" => "choice",
+        "choices" => [$head, ...$tail],
+    ];
   }
 
 seq
   = '(' S? head:cp tail:( S? ',' S? @cp )* S? ')'
   {
-      return count($tail) ? [$head, ...$tail] : $head;
+    return count($tail) ? [$head, ...$tail] : $head;
   }
 
 Mixed
   = '(' S? '#PCDATA' names:(S? '|' S? @Name)* S? ')*'
   {
-      return [
-          "type" => "mixed",
-          "names" => $names,
-      ];
+    return [
+        "type" => "mixed",
+        "names" => $names,
+    ];
   }
 
   / '(' S? '#PCDATA' S? ')'
   {
-      return [
-          "type" => "pcdata",
-      ];
+    return [
+        "type" => "pcdata",
+    ];
   }
 
 // Attributes in the DTD
@@ -372,21 +372,21 @@ Mixed
 AttlistDecl
   = '<!ATTLIST' S Name attr:AttDef* S? '>'
   {
-      return [
-          "type" => "attlistdecl",
-          "attr" => $attr,
-      ];
+    return [
+        "type" => "attlistdecl",
+        "attr" => $attr,
+    ];
   }
 
 AttDef
   = S name:Name S type:AttType S def:DefaultDecl
   {
-      return [
-          "type" => "attdef",
-          "name" => $name,
-          "atttype" => $type,
-          "default" => $def,
-      ];
+    return [
+        "type" => "attdef",
+        "name" => $name,
+        "atttype" => $type,
+        "default" => $def,
+    ];
   }
 
 AttType = StringType / TokenizedType / EnumeratedType
@@ -405,16 +405,16 @@ EnumeratedType
 NotationType
   = 'NOTATION' S '(' S? head:Name tail:(S? '|' S? @Name)* S? ')'
   {
-      return [
-          "type" => "notation",
-          "names" => [$head, ...$tail],
-      ];
+    return [
+        "type" => "notation",
+        "names" => [$head, ...$tail],
+    ];
   }
 
 Enumeration
   = '(' S? head:Nmtoken tail:(S? '|' S? @Nmtoken)* S? ')'
   {
-      return [$head, ...$tail];
+    return [$head, ...$tail];
   }
 
 DefaultDecl
@@ -422,7 +422,7 @@ DefaultDecl
   / '#IMPLIED'
   / fixed:(@'#FIXED' S)? value:AttValue
   {
-      return $fixed ? [$fixed, $value] : $value;
+    return $fixed ? [$fixed, $value] : $value;
   }
 
 // Conditional Section
@@ -438,39 +438,40 @@ Ignore = (!'<![' !CDEnd Char)*
 CharRef
   = '&#' value:$[0-9]+ ';'
   {
-      return [
-          "type" => "charref",
-          "value" => \intval($value, 10),
-          "base" => 10,
-      ];
+    return [
+        "type" => "charref",
+        "value" => \intval($value, 10),
+        "base" => 10,
+    ];
   }
 
   / '&#x' value:$[0-9a-f]i+ ';'
   {
-      return [
-          "type" => "charref",
-          "value" => \intval($value, 16),
-          "base" => 16,
-      ];
+    return [
+        "type" => "charref",
+        "value" => \intval($value, 16),
+        "base" => 16,
+    ];
   }
 
 Reference = EntityRef / CharRef
 EntityRef
   = '&' name:Name ';'
   {
-     return [
+    return [
         "type" => "entityref",
         "name" => $name,
     ];
   }
 
-PEReference = '%' name:Name ';'
-{
+PEReference 
+  = '%' name:Name ';'
+  {
     return [
         "type" => "peref",
         "name" => $name,
     ];
-}
+  }
 
 // Entity Declarations
 
@@ -478,21 +479,21 @@ EntityDecl = GEDecl / PEDecl
 GEDecl
   = '<!ENTITY' S name:Name S def:EntityDef S? '>'
   {
-      return [
-          "type" => "entitydecl",
-          "name" => $name,
-          "def" => $def,
-      ];
+    return [
+        "type" => "entitydecl",
+        "name" => $name,
+        "def" => $def,
+    ];
   }
 
 PEDecl
   = '<!ENTITY' S '%' S name:Name S def:PEDef S? '>'
   {
-      return [
-          "type" => "entitydecl",
-          "name" => $name,
-          "def" => $def,
-      ];
+    return [
+        "type" => "entitydecl",
+        "name" => $name,
+        "def" => $def,
+    ];
   }
 
 EntityDef
@@ -502,28 +503,28 @@ PEDef = EntityValue / ExternalID
 ExternalID
   = 'SYSTEM' S value:SystemLiteral
   {
-      return [
-          "type" => "system",
-          "value" => $value,
-      ];
+    return [
+        "type" => "system",
+        "value" => $value,
+    ];
   }
 
   / 'PUBLIC' S pubid:PubidLiteral S value:SystemLiteral
   {
-      return [
-          "type" => "public",
-          "value" => $value,
-          "pubid" => $pubid,
-      ];
+    return [
+        "type" => "public",
+        "value" => $value,
+        "pubid" => $pubid,
+    ];
   }
 
 NDataDecl
   = S 'NDATA' S value:Name
   {
-      return [
-          "type" => "ndata",
-          "value" => $value,
-      ];
+    return [
+        "type" => "ndata",
+        "value" => $value,
+    ];
   }
 
 // Parsed Entities
@@ -535,20 +536,20 @@ EncName = [A-Za-z] ([A-Za-z0-9._] / '-')*
 NotationDecl
   = '<!NOTATION' S name:Name S id:(ExternalID / PublicID) S? '>'
   {
-      return [
-          "type" => "notationdecl",
-          "name" => $name,
-          "id" => $id,
-      ];
+    return [
+        "type" => "notationdecl",
+        "name" => $name,
+        "id" => $id,
+    ];
   }
 
 PublicID
   = 'PUBLIC' S value:PubidLiteral
   {
-      return [
-          "type" => "publicid",
-          "value" => $value,
-      ];
+    return [
+        "type" => "publicid",
+        "value" => $value,
+    ];
   }
 
 // Characters
