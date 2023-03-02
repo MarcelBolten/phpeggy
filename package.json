@@ -4,16 +4,16 @@
   "description": "PHP target for Peggy parser generator",
   "main": "src/phpeggy.js",
   "peerDependencies": {
-    "peggy": "^1.2.0"
+    "peggy": "^3.0.0"
   },
   "devDependencies": {
-    "@peggyjs/eslint-config": "^1.0.1",
+    "@peggyjs/eslint-config": "^3.0.0",
     "@typescript-eslint/eslint-plugin": "^5.16.0",
     "@typescript-eslint/parser": "^5.16.0",
     "chai": "^4.3.3",
     "eslint": "^8.11.0",
-    "mocha": "^9.1.2",
-    "peggy": "^1.2.0",
+    "mocha": "^10.2.0",
+    "peggy": "^3.0.0",
     "typescript": "^4.3.2"
   },
   "scripts": {
@@ -24,9 +24,10 @@
     "php:csfix-manual": "./vendor/bin/php-cs-fixer fix --config=.php-cs-fixer.dist.manual.php -v --dry-run --diff --using-cache=no",
     "php:static": "for f in test/fixtures/*.php; do echo \"\nProcessing $f ...\nPHPStan:\"; ./vendor/bin/phpstan analyse -c phpstan.neon --no-progress $f; echo \"Psalm:\" ; ./vendor/bin/psalm $f; done",
     "php:static-manual": "for f in manual-test/output/*.php; do echo \"\nProcessing $f ...\nPHPStan:\"; ./vendor/bin/phpstan analyse -c phpstan.neon --no-progress $f; echo \"Psalm:\" ; ./vendor/bin/psalm $f; done",
+    "php:test": "npm run php:csfix && npm run php:static",
+    "php:test-manual": "npm run php:csfix-manual && npm run php:static-manual",
     "pretest": "npm run lint",
-    "test": "mocha",
-    "test:php": "npm run php:csfix && npm run php:static"
+    "test": "mocha"
   },
   "repository": {
     "type": "git",
