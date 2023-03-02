@@ -15,7 +15,7 @@ private function add(array $obj, array $props): array
     return $obj;
 }
 
-private function clumpStrings(array $vals)
+private function clumpStrings(array $vals): array|string
 {
     $ret = [];
     $lastStr = '';
