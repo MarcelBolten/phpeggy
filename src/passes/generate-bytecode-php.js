@@ -466,12 +466,12 @@ module.exports = function(ast) {
         ? [op.IF_GE, max.value]
         : [op.IF_GE_DYNAMIC, max.sp];
 
-      // Push `peg$FAILED` - this break loop on next iteration, so |result|
-      // will contains not more then |max| elements.
+      // Push `peg_FAILED` - this break loop on next iteration, so |result|
+      // will contain not more then |max| elements.
       return buildCondition(
         SOMETIMES_MATCH,
         checkCode,             // if (r.length >= max)   stack:[ [elem...] ]
-        [op.PUSH_FAILED],      //   elem = peg$FAILED;   stack:[ [elem...], peg$FAILED ]
+        [op.PUSH_FAILED],      //   elem = peg_FAILED;   stack:[ [elem...], peg_FAILED ]
         expressionCode         // else
       );                       //   elem = expr();       stack:[ [elem...], elem ]
     }
@@ -499,7 +499,7 @@ module.exports = function(ast) {
         checkCode,                // if (result.length < min) {
         [op.POP, op.POP_CURR_POS, //   currPos = savedPos;    stack:[  ]
         // eslint-disable-next-line indent
-         op.PUSH_FAILED],         //   result = peg$FAILED;   stack:[ peg$FAILED ]
+         op.PUSH_FAILED],         //   result = peg_FAILED;   stack:[ peg_FAILED ]
         [op.NIP]                  // }                        stack:[ [elem...] ]
       )
     );
@@ -514,7 +514,7 @@ module.exports = function(ast) {
   ) {
     if (delimiterNode) {
       return buildSequence(           //                          stack:[  ]
-        [op.PUSH_CURR_POS],           // pos = peg$currPos;       stack:[ pos ]
+        [op.PUSH_CURR_POS],           // pos = peg_currPos;       stack:[ pos ]
         generate(delimiterNode, {     // item = delim();          stack:[ pos, delim ]
           // +1 for the saved offset
           sp: context.sp + offset + 1,
@@ -523,25 +523,25 @@ module.exports = function(ast) {
         }),
         buildCondition(
           delimiterNode.match | 0,
-          [op.IF_NOT_ERROR],          // if (item !== peg$FAILED) {
+          [op.IF_NOT_ERROR],          // if (item !== peg_FAILED) {
           buildSequence(
             [op.POP],                 //                          stack:[ pos ]
             expressionCode,           //   item = expr();         stack:[ pos, item ]
             buildCondition(
               -expressionMatch,
-              [op.IF_ERROR],          //   if (item === peg$FAILED) {
+              [op.IF_ERROR],          //   if (item === peg_FAILED) {
               // If element FAILED, rollback currPos to saved value.
               /* eslint-disable indent */
               [op.POP,                //                          stack:[ pos ]
-               op.POP_CURR_POS,       //     peg$currPos = pos;   stack:[  ]
-               op.PUSH_FAILED],       //     item = peg$FAILED;   stack:[ peg$FAILED ]
+               op.POP_CURR_POS,       //     peg_currPos = pos;   stack:[  ]
+               op.PUSH_FAILED],       //     item = peg_FAILED;   stack:[ peg_FAILED ]
               /* eslint-enable indent */
               // Else, just drop saved currPos.
               [op.NIP]                //   }                      stack:[ item ]
             )
           ),                          // }
           // If delimiter FAILED, currPos not changed, so just drop it.
-          [op.NIP]                    //                          stack:[ peg$FAILED ]
+          [op.NIP]                    //                          stack:[ peg_FAILED ]
         )                             //                          stack:[ <?> ]
       );
     }
@@ -575,12 +575,10 @@ module.exports = function(ast) {
         ? null
         : addExpectedConst({ type: "rule", value: node.name });
 
-      /**
-       * The code generated below is slightly suboptimal because |FAIL| pushes
-       * to the stack, so we need to stick a |POP| in front of it. We lack a
-       * dedicated instruction that would just report the failure and not touch
-       * the stack.
-       */
+      // The code generated below is slightly suboptimal because |FAIL| pushes
+      // to the stack, so we need to stick a |POP| in front of it. We lack a
+      // dedicated instruction that would just report the failure and not touch
+      // the stack.
       return buildSequence(
         [op.SILENT_FAILS_ON],
         generate(node.expression, context),
@@ -867,6 +865,7 @@ module.exports = function(ast) {
         ? generate(node.expression, {
           // +1 for the saved position before parsing the `delimiter elem` pair
           sp: maxCode.sp + offset + 1,
+          env: cloneEnv(context.env),
           action: null,
         })
         : firstExpressionCode;
@@ -889,8 +888,8 @@ module.exports = function(ast) {
         hasMin ? [op.PUSH_CURR_POS] : [], // var savedPos = curPos;   stack:[ pos ]
         [op.PUSH_EMPTY_ARRAY],            // var result = [];         stack:[ pos, [] ]
         firstElemCode,                    // var elem = expr();       stack:[ pos, [], elem ]
-        buildAppendLoop(checkMaxCode),    // while(...)r.push(elem);  stack:[ pos, [...], elem|peg$FAILED ]
-        [op.POP]                          //                          stack:[ pos, [...] ] (pop elem===`peg$FAILED`)
+        buildAppendLoop(checkMaxCode),    // while(...)r.push(elem);  stack:[ pos, [...], elem|peg_FAILED ]
+        [op.POP]                          //                          stack:[ pos, [...] ] (pop elem===`peg_FAILED`)
       );
 
       return buildSequence(
@@ -948,11 +947,9 @@ module.exports = function(ast) {
           })
           : null;
 
-        /**
-         * For case-sensitive strings the value must match the beginning of the
-         * remaining input exactly. As a result, we can use |ACCEPT_STRING| and
-         * save one |substr| call that would be needed if we used |ACCEPT_N|.
-         */
+        // For case-sensitive strings the value must match the beginning of the
+        // remaining input exactly. As a result, we can use |ACCEPT_STRING| and
+        // save one |substr| call that would be needed if we used |ACCEPT_N|.
         return buildCondition(
           match,
           node.ignoreCase
