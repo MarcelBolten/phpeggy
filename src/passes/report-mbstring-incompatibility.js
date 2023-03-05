@@ -2,30 +2,35 @@
 
 const visitor = require("peggy/lib/compiler/visitor");
 
-module.exports = function(ast, options) {
+module.exports = function(ast, options, session) {
   const mbstringAllowed = options.phpeggy.mbstringAllowed;
 
-  function ciErrorMessage(type) {
-    return "Case-insensitive " + type + " matching requires the "
-      + "`mbstring` PHP extension, but it is disabled "
-      + "via `mbstringAllowed: false`.";
+  function errorMessage(prefix) {
+    return prefix + " matching requires the "
+      + "`mbstring` PHP extension. However, the PHPeggy plugin option "
+      + "`mbstringAllowed` is set to `false`.";
   }
 
   const check = visitor.build({
     literal(node) {
       if (node.value.length > 0 && node.ignoreCase && !mbstringAllowed) {
-        throw new Error(ciErrorMessage("string"));
+        session.error(
+          errorMessage("Case-insensitive string"),
+          node.location
+        );
       }
     },
     class(node) {
       if (node.ignoreCase && !mbstringAllowed) {
-        throw new Error(ciErrorMessage("character class"));
+        session.error(
+          errorMessage("Case-insensitive character class"),
+          node.location
+        );
       }
       if (node.parts.length === 0 && !mbstringAllowed) {
-        throw new Error(
-          "Empty character class matching requires the "
-          + "`mbstring` PHP extension, but it is disabled "
-          + "via `mbstringAllowed: false`."
+        session.error(
+          errorMessage("Empty character class"),
+          node.location
         );
       }
     },
