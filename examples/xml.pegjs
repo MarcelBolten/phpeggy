@@ -265,6 +265,7 @@ popName
         return true;
     }
     $this->error("Expected end tag $other but got $n");
+    return null;
   }
 
 content
@@ -464,7 +465,7 @@ EntityRef
     ];
   }
 
-PEReference 
+PEReference
   = '%' name:Name ';'
   {
     return [

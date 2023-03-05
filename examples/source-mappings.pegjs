@@ -80,7 +80,7 @@ source_fields
     return $ret;
   }
 
-field 
+field
   = run:vlq_continue* end:vlq_end
   {
     // Lowest bit of end is the sign

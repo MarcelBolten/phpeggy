@@ -2,11 +2,11 @@
 
 const asts = require("peggy/lib/compiler/asts");
 const op = require("../opcodes");
+const Stack = require("peggy/lib/compiler/stack");
 const internalUtils = require("../utils");
-const phpeggyVersion = require("../../package.json").version;
-const peggyVersion = require("peggy/package.json").version;
 
 // Load static parser parts
+const header = require("./generate-php/header");
 const utilityFunctions = require("./generate-php/utility-functions");
 const syntaxErrorClass = require("./generate-php/syntax-error-class");
 const dataStorageClasses = require("./generate-php/data-storage-classes");
@@ -32,11 +32,9 @@ module.exports = function(ast, options) {
     return code.replace(/^(.+)$/gm, " ".repeat(numberOfSpaces) + "$1");
   }
 
-  function generateTablesDeclaration() {
-    function buildLiteral(literal) {
-      return internalUtils.quotePhp(literal);
-    }
+  function name(name) { return "peg_parse_" + name; }
 
+  function generateTablesDeclaration() {
     function buildRegexp(cls) {
       let regexp, classIndex;
 
@@ -75,11 +73,11 @@ module.exports = function(ast, options) {
     }
 
     const literals = ast.literals.map(
-      (l, i) => "private string $peg_l" + i + " = " + buildLiteral(l) + ";"
+      (l, i) => "private string $peg_l" + i + " = " + internalUtils.quotePhp(l) + ";"
     );
     const classes = ast.classes.map(
       (c, i) => (mbstringAllowed ? "" : "/** @var array<int, array<int, int>> $peg_c" + i + " */\n")
-        + "private " + (mbstringAllowed ? "string" : "array") +  " $peg_c" + i + " = " + buildRegexp(c) + ";"
+        + "private " + (mbstringAllowed ? "string" : "array") + " $peg_c" + i + " = " + buildRegexp(c) + ";"
     );
     const expectations = ast.expectations.map(
       (e, i) => "private pegExpectation $peg_e" + i + ";"
@@ -89,7 +87,7 @@ module.exports = function(ast, options) {
       ...literals ? literals : [],
       ...classes ? classes : [],
       ...expectations ? expectations : [],
-    ].join("\n");
+    ];
   }
 
   function generateTablesDefinition() {
@@ -138,44 +136,38 @@ module.exports = function(ast, options) {
 
     return [
       ...expectations ? expectations : [],
-    ].join("\n");
+    ];
   }
 
   function generateFunctions() {
-    return ast.functions.map(
-      (f, i) => [
-        "/**",
-        f.params.map(param => " * @param mixed $" + param).join("\n"),
-        " * @return mixed",
-        " */",
-        "private function peg_f" + i + "(",
-        f.params.map(param => "    $" + param).join(",\n"),
-        ") {",
-        "    " + internalUtils.extractPhpCode(f.body).trim(),
-        "}",
-        "",
-      ].join("\n")
-    ).join("\n");
+    return ast.functions.map((f, i) => [
+      "private function peg_f" + i + "(",
+      ...f.params.map(param => "    mixed $" + param + ","),
+      "): mixed {",
+      "    " + internalUtils.extractPhpCode(f.body).trim(),
+      "}",
+      "",
+    ].join("\n"));
   }
 
   function generateCacheHeader(ruleIndexCode) {
     return [
       "$key = $this->peg_currPos * " + ast.rules.length + " + " + ruleIndexCode + ";",
-      "$cached = $this->peg_cache[$key] ?? null;",
+      "$cached = $this->peg_cache[$key] ?? false;",
       "",
       "if ($cached) {",
       "    $this->peg_currPos = $cached->nextPos;",
       "    return $cached->result;",
       "}",
       "",
-    ].join("\n");
+    ];
   }
 
   function generateCacheFooter(resultCode) {
     return [
       "",
       "$this->peg_cache[$key] = new pegCacheItem($this->peg_currPos, " + resultCode + ");",
-    ].join("\n");
+    ];
   }
 
   function generateRuleFunction(rule) {
@@ -201,11 +193,6 @@ module.exports = function(ast, options) {
       return "$this->peg_f" + i;
     }
 
-    // |stack[i]| of the abstract machine
-    function s(i) {
-      return "$s" + i;
-    }
-
     function inputSubstr(start, len) {
       /*
        * If we can guarantee that `start` is within the bounds of
@@ -215,42 +202,7 @@ module.exports = function(ast, options) {
       return "$this->input_substr(" + start + ", " + len + ")";
     }
 
-    const stack = {
-      sp: -1,
-      maxSp: -1,
-      push(exprCode) {
-        const code = s(++this.sp) + " = " + exprCode + ";";
-
-        if (this.sp > this.maxSp) {
-          this.maxSp = this.sp;
-        }
-
-        return code;
-      },
-      pop(...args) {
-        let n, sp, values;
-
-        if (args.length === 0) {
-          return s(this.sp--);
-        } else {
-          n = args[0];
-          sp = this.sp;
-          values = Array.from(
-            new Array(n),
-            (value, index) => s(sp - n + 1 + index)
-          );
-          this.sp -= n;
-
-          return values;
-        }
-      },
-      top() {
-        return s(this.sp);
-      },
-      index(i) {
-        return s(this.sp - i);
-      },
-    };
+    const stack = new Stack(rule.name, "$s", "", rule.bytecode);
 
     function compile(bc) {
       let ip = 0;
@@ -262,30 +214,28 @@ module.exports = function(ast, options) {
         const baseLength = argCount + 3;
         const thenLength = bc[ip + baseLength - 2];
         const elseLength = bc[ip + baseLength - 1];
-        const baseSp = stack.sp;
-        let elseCode, elseSp;
+        let thenCode, elseCode;
 
-        ip += baseLength;
-        const thenCode = compile(bc.slice(ip, ip + thenLength));
-        const thenSp = stack.sp;
-        ip += thenLength;
-
-        if (elseLength > 0) {
-          stack.sp = baseSp;
-          elseCode = compile(bc.slice(ip, ip + elseLength));
-          elseSp = stack.sp;
-          ip += elseLength;
-
-          if (thenSp !== elseSp) {
-            throw new Error("Branches of a condition must move the stack pointer in the same way.");
-          }
-        }
+        stack.checkedIf(
+          ip,
+          () => {
+            ip += baseLength;
+            thenCode = compile(bc.slice(ip, ip + thenLength));
+            ip += thenLength;
+          },
+          elseLength > 0
+            ? () => {
+                elseCode = compile(bc.slice(ip, ip + elseLength));
+                ip += elseLength;
+              }
+            : null
+        );
 
         parts.push("if (" + cond + ") {");
-        parts.push(indent(4, thenCode));
+        parts.push(...thenCode.map(line => indent(4, line)));
         if (elseLength > 0) {
           parts.push("} else {");
-          parts.push(indent(4, elseCode));
+          parts.push(...elseCode.map(line => indent(4, line)));
         }
         parts.push("}");
       }
@@ -293,38 +243,17 @@ module.exports = function(ast, options) {
       function compileLoop(cond) {
         const baseLength = 2;
         const bodyLength = bc[ip + baseLength - 1];
-        const baseSp = stack.sp;
+        let bodyCode;
 
-        ip += baseLength;
-        const bodyCode = compile(bc.slice(ip, ip + bodyLength));
-        const bodySp = stack.sp;
-        ip += bodyLength;
-
-        if (bodySp !== baseSp) {
-          throw new Error("Body of a loop can't move the stack pointer.");
-        }
+        stack.checkedLoop(ip, () => {
+          ip += baseLength;
+          bodyCode = compile(bc.slice(ip, ip + bodyLength));
+          ip += bodyLength;
+        });
 
         parts.push("while (" + cond + ") {");
-        parts.push(indent(4, bodyCode));
+        parts.push(...bodyCode.map(line => indent(4, line)));
         parts.push("}");
-      }
-
-      function compileCall() {
-        const baseLength = 4;
-        const paramsLength = bc[ip + baseLength - 1];
-
-        const params = bc.slice(
-          ip + baseLength,
-          ip + baseLength + paramsLength
-        );
-        let value = f(bc[ip + 1]) + "(";
-        if (params.length > 0) {
-          value += params.map(stackIndex).join(", ");
-        }
-        value += ")";
-        stack.pop(bc[ip + 2]);
-        parts.push(stack.push(value));
-        ip += baseLength + paramsLength;
       }
 
       /*
@@ -333,6 +262,17 @@ module.exports = function(ast, options) {
        */
       function stackIndex(p) {
         return stack.index(p);
+      }
+
+      function compileCall(baseLength) {
+        const paramsLength = bc[ip + baseLength - 1];
+
+        return f(bc[ip + 1])
+          + "("
+          + bc.slice(ip + baseLength, ip + baseLength + paramsLength).map(
+            p => stackIndex(p)
+          ).join(", ")
+          + ")";
       }
 
       while (ip < end) {
@@ -418,7 +358,7 @@ module.exports = function(ast, options) {
             const paramsLength = bc[ip + baseLength - 1];
             const n = baseLength + paramsLength;
             value = bc.slice(ip + baseLength, ip + n);
-            value = paramsLength === 1
+            value = (paramsLength === 1)
               ? stack.index(value[0])
               : `[ ${
                 value.map(p => stackIndex(p)).join(", ")
@@ -520,6 +460,22 @@ module.exports = function(ast, options) {
             ip += 2;
             break;
 
+          case op.IF_LT:             // IF_LT min, t, f
+            compileCondition(stack.top() + ".length < " + bc[ip + 1], 1);
+            break;
+
+          case op.IF_GE:             // IF_GE max, t, f
+            compileCondition(stack.top() + ".length >= " + bc[ip + 1], 1);
+            break;
+
+          case op.IF_LT_DYNAMIC:     // IF_LT+DYNAMIC min, t, f
+            compileCondition(stack.top() + ".length < " + stack.index(bc[ip + 1]) + "|0", 1);
+            break;
+
+          case op.IF_GE_DYNAMIC:     // IF_GE_DYNAMIC max, t, f
+            compileCondition(stack.top() + ".length >= " + stack.index(bc[ip + 1]) + "|0", 1);
+            break;
+
           case op.LOAD_SAVED_POS:    // LOAD_SAVED_POS p
             parts.push("$this->peg_reportedPos = " + stack.index(bc[ip + 1]) + ";");
             ip += 2;
@@ -531,11 +487,14 @@ module.exports = function(ast, options) {
             break;
 
           case op.CALL:              // CALL f, n, pc, p1, p2, ..., pN
-            compileCall();
+            value = compileCall(4);
+            stack.pop(bc[ip + 2]);
+            parts.push(stack.push(value));
+            ip += 4 + bc[ip + 3];
             break;
 
           case op.RULE:              // RULE r
-            parts.push(stack.push("$this->peg_parse_" + ast.rules[bc[ip + 1]].name + "()"));
+            parts.push(stack.push("$this->" + name(ast.rules[bc[ip + 1]].name) + "()"));
             ip += 2;
             break;
 
@@ -550,40 +509,40 @@ module.exports = function(ast, options) {
             break;
 
           default:
-            throw new Error("Invalid opcode: " + bc[ip] + ".");
+            throw new Error("Invalid opcode: " + bc[ip] + ".", { rule: rule.name, bytecode: bc });
         }
       }
 
-      return parts.join("\n");
+      return parts;
     }
 
     const code = compile(rule.bytecode);
 
-    parts.push([
-      "/** @return mixed */",
-      "private function peg_parse_" + rule.name + "()",
-      "{",
-    ].join("\n"));
+    parts.push(
+      "private function " + name(rule.name) + "(): mixed",
+      "{"
+    );
 
     if (options.cache) {
-      parts.push(indent(4, generateCacheHeader(
+      parts.push(...generateCacheHeader(
         asts.indexOfRule(ast, rule.name)
-      )));
+      ).map(line => indent(4, line)));
     }
 
-    parts.push(indent(4, code));
+    parts.push(...code.map(line => indent(4, line)));
 
     if (options.cache) {
-      parts.push(indent(4, generateCacheFooter(s(0))));
+      parts.push(...generateCacheFooter(stack.result())
+        .map(line => indent(4, line)));
     }
 
-    parts.push([
+    parts.push(
       "",
-      "    return " + s(0) + ";",
-      "}",
-    ].join("\n"));
+      "    return " + stack.result() + ";",
+      "}"
+    );
 
-    return parts.join("\n");
+    return parts;
   }
 
   //
@@ -591,48 +550,39 @@ module.exports = function(ast, options) {
   //
   const parts = [];
 
-  parts.push([
-    "<?php",
-    "/*",
-    " * Generated by Peggy " + peggyVersion + " with PHPeggy plugin " + phpeggyVersion,
-    " *",
-    " * https://peggyjs.org/",
-    " * https://github.com/marcelbolten/phpeggy",
-    " */",
-    "",
-    "declare(strict_types=1);",
-    "",
-  ].join("\n"));
+  parts.push(...header);
 
   if (phpNamespace) {
-    parts.push([
+    parts.push(
       "namespace " + phpNamespace + ";",
-      "",
-    ].join("\n"));
+      ""
+    );
   }
 
-  parts.push(utilityFunctions(
+  parts.push(...utilityFunctions(
     phpGlobalNamePrefixOrNamespaceEscaped,
     mbstringAllowed
   ));
 
-  parts.push(syntaxErrorClass(
+  parts.push(...syntaxErrorClass(
     phpGlobalNamePrefixOrNamespaceEscaped,
     phpGlobalNamespacePrefix
   ));
 
-  parts.push(dataStorageClasses(
+  parts.push(...dataStorageClasses(
     phpGlobalNamePrefixOrNamespaceEscaped
   ));
 
-  parts.push([
+  parts.push(
     "class " + phpParserClass,
-    "{",
-  ].join("\n"));
+    "{"
+  );
 
-  parts.push(indent(4, [
+  parts.push(...[
     ...options.cache
-      ? ["/** @var pegCacheItem[] */", "public array $peg_cache = [];", ""]
+      ? ["/** @var pegCacheItem[] */",
+          "public array $peg_cache = [];",
+          ""]
       : [],
 
     "private int $peg_currPos = 0;",
@@ -651,46 +601,45 @@ module.exports = function(ast, options) {
     "private " + phpGlobalNamespacePrefix + "stdClass $peg_FAILED;",
     'private string $peg_source = "";',
     "",
-  ].join("\n")));
+  ].map(line => indent(4, line)));
 
-  parts.push(indent(4, [
-    generateTablesDeclaration(),
+  parts.push(...[
+    ...generateTablesDeclaration(),
     "",
-  ].join("\n")));
+  ].map(line => indent(4, line)));
 
-  parts.push(indent(4, [
+  parts.push(...[
     "public function __construct()",
     "{",
     "    $this->peg_FAILED = new " + phpGlobalNamespacePrefix + "stdClass();",
     "    $this->peg_cachedPosDetails = new pegCachedPosDetails();",
-  ].join("\n")));
+  ].map(line => indent(4, line)));
 
-  parts.push(indent(8, generateTablesDefinition()));
+  parts.push(...generateTablesDefinition().map(line => indent(8, line)));
 
-  parts.push(indent(4, [
+  parts.push(...[
     "}",
     "",
-  ].join("\n")));
+  ].map(line => indent(4, line)));
 
   // START public function parse
-  parts.push(indent(4, [
+  parts.push(...[
     "/**",
     " * @param string|string[] $input",
     " * @param mixed[] $args",
     " * @throws " + phpGlobalNamespacePrefix + "Exception",
     " * @throws SyntaxError",
-    " * @return mixed",
     " */",
     "public function parse(",
     "    $input,",
     "    array ...$args",
-    ") {",
+    "): mixed {",
     "    $this->cleanup_state();",
     "    $this->options = $args[0] ?? [];",
     "",
-  ].join("\n")));
+  ].map(line => indent(4, line)));
 
-  parts.push(indent(8, [
+  parts.push(...[
     "if (\\is_array($input)) {",
     "    $this->input = $input;",
     "} else {",
@@ -700,14 +649,14 @@ module.exports = function(ast, options) {
     "$this->input_length = \\count($this->input);",
     '$this->peg_source = $this->options["grammarSource"] ?? "";',
     "",
-  ].join("\n")));
+  ].map(line => indent(8, line)));
 
   if (mbstringAllowed) {
-    parts.push(indent(8, [
+    parts.push(...[
       "$old_regex_encoding = (string) \\mb_regex_encoding();",
       '\\mb_regex_encoding("UTF-8");',
       "",
-    ].join("\n")));
+    ].map(line => indent(8, line)));
   }
 
   if (ast.initializer) {
@@ -715,28 +664,28 @@ module.exports = function(ast, options) {
       ast.initializer.code.trim()
     );
     if (initializerCode !== "") {
-      parts.push(indent(8, [
+      parts.push(...[
         "/* BEGIN initializer code */",
         initializerCode,
         "/* END initializer code */",
         "",
-      ].join("\n")));
+      ].map(line => indent(8, line)));
     }
   }
 
   const startRuleFunctions = "["
     + options.allowedStartRules.map(
-      r => '"' + r + '" => [$this, "peg_parse_' + r + '"]'
+      r => '"' + r + '" => [$this, "' + name(r) + '"]'
     ).join(", ")
     + "]";
-  const startRuleFunction = '[$this, "peg_parse_' + options.allowedStartRules[0] + '"]';
+  const startRuleFunction = '[$this, "' + name(options.allowedStartRules[0]) + '"]';
 
-  parts.push(indent(8, [
+  parts.push(...[
     "$peg_startRuleFunctions = " + startRuleFunctions + ";",
     "$peg_startRuleFunction = " + startRuleFunction + ";",
-  ].join("\n")));
+  ].map(line => indent(8, line)));
 
-  parts.push(indent(8, [
+  parts.push(...[
     'if (isset($this->options["startRule"])) {',
     '    if (!(isset($peg_startRuleFunctions[$this->options["startRule"]]))) {',
     "        throw new " + phpGlobalNamespacePrefix + 'Exception("Can\'t start parsing from rule \\"" . $this->options["startRule"] . "\\".");',
@@ -748,26 +697,25 @@ module.exports = function(ast, options) {
     "/* @var mixed $peg_result */",
     "$peg_result = \\call_user_func($peg_startRuleFunction);",
     "",
-  ].join("\n")));
+  ].map(line => indent(8, line)));
 
   if (options.cache) {
-    parts.push(indent(8, [
+    parts.push(...[
       "$this->peg_cache = [];",
       "",
-    ].join("\n")));
+    ].map(line => indent(8, line)));
   }
 
   if (mbstringAllowed) {
-    parts.push(indent(8, [
+    parts.push(...[
       "\\mb_regex_encoding($old_regex_encoding);",
       "",
-    ].join("\n")));
+    ].map(line => indent(8, line)));
   }
 
-  parts.push(indent(8, [
+  parts.push(...[
     "if ($peg_result !== $this->peg_FAILED && $this->peg_currPos === $this->input_length) {",
-    "    // Free up memory",
-    "    $this->cleanup_state();",
+    "    $this->cleanup_state();", // Free up memory
     "    return $peg_result;",
     "}",
     "if ($peg_result !== $this->peg_FAILED && $this->peg_currPos < $this->input_length) {",
@@ -775,23 +723,22 @@ module.exports = function(ast, options) {
     "}",
     "",
     "$exception = $this->peg_buildException(null, $this->peg_maxFailExpected, $this->peg_maxFailPos);",
-    "// Free up memory",
-    "$this->cleanup_state();",
+    "$this->cleanup_state();", // Free up memory
     "throw $exception;",
-  ].join("\n")));
+  ].map(line => indent(8, line)));
 
-  parts.push([
+  parts.push(
     "    }",
-    "",
-  ].join("\n"));
+    ""
+  );
   // END public function parse
 
-  parts.push(indent(4, privateMethods(options.cache)));
+  parts.push(...privateMethods(options.cache).map(line => indent(4, line)));
 
-  parts.push(indent(4, generateFunctions()));
+  parts.push(...generateFunctions().map(line => indent(4, line)));
 
   ast.rules.forEach(rule => {
-    parts.push(indent(4, generateRuleFunction(rule)));
+    parts.push(...generateRuleFunction(rule).map(line => indent(4, line)));
     parts.push("");
   });
   // Remove empty line
@@ -802,19 +749,19 @@ module.exports = function(ast, options) {
       ast.topLevelInitializer.code.trim()
     );
     if (topLevelInitializerCode !== "") {
-      parts.push(indent(4, [
+      parts.push(...[
         "",
         "/* BEGIN global initializer code */",
         topLevelInitializerCode,
         "/* END global initializer code */",
-      ].join("\n")));
+      ].map(line => indent(4, line)));
     }
   }
 
-  parts.push([
+  parts.push(
     "};",
-    "",
-  ].join("\n"));
+    ""
+  );
 
   ast.code = parts.join("\n");
 };

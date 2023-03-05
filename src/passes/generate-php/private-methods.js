@@ -224,5 +224,5 @@ module.exports = function(useCache) {
     "    );",
     "}",
     "",
-  ].join("\n");
+  ];
 };

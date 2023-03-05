@@ -19,16 +19,19 @@ private function notFizzBuzz(int $n): bool
 }
 }}
 {
-$this->currentNumber = isset($this->options["start"]) && is_numeric($this->options["start"]) ? $this->options["start"] : 1;
+$this->currentNumber = isset($this->options["start"])
+    && is_numeric($this->options["start"])
+      ? $this->options["start"]
+      : 1;
 }
 
-top = c:count* {
+top = c:count|..| {
   return array_values(array_filter($c));
   }
 
 count
-  = end_comment nl { return; }
-  / comment nl { return; }
+  = end_comment nl { return null; }
+  / comment nl { return null; }
   / comment? fb:line (comment / end_comment)? nl {
     $this->currentNumber++;
     return $fb;

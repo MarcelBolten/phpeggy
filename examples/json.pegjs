@@ -1,7 +1,7 @@
-/* 
+/*
  * ! This is php-compatible version of grammar "pegjs/examples/json.pegjs"
  *
- * JSON parser based on the grammar described at http://json.org/. 
+ * JSON parser based on the grammar described at http://json.org/.
  */
 
 /* ===== Syntactical Elements ===== */

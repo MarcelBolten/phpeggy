@@ -82,5 +82,5 @@ module.exports = function(
         ],
     "/* END Utility functions */",
     "",
-  ].join("\n");
+  ];
 };

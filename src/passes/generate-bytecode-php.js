@@ -5,6 +5,7 @@
 
 const asts = require("peggy/lib/compiler/asts");
 const visitor = require("peggy/lib/compiler/visitor");
+const { ALWAYS_MATCH, SOMETIMES_MATCH, NEVER_MATCH } = require("peggy/lib/compiler/passes/inference-match-result");
 const op = require("../opcodes");
 
 /* Generates bytecode.
@@ -108,6 +109,38 @@ const op = require("../opcodes");
  *          interpret(ip + 3 + t, ip + 3 + t + f);
  *        }
  *
+ * [30] IF_LT min, t, f
+ *
+ *        if (stack.top().length < min) {
+ *          interpret(ip + 3, ip + 3 + t);
+ *        } else {
+ *          interpret(ip + 3 + t, ip + 3 + t + f);
+ *        }
+ *
+ * [31] IF_GE max, t, f
+ *
+ *        if (stack.top().length >= max) {
+ *          interpret(ip + 3, ip + 3 + t);
+ *        } else {
+ *          interpret(ip + 3 + t, ip + 3 + t + f);
+ *        }
+ *
+ * [32] IF_LT_DYNAMIC min, t, f
+ *
+ *        if (stack.top().length < stack[min]) {
+ *          interpret(ip + 3, ip + 3 + t);
+ *        } else {
+ *          interpret(ip + 3 + t, ip + 3 + t + f);
+ *        }
+ *
+ * [33] IF_GE_DYNAMIC max, t, f
+ *
+ *        if (stack.top().length >= stack[max]) {
+ *          interpret(ip + 3, ip + 3 + t);
+ *        } else {
+ *          interpret(ip + 3 + t, ip + 3 + t + f);
+ *        }
+ *
  * [16] WHILE_NOT_ERROR b
  *
  *        while(stack.top() !== FAILED) {
@@ -199,6 +232,27 @@ const op = require("../opcodes");
  *
  *        silentFails--;
  *
+ * Source Mapping (not used for PHP)
+ * ---------------------------------
+ *
+ * [37] SOURCE_MAP_PUSH n
+ *
+ *        Everything generated from here until the corresponding SOURCE_MAP_POP
+ *        will be wrapped in a SourceNode tagged with locations[n].
+ *
+ * [38] SOURCE_MAP_POP
+ *
+ *        See above.
+ *
+ * [39] SOURCE_MAP_LABEL_PUSH sp, label, loc
+ *
+ *        Mark that the stack location sp will be used to hold the value
+ *        of the label named literals[label], with location info locations[loc]
+ *
+ * [40] SOURCE_MAP_LABEL_POP sp
+ *
+ *        End the region started by [39]
+ *
  * This pass can use the results of other previous passes, each of which can
  * change the AST (and, as consequence, the bytecode).
  *
@@ -221,10 +275,6 @@ const op = require("../opcodes");
  * Wikipedia page (https://en.wikipedia.org/wiki/Asm.js#Code_generation)
  */
 module.exports = function(ast) {
-  const ALWAYS_MATCH = 1;
-  const SOMETIMES_MATCH = 0;
-  const NEVER_MATCH = -1;
-
   const literals = [];
   const classes = [];
   const expectations = [];
@@ -252,15 +302,20 @@ module.exports = function(ast) {
     const pattern = JSON.stringify(expected);
     const index = expectations.findIndex(e => JSON.stringify(e) === pattern);
 
-    return index === -1 ? expectations.push(expected) - 1 : index;
+    return (index === -1) ? expectations.push(expected) - 1 : index;
   }
 
-  function addFunctionConst(predicate, params, code) {
-    const func = { predicate, params, body: code };
+  function addFunctionConst(predicate, params, node) {
+    const func = {
+      predicate,
+      params,
+      body: node.code,
+      location: node.codeLocation,
+    };
     const pattern = JSON.stringify(func);
     const index = functions.findIndex(f => JSON.stringify(f) === pattern);
 
-    return index === -1 ? functions.push(func) - 1 : index;
+    return (index === -1) ? functions.push(func) - 1 : index;
   }
 
   function cloneEnv(env) {
@@ -279,7 +334,7 @@ module.exports = function(ast) {
 
   function buildCondition(match, condCode, thenCode, elseCode) {
     if (match === ALWAYS_MATCH) { return thenCode; }
-    if (match === NEVER_MATCH)  { return elseCode; }
+    if (match === NEVER_MATCH) { return elseCode; }
 
     return condCode.concat(
       [thenCode.length, elseCode.length],
@@ -329,7 +384,7 @@ module.exports = function(ast) {
 
   function buildSemanticPredicate(node, negative, context) {
     const functionIndex = addFunctionConst(
-      true, Object.keys(context.env), node.code
+      true, Object.keys(context.env), node
     );
 
     return buildSequence(
@@ -357,6 +412,143 @@ module.exports = function(ast) {
     );
   }
 
+  /**
+   *
+   * @param {import("../../peg").ast.RepeatedBoundary} boundary
+   * @param {{ [label: string]: number}} env Mapping of label names to stack positions
+   * @param {number} sp Number of the first free slot in the stack
+   *
+   * @returns {{ pre: number[], post: number[], sp: number}}
+   *          Bytecode that should be added before and after parsing and new
+   *          first free slot in the stack
+   */
+  function buildRangeCall(boundary, env, sp, offset) {
+    switch (boundary.type) {
+      case "constant":
+        return { pre: [], post: [], sp };
+      case "variable":
+        boundary.sp = offset + sp - env[boundary.value];
+        return { pre: [], post: [], sp };
+      case "function": {
+        boundary.sp = offset;
+
+        const functionIndex = addFunctionConst(
+          true,
+          Object.keys(env),
+          { code: boundary.value, codeLocation: boundary.codeLocation }
+        );
+
+        return {
+          pre: buildCall(functionIndex, 0, env, sp),
+          post: [op.NIP],
+          // +1 for the function result
+          sp: sp + 1,
+        };
+      }
+
+      // istanbul ignore next Because we never generate invalid boundary type we cannot reach this branch
+      default:
+        throw new Error(`Unknown boundary type "${boundary.type}" for the "repeated" node`);
+    }
+  }
+
+  /* eslint capitalized-comments: "off" */
+  /**
+   * @param {number[]} expressionCode Bytecode for parsing repetitions
+   * @param {import("../../peg").ast.RepeatedBoundary} max Maximum boundary of repetitions.
+   *        If `null`, the maximum boundary is unlimited
+   *
+   * @returns {number[]} Bytecode that performs check of the maximum boundary
+   */
+  function buildCheckMax(expressionCode, max) {
+    if (max.value !== null) {
+      const checkCode = (max.type === "constant")
+        ? [op.IF_GE, max.value]
+        : [op.IF_GE_DYNAMIC, max.sp];
+
+      // Push `peg$FAILED` - this break loop on next iteration, so |result|
+      // will contains not more then |max| elements.
+      return buildCondition(
+        SOMETIMES_MATCH,
+        checkCode,             // if (r.length >= max)   stack:[ [elem...] ]
+        [op.PUSH_FAILED],      //   elem = peg$FAILED;   stack:[ [elem...], peg$FAILED ]
+        expressionCode         // else
+      );                       //   elem = expr();       stack:[ [elem...], elem ]
+    }
+
+    return expressionCode;
+  }
+
+  /* eslint capitalized-comments: "off" */
+  /**
+   * @param {number[]} expressionCode Bytecode for parsing repeated elements
+   * @param {import("../../peg").ast.RepeatedBoundary} min Minimum boundary of repetitions.
+   *        If `null`, the minimum boundary is zero
+   *
+   * @returns {number[]} Bytecode that performs check of the minimum boundary
+   */
+  function buildCheckMin(expressionCode, min) {
+    const checkCode = (min.type === "constant")
+      ? [op.IF_LT, min.value]
+      : [op.IF_LT_DYNAMIC, min.sp];
+
+    return buildSequence(
+      expressionCode,             // result = [elem...];      stack:[ pos, [elem...] ]
+      buildCondition(
+        SOMETIMES_MATCH,
+        checkCode,                // if (result.length < min) {
+        [op.POP, op.POP_CURR_POS, //   currPos = savedPos;    stack:[  ]
+        // eslint-disable-next-line indent
+         op.PUSH_FAILED],         //   result = peg$FAILED;   stack:[ peg$FAILED ]
+        [op.NIP]                  // }                        stack:[ [elem...] ]
+      )
+    );
+  }
+
+  function buildRangeBody(
+    delimiterNode,
+    expressionMatch,
+    expressionCode,
+    context,
+    offset
+  ) {
+    if (delimiterNode) {
+      return buildSequence(           //                          stack:[  ]
+        [op.PUSH_CURR_POS],           // pos = peg$currPos;       stack:[ pos ]
+        generate(delimiterNode, {     // item = delim();          stack:[ pos, delim ]
+          // +1 for the saved offset
+          sp: context.sp + offset + 1,
+          env: cloneEnv(context.env),
+          action: null,
+        }),
+        buildCondition(
+          delimiterNode.match | 0,
+          [op.IF_NOT_ERROR],          // if (item !== peg$FAILED) {
+          buildSequence(
+            [op.POP],                 //                          stack:[ pos ]
+            expressionCode,           //   item = expr();         stack:[ pos, item ]
+            buildCondition(
+              -expressionMatch,
+              [op.IF_ERROR],          //   if (item === peg$FAILED) {
+              // If element FAILED, rollback currPos to saved value.
+              /* eslint-disable indent */
+              [op.POP,                //                          stack:[ pos ]
+               op.POP_CURR_POS,       //     peg$currPos = pos;   stack:[  ]
+               op.PUSH_FAILED],       //     item = peg$FAILED;   stack:[ peg$FAILED ]
+              /* eslint-enable indent */
+              // Else, just drop saved currPos.
+              [op.NIP]                //   }                      stack:[ item ]
+            )
+          ),                          // }
+          // If delimiter FAILED, currPos not changed, so just drop it.
+          [op.NIP]                    //                          stack:[ peg$FAILED ]
+        )                             //                          stack:[ <?> ]
+      );
+    }
+
+    return expressionCode;
+  }
+
   const generate = visitor.build({
     grammar(node) {
       node.rules.forEach(generate);
@@ -369,23 +561,21 @@ module.exports = function(ast) {
 
     rule(node) {
       node.bytecode = generate(node.expression, {
-        sp: -1,       // Stack pointer
-        env: {},      // Mapping of label names to stack positions
-        pluck: [],    // Fields that have been picked
-        action: null, // Action nodes pass themselves to children here
+        sp: -1,        // Stack pointer
+        env: {},       // Mapping of label names to stack positions
+        pluck: [],     // Fields that have been picked
+        action: null,  // Action nodes pass themselves to children here
       });
     },
 
     named(node, context) {
       const match = node.match | 0;
       // Expectation not required if node always fail
-      const nameIndex = match === NEVER_MATCH
+      const nameIndex = (match === NEVER_MATCH)
         ? null
-        : addExpectedConst(
-          { type: "rule", value: node.name }
-        );
+        : addExpectedConst({ type: "rule", value: node.name });
 
-      /*
+      /**
        * The code generated below is slightly suboptimal because |FAIL| pushes
        * to the stack, so we need to stick a |POP| in front of it. We lack a
        * dedicated instruction that would just report the failure and not touch
@@ -448,8 +638,8 @@ module.exports = function(ast) {
       });
       const match = node.expression.match | 0;
       // Function only required if expression can match
-      const functionIndex = emitCall && match !== NEVER_MATCH
-        ? addFunctionConst(false, Object.keys(env), node.code)
+      const functionIndex = (emitCall && match !== NEVER_MATCH)
+        ? addFunctionConst(false, Object.keys(env), node)
         : null;
 
       return emitCall
@@ -473,8 +663,7 @@ module.exports = function(ast) {
     sequence(node, context) {
       function buildElementsCode(elements, context) {
         if (elements.length > 0) {
-          const processedCount
-            = node.elements.length - elements.length + 1;
+          const processedCount = node.elements.length - elements.length + 1;
 
           return buildSequence(
             generate(elements[0], {
@@ -511,7 +700,7 @@ module.exports = function(ast) {
             const functionIndex = addFunctionConst(
               false,
               Object.keys(context.env),
-              context.action.code
+              context.action
             );
 
             return buildSequence(
@@ -644,6 +833,78 @@ module.exports = function(ast) {
       );
     },
 
+    repeated(node, context) {
+      // Handle case when minimum was literally equals to maximum
+      const min = node.min ? node.min : node.max;
+      const hasMin = min.type !== "constant" || min.value > 0;
+      const hasBoundedMax = node.max.type !== "constant" && node.max.value !== null;
+
+      // +1 for the result slot with an array
+      // +1 if we have non-constant (i.e. potentially non-zero) or non-zero minimum
+      //    for the position before match for backtracking
+      const offset = hasMin ? 2 : 1;
+
+      // Do not generate function for "minimum" if grammar used `exact` syntax
+      const minCode = node.min
+        ? buildRangeCall(
+          node.min,
+          context.env,
+          context.sp,
+          // +1 for the result slot with an array
+          // +1 for the saved position
+          // +1 if we have a "function" maximum it occupies an additional slot in the stack
+          2 + (node.max.type === "function" ? 1 : 0)
+        )
+        : { pre: [], post: [], sp: context.sp };
+      const maxCode = buildRangeCall(node.max, context.env, minCode.sp, offset);
+
+      const firstExpressionCode = generate(node.expression, {
+        sp: maxCode.sp + offset,
+        env: cloneEnv(context.env),
+        action: null,
+      });
+      const expressionCode = (node.delimiter !== null)
+        ? generate(node.expression, {
+          // +1 for the saved position before parsing the `delimiter elem` pair
+          sp: maxCode.sp + offset + 1,
+          action: null,
+        })
+        : firstExpressionCode;
+      const bodyCode = buildRangeBody(
+        node.delimiter,
+        node.expression.match | 0,
+        expressionCode,
+        context,
+        offset
+      );
+      // Check the high boundary, if it is defined.
+      const checkMaxCode = buildCheckMax(bodyCode, node.max);
+      // For dynamic high boundary we need check the first iteration, because the result can be
+      // empty. Constant boundaries does not require that check, because they are always >=1
+      const firstElemCode = hasBoundedMax
+        ? buildCheckMax(firstExpressionCode, node.max)
+        : firstExpressionCode;
+      const mainLoopCode = buildSequence(
+        // If the low boundary present, then backtracking is possible, so save the current pos
+        hasMin ? [op.PUSH_CURR_POS] : [], // var savedPos = curPos;   stack:[ pos ]
+        [op.PUSH_EMPTY_ARRAY],            // var result = [];         stack:[ pos, [] ]
+        firstElemCode,                    // var elem = expr();       stack:[ pos, [], elem ]
+        buildAppendLoop(checkMaxCode),    // while(...)r.push(elem);  stack:[ pos, [...], elem|peg$FAILED ]
+        [op.POP]                          //                          stack:[ pos, [...] ] (pop elem===`peg$FAILED`)
+      );
+
+      return buildSequence(
+        minCode.pre,
+        maxCode.pre,
+        // Check the low boundary, if it is defined and not |0|.
+        hasMin
+          ? buildCheckMin(mainLoopCode, min)
+          : mainLoopCode,
+        maxCode.post,
+        minCode.post
+      );
+    },
+
     group(node, context) {
       return generate(node.expression, {
         sp: context.sp,
@@ -669,8 +930,8 @@ module.exports = function(ast) {
         const match = node.match | 0;
         // String only required if condition is generated or string is
         // case-sensitive and node always match
-        const needConst = match === SOMETIMES_MATCH
-          || match === ALWAYS_MATCH && !node.ignoreCase;
+        const needConst = (match === SOMETIMES_MATCH)
+          || (match === ALWAYS_MATCH && !node.ignoreCase);
         const stringIndex = needConst
           ? addLiteralConst(
             node.ignoreCase
@@ -679,7 +940,7 @@ module.exports = function(ast) {
           )
           : null;
         // Expectation not required if node always match
-        const expectedIndex = match !== ALWAYS_MATCH
+        const expectedIndex = (match !== ALWAYS_MATCH)
           ? addExpectedConst({
             type: "literal",
             value: node.value,
@@ -687,7 +948,7 @@ module.exports = function(ast) {
           })
           : null;
 
-        /*
+        /**
          * For case-sensitive strings the value must match the beginning of the
          * remaining input exactly. As a result, we can use |ACCEPT_STRING| and
          * save one |substr| call that would be needed if we used |ACCEPT_N|.
@@ -710,11 +971,11 @@ module.exports = function(ast) {
     class(node) {
       const match = node.match | 0;
       // Character class constant only required if condition is generated
-      const classIndex = match === SOMETIMES_MATCH
+      const classIndex = (match === SOMETIMES_MATCH)
         ? addClassConst(node)
         : null;
       // Expectation not required if node always match
-      const expectedIndex = match !== ALWAYS_MATCH
+      const expectedIndex = (match !== ALWAYS_MATCH)
         ? addExpectedConst({
           type: "class",
           value: node.parts,
@@ -734,7 +995,7 @@ module.exports = function(ast) {
     any(node) {
       const match = node.match | 0;
       // Expectation not required if node always match
-      const expectedIndex = match !== ALWAYS_MATCH
+      const expectedIndex = (match !== ALWAYS_MATCH)
         ? addExpectedConst({
           type: "any",
         })
@@ -753,7 +1014,7 @@ module.exports = function(ast) {
 };
 /*
  * MIT License
- * Copyright (c) 2010-2021 The Peggy AUTHORS
+ * Copyright (c) 2010-2023 The Peggy AUTHORS
  *
  * ------------------------------------------------------------------
  * Copyright (c) 2010-2013 David Majda
