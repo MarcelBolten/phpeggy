@@ -8,12 +8,16 @@ This file documents all notable changes to PHPeggy.
 
 Released: TBD
 
+### Breaking Changes
+
+- node ≥14 is required.
+- PHP ≥8.0 is required.
+
 ### Major Changes
 
-- PHP ≥7.4 is required.
 - Use types in PHP wherever possible.
-- Keep up with Peggy development up to version 1.2.0:
-  Implementation of global initializer blocks and plucking (see https://github.com/peggyjs/peggy/blob/main/CHANGELOG.md#major-changes).
+- Keep up with Peggy development up to version 3.0.0:
+  Implementation of global initializer blocks, plucking, and repetition operator (see https://github.com/peggyjs/peggy/blob/main/CHANGELOG.md#major-changes).
 
 ### Developer
 

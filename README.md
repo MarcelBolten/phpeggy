@@ -43,7 +43,7 @@ Installation
 Install Peggy with `phpeggy` plugin
 
 ```sh
-$ npm install peggy@1.2.0 phpeggy
+$ npm install peggy@3.0.0 phpeggy
 ```
 
 Usage
