@@ -29,5 +29,6 @@ RUN apk upgrade -U -a && apk add --no-cache \
 
 RUN ln -s /usr/lib/php81/modules/xdebug.so /usr/local/lib/php/extensions/no-debug-non-zts-20210902/
 RUN echo 'memory_limit = 1024M' >> /usr/local/etc/php/conf.d/docker-php-memlimit.ini
+RUN echo 'zend_extension=opcache' >> /usr/local/etc/php/conf.d/docker-php-ext-opcache.ini
 
 WORKDIR /app
