@@ -216,7 +216,7 @@ You can also use the following utility functions in PHP action blocks:
   JavaScript's `String.prototype.charCodeAt(0)` function).
 
 Guide for converting Peggy action blocks to PHPeggy
--------------------------------------------------------
+---------------------------------------------------
 
 | Javascript code                   | PHP analogue                              |
 | --------------------------------- | ----------------------------------------- |
