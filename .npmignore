@@ -11,8 +11,8 @@ vendor/
 .gitattributes
 .gitignore
 .nvmrc
+.php-cs-fixer.dist.manual.php
 .php-cs-fixer.dist.php
-CHANGELOG.md
 composer.json
 composer.lock
 docker-compose.yml
