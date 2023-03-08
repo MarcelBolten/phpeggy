@@ -2,7 +2,7 @@
 
 module.exports = function(useCache) {
   return [
-    "private function cleanup_state(): void",
+    "private function peg_cleanup_state(): void",
     "{",
 
     ...useCache
@@ -85,12 +85,13 @@ module.exports = function(useCache) {
     " * @throws SyntaxError",
     " */",
     "private function expected(",
-    "    string $description",
+    "    string $description,",
+    "    ?int $where = null",
     "): void {",
     "    throw $this->peg_buildException(",
     "        null,",
     '        [new pegExpectation("other", $description)],',
-    "        $this->peg_reportedPos",
+    "        $where ?? $this->peg_reportedPos",
     "    );",
     "}",
     "",
@@ -98,12 +99,13 @@ module.exports = function(useCache) {
     " * @throws SyntaxError",
     " */",
     "private function error(",
-    "    string $message",
+    "    string $message,",
+    "    ?int $where = null",
     "): void {",
     "    throw $this->peg_buildException(",
     "        $message,",
     "        null,",
-    "        $this->peg_reportedPos,",
+    "        $where ?? $this->peg_reportedPos,",
     "    );",
     "}",
     "",
@@ -165,7 +167,6 @@ module.exports = function(useCache) {
     "    pegExpectation $a,",
     "    pegExpectation $b",
     "): int {",
-    // Use php spaceship operator
     "    return $a->description <=> $b->description;",
     "}",
     "",
@@ -181,11 +182,9 @@ module.exports = function(useCache) {
     "    if ($expected !== null) {",
     '        \\usort($expected, [$this, "peg_buildException_expectedComparator"]);',
     "        $i = 1;",
-    /*
-     * This works because the bytecode generator guarantees that every
-     * expectation object exists only once, so it's enough to use |===| instead
-     * of deeper structural comparison.
-     */
+    // This works because the bytecode generator guarantees that every
+    // expectation object exists only once, so it's enough to use |===| instead
+    // of deeper structural comparison.
     "        while ($i < \\count($expected)) {",
     "            if ($expected[$i - 1] === $expected[$i]) {",
     "                \\array_splice($expected, $i, 1);",

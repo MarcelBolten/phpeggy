@@ -248,9 +248,8 @@ class Parser
         $input,
         array ...$args
     ): mixed {
-        $this->cleanup_state();
+        $this->peg_cleanup_state();
         $this->options = $args[0] ?? [];
-
         if (\is_array($input)) {
             $this->input = $input;
         } else {
@@ -270,7 +269,7 @@ class Parser
         $peg_startRuleFunctions = ["Document" => [$this, "peg_parse_Document"]];
         $peg_startRuleFunction = [$this, "peg_parse_Document"];
         if (isset($this->options["startRule"])) {
-            if (!(isset($peg_startRuleFunctions[$this->options["startRule"]]))) {
+            if (!isset($peg_startRuleFunctions[$this->options["startRule"]])) {
                 throw new \Exception("Can't start parsing from rule \"" . $this->options["startRule"] . "\".");
             }
 
@@ -283,7 +282,7 @@ class Parser
         \mb_regex_encoding($old_regex_encoding);
 
         if ($peg_result !== $this->peg_FAILED && $this->peg_currPos === $this->input_length) {
-            $this->cleanup_state();
+            $this->peg_cleanup_state();
             return $peg_result;
         }
         if ($peg_result !== $this->peg_FAILED && $this->peg_currPos < $this->input_length) {
@@ -291,11 +290,11 @@ class Parser
         }
 
         $exception = $this->peg_buildException(null, $this->peg_maxFailExpected, $this->peg_maxFailPos);
-        $this->cleanup_state();
+        $this->peg_cleanup_state();
         throw $exception;
     }
 
-    private function cleanup_state(): void
+    private function peg_cleanup_state(): void
     {
         $this->peg_currPos = 0;
         $this->peg_reportedPos = 0;
@@ -373,12 +372,13 @@ class Parser
      * @throws SyntaxError
      */
     private function expected(
-        string $description
+        string $description,
+        ?int $where = null
     ): void {
         throw $this->peg_buildException(
             null,
             [new pegExpectation("other", $description)],
-            $this->peg_reportedPos
+            $where ?? $this->peg_reportedPos
         );
     }
 
@@ -386,12 +386,13 @@ class Parser
      * @throws SyntaxError
      */
     private function error(
-        string $message
+        string $message,
+        ?int $where = null
     ): void {
         throw $this->peg_buildException(
             $message,
             null,
-            $this->peg_reportedPos,
+            $where ?? $this->peg_reportedPos,
         );
     }
 

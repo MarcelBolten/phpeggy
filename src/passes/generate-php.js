@@ -10,7 +10,7 @@ const header = require("./generate-php/header");
 const utilityFunctions = require("./generate-php/utility-functions");
 const syntaxErrorClass = require("./generate-php/syntax-error-class");
 const dataStorageClasses = require("./generate-php/data-storage-classes");
-const privateMethods = require("./generate-php/private-methods");
+const commonMethods = require("./generate-php/common-methods");
 
 /* Generates parser PHP code. */
 module.exports = function(ast, options) {
@@ -76,8 +76,12 @@ module.exports = function(ast, options) {
       (l, i) => "private string $peg_l" + i + " = " + internalUtils.quotePhp(l) + ";"
     );
     const classes = ast.classes.map(
-      (c, i) => (mbstringAllowed ? "" : "/** @var array<int, array<int, int>> $peg_c" + i + " */\n")
-        + "private " + (mbstringAllowed ? "string" : "array") + " $peg_c" + i + " = " + buildRegexp(c) + ";"
+      (c, i) => (mbstringAllowed
+        ? ""
+        : "/** @var array<int, array<int, int>> $peg_c" + i + " */\n"
+      )
+      + "private " + (mbstringAllowed ? "string" : "array")
+      + " $peg_c" + i + " = " + buildRegexp(c) + ";"
     );
     const expectations = ast.expectations.map(
       (e, i) => "private pegExpectation $peg_e" + i + ";"
@@ -539,7 +543,8 @@ module.exports = function(ast, options) {
     parts.push(
       "",
       "    return " + stack.result() + ";",
-      "}"
+      "}",
+      ""
     );
 
     return parts;
@@ -625,6 +630,7 @@ module.exports = function(ast, options) {
     "",
   ].map(line => indent(4, line)));
 
+  // Constructor start
   parts.push(...[
     "public function __construct()",
     "{",
@@ -638,6 +644,7 @@ module.exports = function(ast, options) {
     "}",
     "",
   ].map(line => indent(4, line)));
+  // Constructor end
 
   // Grammar-provided methods
   if (ast.initializer) {
@@ -664,12 +671,11 @@ module.exports = function(ast, options) {
     "    $input,",
     "    array ...$args",
     "): mixed {",
-    "    $this->cleanup_state();",
-    "    $this->options = $args[0] ?? [];",
-    "",
   ].map(line => indent(4, line)));
 
   parts.push(...[
+    "$this->peg_cleanup_state();",
+    "$this->options = $args[0] ?? [];",
     "if (\\is_array($input)) {",
     "    $this->input = $input;",
     "} else {",
@@ -696,21 +702,18 @@ module.exports = function(ast, options) {
     "",
   ].map(line => indent(8, line)));
 
-  const startRuleFunctions = "["
-    + options.allowedStartRules.map(
-      r => '"' + r + '" => [$this, "' + name(r) + '"]'
-    ).join(", ")
-    + "]";
-  const startRuleFunction = '[$this, "' + name(options.allowedStartRules[0]) + '"]';
+  const startRuleFunctions = options.allowedStartRules.map(
+    ruleName => '"' + ruleName + '" => [$this, "' + name(ruleName) + '"]'
+  ).join(", ");
 
   parts.push(...[
-    "$peg_startRuleFunctions = " + startRuleFunctions + ";",
-    "$peg_startRuleFunction = " + startRuleFunction + ";",
+    "$peg_startRuleFunctions = [" + startRuleFunctions + "];",
+    '$peg_startRuleFunction = [$this, "' + name(options.allowedStartRules[0]) + '"];',
   ].map(line => indent(8, line)));
 
   parts.push(...[
     'if (isset($this->options["startRule"])) {',
-    '    if (!(isset($peg_startRuleFunctions[$this->options["startRule"]]))) {',
+    '    if (!isset($peg_startRuleFunctions[$this->options["startRule"]])) {',
     "        throw new " + phpGlobalNamespacePrefix + 'Exception("Can\'t start parsing from rule \\"" . $this->options["startRule"] . "\\".");',
     "    }",
     "",
@@ -738,7 +741,7 @@ module.exports = function(ast, options) {
 
   parts.push(...[
     "if ($peg_result !== $this->peg_FAILED && $this->peg_currPos === $this->input_length) {",
-    "    $this->cleanup_state();", // Free up memory
+    "    $this->peg_cleanup_state();", // Free up memory
     "    return $peg_result;",
     "}",
     "if ($peg_result !== $this->peg_FAILED && $this->peg_currPos < $this->input_length) {",
@@ -746,7 +749,7 @@ module.exports = function(ast, options) {
     "}",
     "",
     "$exception = $this->peg_buildException(null, $this->peg_maxFailExpected, $this->peg_maxFailPos);",
-    "$this->cleanup_state();", // Free up memory
+    "$this->peg_cleanup_state();", // Free up memory
     "throw $exception;",
   ].map(line => indent(8, line)));
 
@@ -756,13 +759,12 @@ module.exports = function(ast, options) {
   );
   // END public function parse
 
-  parts.push(...privateMethods(options.cache).map(line => indent(4, line)));
+  parts.push(...commonMethods(options.cache).map(line => indent(4, line)));
 
   parts.push(...generateFunctions().map(line => indent(4, line)));
 
   ast.rules.forEach(rule => {
     parts.push(...generateRuleFunction(rule).map(line => indent(4, line)));
-    parts.push("");
   });
   // Remove empty line
   parts.pop();
