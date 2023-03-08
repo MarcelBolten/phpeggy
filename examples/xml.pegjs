@@ -2,7 +2,17 @@
 // ! This is php-compatible version of grammar "peggy/examples/xml.peggy"
 //
 // See: https://www.w3.org/TR/REC-xml/
+
+// global initializer
 {{
+
+use function array_key_exists;
+
+}}
+
+// class methods
+{
+
 private array $names = [];
 
 private function add(array $obj, array $props): array
@@ -47,7 +57,8 @@ private function convertAttr(array $attrs): array
     }
     return $ret;
 }
-}}
+
+}
 
 // Document
 document = prolog element Misc*

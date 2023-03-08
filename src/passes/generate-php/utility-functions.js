@@ -26,12 +26,10 @@ module.exports = function(
     "        }",
     "        $json = \\json_encode($character, \\JSON_THROW_ON_ERROR);",
     "        $utf16_1 = (int) \\hexdec(\\substr($json, 3, 4));",
-    /*
-     * A character inside the BMP has a JSON representation like "\uXXXX".
-     * A character outside the BMP looks like "\uXXXX\uXXXX".
-     */
+    // A character inside the BMP has a JSON representation like "\uXXXX".
+    // A character outside the BMP looks like "\uXXXX\uXXXX".
     '        if (substr($json, 7, 2) === "\\u") {',
-    /* Outside the BMP.  Math from https://stackoverflow.com/a/6240819 */
+    // Outside the BMP.  Math from https://stackoverflow.com/a/6240819
     "            $utf16_2 = (int) \\hexdec(\\substr($json, 9, 4));",
     "            return 0x10000 + (($utf16_1 & 0x3ff) << 10) + ($utf16_2 & 0x3ff);",
     "        }",
@@ -58,10 +56,8 @@ module.exports = function(
           "}",
         ]
       : [
-          /*
-           * Case-insensitive character classes are disallowed via passes.check in file
-           * `report-mbstring-incompatibility.js` if the `mbstringAllowed` option is set to false.
-           */
+          // Case-insensitive character classes are disallowed via passes.check in file
+          // `report-mbstring-incompatibility.js` if the `mbstringAllowed` option is set to false.
           "/* peg_char_class_test - simple character class test */",
           'if (!\\function_exists("' + phpGlobalNamePrefixOrNamespaceEscaped + 'peg_char_class_test")) {',
           "    /** @param array<int, array<int, int>> $class */",

@@ -552,11 +552,28 @@ module.exports = function(ast, options) {
 
   parts.push(...header);
 
+  if (typeof options.phpeggy.header === "string") {
+    parts.push(options.phpeggy.header);
+  }
+
   if (phpNamespace) {
     parts.push(
       "namespace " + phpNamespace + ";",
       ""
     );
+  }
+
+  // Global initializer
+  if (ast.topLevelInitializer) {
+    const topLevelInitializerCode = internalUtils.extractPhpCode(
+      ast.topLevelInitializer.code.trim()
+    );
+    if (topLevelInitializerCode !== "") {
+      parts.push(
+        topLevelInitializerCode,
+        ""
+      );
+    }
   }
 
   parts.push(...utilityFunctions(
@@ -622,6 +639,19 @@ module.exports = function(ast, options) {
     "",
   ].map(line => indent(4, line)));
 
+  // Grammar-provided methods
+  if (ast.initializer) {
+    const initializerCode = internalUtils.extractPhpCode(
+      ast.initializer.code.trim()
+    );
+    if (initializerCode !== "") {
+      parts.push(...[
+        initializerCode,
+        "",
+      ].map(line => indent(4, line)));
+    }
+  }
+
   // START public function parse
   parts.push(...[
     "/**",
@@ -659,19 +689,12 @@ module.exports = function(ast, options) {
     ].map(line => indent(8, line)));
   }
 
-  if (ast.initializer) {
-    const initializerCode = internalUtils.extractPhpCode(
-      ast.initializer.code.trim()
-    );
-    if (initializerCode !== "") {
-      parts.push(...[
-        "/* BEGIN initializer code */",
-        initializerCode,
-        "/* END initializer code */",
-        "",
-      ].map(line => indent(8, line)));
-    }
-  }
+  parts.push(...[
+    "if (method_exists($this, 'initialize')) {",
+    "    $this->initialize();",
+    "}",
+    "",
+  ].map(line => indent(8, line)));
 
   const startRuleFunctions = "["
     + options.allowedStartRules.map(
@@ -743,20 +766,6 @@ module.exports = function(ast, options) {
   });
   // Remove empty line
   parts.pop();
-
-  if (ast.topLevelInitializer) {
-    const topLevelInitializerCode = internalUtils.extractPhpCode(
-      ast.topLevelInitializer.code.trim()
-    );
-    if (topLevelInitializerCode !== "") {
-      parts.push(...[
-        "",
-        "/* BEGIN global initializer code */",
-        topLevelInitializerCode,
-        "/* END global initializer code */",
-      ].map(line => indent(4, line)));
-    }
-  }
 
   parts.push(
     "};",

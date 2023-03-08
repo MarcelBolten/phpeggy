@@ -261,6 +261,10 @@ class Parser
         $old_regex_encoding = (string) \mb_regex_encoding();
         \mb_regex_encoding("UTF-8");
 
+        if (method_exists($this, 'initialize')) {
+            $this->initialize();
+        }
+
         $peg_startRuleFunctions = ["Document" => [$this, "peg_parse_Document"]];
         $peg_startRuleFunction = [$this, "peg_parse_Document"];
         if (isset($this->options["startRule"])) {

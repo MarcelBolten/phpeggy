@@ -5,8 +5,18 @@ This grammar aims to have one of every Peggy syntax.
 It parses the output of a fizz-buzz (https://en.wikipedia.org/wiki/Fizz_buzz)
 program (plus a few extensions) for correctness.
 */
-{{
+
+{
+
 private int $currentNumber = 1;
+
+private function initialize()
+{
+    $this->currentNumber = isset($this->options["start"])
+        && is_numeric($this->options["start"])
+        ? $this->options["start"]
+        : 1;
+}
 
 private function notFizzBuzz(int $n): bool
 {
@@ -17,12 +27,7 @@ private function notFizzBuzz(int $n): bool
     }
     return true;
 }
-}}
-{
-$this->currentNumber = isset($this->options["start"])
-    && is_numeric($this->options["start"])
-      ? $this->options["start"]
-      : 1;
+
 }
 
 top = c:count|..| {

@@ -3,12 +3,15 @@
 //
 // See https://sourcemaps.info/spec.html
 // This grammar only parses the "mapping" field.
-{{
-private array $ub64 = [];
-}}
 {
-// ub64['A'] = 0, etc.
-$this->ub64 = \array_flip(\str_split("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"));
+
+private array $ub64 = [];
+
+private function initialize() {
+    // ub64['A'] = 0, etc.
+    $this->ub64 = \array_flip(\str_split("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"));
+}
+
 }
 
 // each group representing a line in the generated file is separated by a ”;”

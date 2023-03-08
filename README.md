@@ -105,6 +105,7 @@ Here are the options available to pass this way:
     string matching, case-insensitive character classes, and empty character
     classes). Attempting to use these features with `mbstringAllowed: false`
     will cause `passes.check` to throw an error.
+  * `header` - you can provide a custom header that will be added at the top of the parser.
 
 Using the Parser
 ----------------
@@ -161,7 +162,10 @@ array (one array element per UTF-8 character) and pass this array into
 Grammar Syntax and Semantics
 ----------------------------
 
-See [documentation of Peggy](https://github.com/peggyjs/peggy/tree/v1.2.0#grammar-syntax-and-semantics) with one difference: action blocks should be written in PHP.
+See [documentation of Peggy](https://peggyjs.org/documentation.html) with following differences:
+
+* action and predicate blocks should be written in PHP.
+* the _per-parse initializer_ code block is used to provide additional class methods, properties and constants. A special method `private function initialize()` can be provided and resembles the Peggy per-parse initializer i.e. this method is called before the generated parser starts parsing. All methods have access to the input (`$this->input`) and the options (`$this->options`).
 
 Original Peggy rule:
 

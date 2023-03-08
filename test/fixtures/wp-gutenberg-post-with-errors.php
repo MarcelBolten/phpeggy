@@ -10,6 +10,9 @@ declare(strict_types=1);
 
 namespace PHPeggy;
 
+// The `maybeJSON` function is not needed in PHP because its return semantics
+// are the same as `json_decode`
+
 /* BEGIN Utility functions */
 /* chr_unicode - get unicode character from its char code */
 if (!\function_exists("PHPeggy\\chr_unicode")) {
@@ -291,6 +294,10 @@ class Parser
 
         $old_regex_encoding = (string) \mb_regex_encoding();
         \mb_regex_encoding("UTF-8");
+
+        if (method_exists($this, 'initialize')) {
+            $this->initialize();
+        }
 
         $peg_startRuleFunctions = ["Document" => [$this, "peg_parse_Document"]];
         $peg_startRuleFunction = [$this, "peg_parse_Document"];
@@ -1454,9 +1461,4 @@ class Parser
 
         return $s0;
     }
-
-    /* BEGIN global initializer code */
-    // The `maybeJSON` function is not needed in PHP because its return semantics
-    // are the same as `json_decode`
-    /* END global initializer code */
 };

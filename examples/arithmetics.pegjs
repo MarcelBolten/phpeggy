@@ -5,7 +5,8 @@
 // ==========================
 //
 // Accepts expressions like "(2 * (3 + 4) - 5) / 6" and computes their value.
-{{
+{
+
 private function calculate(float $result, array $element): float
 {
     $operand = $element[3];
@@ -23,7 +24,8 @@ private function calculate(float $result, array $element): float
             return 0;
     }
 }
-}}
+
+}
 
 Expression
   = head:Term tail:(_ [+-] _ Term)*

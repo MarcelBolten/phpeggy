@@ -277,6 +277,10 @@ class Parser
         $this->input_length = \count($this->input);
         $this->peg_source = $this->options["grammarSource"] ?? "";
 
+        if (method_exists($this, 'initialize')) {
+            $this->initialize();
+        }
+
         $peg_startRuleFunctions = ["Document" => [$this, "peg_parse_Document"]];
         $peg_startRuleFunction = [$this, "peg_parse_Document"];
         if (isset($this->options["startRule"])) {

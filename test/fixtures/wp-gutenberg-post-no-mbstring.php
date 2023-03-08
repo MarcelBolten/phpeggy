@@ -279,6 +279,49 @@ class Parser
         $this->peg_e15 = new pegExpectation("class", "[ \\t]", "[ \t]", "false");
     }
 
+    // The `maybeJSON` function is not needed in PHP because its return semantics
+    // are the same as `json_decode`
+
+    // array arguments are backwards because of PHP
+    private function peg_array_partition(array $array, callable $predicate): array
+    {
+        $truthy = [];
+        $falsey = [];
+
+        foreach ($array as $item) {
+            \call_user_func($predicate, $item)
+                ? $truthy[] = $item
+                : $falsey[] = $item;
+        }
+
+        return [$truthy, $falsey];
+    }
+
+    private function peg_join_blocks(string $pre, array $tokens, string $post): array
+    {
+        $blocks = [];
+
+        if (!empty($pre)) {
+            $blocks[] = ['attrs' => [], 'innerHTML' => $pre];
+        }
+
+        foreach ($tokens as $token) {
+            [$token, $html] = $token;
+
+            $blocks[] = $token;
+
+            if (!empty($html)) {
+                $blocks[] = ['attrs' => [], 'innerHTML' => $html];
+            }
+        }
+
+        if (!empty($post)) {
+            $blocks[] = ['attrs' => [], 'innerHTML' => $post];
+        }
+
+        return $blocks;
+    }
+
     /**
      * @param string|string[] $input
      * @param mixed[] $args
@@ -300,6 +343,10 @@ class Parser
         }
         $this->input_length = \count($this->input);
         $this->peg_source = $this->options["grammarSource"] ?? "";
+
+        if (method_exists($this, 'initialize')) {
+            $this->initialize();
+        }
 
         $peg_startRuleFunctions = ["Block_List" => [$this, "peg_parse_Block_List"]];
         $peg_startRuleFunction = [$this, "peg_parse_Block_List"];
@@ -1992,49 +2039,4 @@ class Parser
 
         return $s0;
     }
-
-    /* BEGIN global initializer code */
-    // The `maybeJSON` function is not needed in PHP because its return semantics
-    // are the same as `json_decode`
-
-    // array arguments are backwards because of PHP
-    private function peg_array_partition(array $array, callable $predicate): array
-    {
-        $truthy = [];
-        $falsey = [];
-
-        foreach ($array as $item) {
-            \call_user_func($predicate, $item)
-                ? $truthy[] = $item
-                : $falsey[] = $item;
-        }
-
-        return [$truthy, $falsey];
-    }
-
-    private function peg_join_blocks(string $pre, array $tokens, string $post): array
-    {
-        $blocks = [];
-
-        if (!empty($pre)) {
-            $blocks[] = ['attrs' => [], 'innerHTML' => $pre];
-        }
-
-        foreach ($tokens as $token) {
-            [$token, $html] = $token;
-
-            $blocks[] = $token;
-
-            if (!empty($html)) {
-                $blocks[] = ['attrs' => [], 'innerHTML' => $html];
-            }
-        }
-
-        if (!empty($post)) {
-            $blocks[] = ['attrs' => [], 'innerHTML' => $post];
-        }
-
-        return $blocks;
-    }
-    /* END global initializer code */
 };

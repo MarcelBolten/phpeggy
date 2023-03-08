@@ -12,13 +12,13 @@ exports.use = function(config, options) {
   if (!options.phpeggy) {
     options.phpeggy = {};
   }
-  if (typeof options.phpeggy.parserNamespace === "undefined") {
+  if (options.phpeggy.parserNamespace === undefined) {
     options.phpeggy.parserNamespace = "PHPeggy";
   }
-  if (typeof options.phpeggy.parserClassName === "undefined") {
+  if (options.phpeggy.parserClassName === undefined) {
     options.phpeggy.parserClassName = "Parser";
   }
-  if (typeof options.phpeggy.mbstringAllowed === "undefined") {
+  if (options.phpeggy.mbstringAllowed === undefined) {
     options.phpeggy.mbstringAllowed = true;
   }
 };
