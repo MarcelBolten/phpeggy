@@ -465,19 +465,21 @@ module.exports = function(ast, options) {
             break;
 
           case op.IF_LT:             // IF_LT min, t, f
-            compileCondition(stack.top() + ".length < " + bc[ip + 1], 1);
+            compileCondition("\\count(" + stack.top() + ") < " + bc[ip + 1], 1);
             break;
 
           case op.IF_GE:             // IF_GE max, t, f
-            compileCondition(stack.top() + ".length >= " + bc[ip + 1], 1);
+            compileCondition("\\count(" + stack.top() + ") >= " + bc[ip + 1], 1);
             break;
 
-          case op.IF_LT_DYNAMIC:     // IF_LT+DYNAMIC min, t, f
-            compileCondition(stack.top() + ".length < " + stack.index(bc[ip + 1]) + "|0", 1);
+          case op.IF_LT_DYNAMIC:     // IF_LT_DYNAMIC min, t, f
+            value = stack.index(bc[ip + 1]);
+            compileCondition("\\count(" + stack.top() + ") < (\\is_numeric(" + value + ") ? " + value + " : 0)", 1);
             break;
 
           case op.IF_GE_DYNAMIC:     // IF_GE_DYNAMIC max, t, f
-            compileCondition(stack.top() + ".length >= " + stack.index(bc[ip + 1]) + "|0", 1);
+            value = stack.index(bc[ip + 1]);
+            compileCondition("\\count(" + stack.top() + ") >= (\\is_numeric(" + value + ") ? " + value + " : 0)", 1);
             break;
 
           case op.LOAD_SAVED_POS:    // LOAD_SAVED_POS p
