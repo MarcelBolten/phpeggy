@@ -46,7 +46,7 @@ alphanumericIdentifier
   = $(digit* nonDigit identifierChar*)
 
 // Any semantically significant numbers are turned into integers (note: there
-// is no length maximum for numbers in semver. However, here intval will cause
+// is no length maximum for numbers in semver.  However, here intval will cause
 // a limit depending on the system 32/64 bit) for later numeric comparison.
 numericIdentifier
   = n:('0' / $(positiveDigit digit*)) { return intval($n); }

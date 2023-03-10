@@ -10,10 +10,10 @@ program (plus a few extensions) for correctness.
 
 private int $currentNumber = 1;
 
-private function initialize()
+private function initialize(): void
 {
     $this->currentNumber = isset($this->options["start"])
-        && is_numeric($this->options["start"])
+        && is_int($this->options["start"])
         ? $this->options["start"]
         : 1;
 }

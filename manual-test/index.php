@@ -10,6 +10,7 @@ $examples = array(
     "SourceMappings" => "output/source-mappings.php",
     "Minimal" => "output/minimal.php",
     "SemVer" => "output/semver.php",
+    "OneOfEach" => "output/oneOfEach.php",
 );
 
 $output = null;

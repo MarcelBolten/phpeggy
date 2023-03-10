@@ -7,7 +7,8 @@
 
 private array $ub64 = [];
 
-private function initialize() {
+private function initialize(): void
+{
     // ub64['A'] = 0, etc.
     $this->ub64 = \array_flip(\str_split("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"));
 }
