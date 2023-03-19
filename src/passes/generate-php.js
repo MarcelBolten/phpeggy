@@ -563,6 +563,11 @@ module.exports = function(ast, options) {
     parts.push(options.phpeggy.header);
   }
 
+  parts.push([
+    "declare(strict_types=1);",
+    "",
+  ]);
+
   if (phpNamespace) {
     parts.push(
       "namespace " + phpNamespace + ";",
