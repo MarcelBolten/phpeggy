@@ -12,6 +12,4 @@ module.exports = [
   " * https://github.com/marcelbolten/phpeggy",
   " */",
   "",
-  "declare(strict_types=1);",
-  "",
 ];
