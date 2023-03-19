@@ -16,7 +16,6 @@ const examples
   "XML": "xml.pegjs",
   "Minimal": "minimal.pegjs",
   "SemVer": "semver.peggy",
-  "oneOfEach": "oneOfEach.pegjs",
 };
 
 function generateParser(input_file, output_file, classname) {
