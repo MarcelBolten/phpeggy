@@ -135,7 +135,7 @@ catch (PHPeggy\SyntaxError $e) {
 }
 ```
 
-Or use the SyntaxError::format() method:
+Or use SyntaxError->format():
 
 ```php
 catch (PHPeggy\SyntaxError $e) {
@@ -238,3 +238,11 @@ Guide for converting Peggy action blocks to PHPeggy
 | `some_str.length`                 | `mb_strlen(some_str, "UTF-8")`            |
 | `some_str.replace("b", "\b")`     | `str_replace("b", "\b", $some_str)`       |
 | `String.fromCharCode(2323)`       | `chr_unicode(2323)`                       |
+| `input`                           | `$this->input`                            |
+| `options`                         | `$this->options`                          |
+| `error(message, where)`           | `$this->error(message, where)`            |
+| `expected(message, where)`        | `$this->expected(message, where)`         |
+| `location()`                      | `$this->location()`                       |
+| `range()`                         | `$this->range()`                          |
+| `offset()`                        | `$this->offset()`                         |
+| `text()`                          | `$this->text()`                           |
