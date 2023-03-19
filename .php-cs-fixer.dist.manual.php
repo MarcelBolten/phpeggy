@@ -8,6 +8,8 @@ $config = new PhpCsFixer\Config();
 return $config->setRules(array(
     '@PSR12' => true,
     '@PHP80Migration' => true,
+    'braces' => false,
+    'method_argument_space' => false,
     ))
     ->setFinder($finder)
 ;

@@ -213,7 +213,7 @@ class Parser
     private int $peg_silentFails = 0;
     /** @var string[] $input */
     private array $input = [];
-    /** @var array<string, string> $options */
+    /** @var array<string, mixed> $options */
     private array $options = [];
     private int $input_length = 0;
     private \stdClass $peg_FAILED;

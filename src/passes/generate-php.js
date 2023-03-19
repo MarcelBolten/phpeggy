@@ -474,12 +474,12 @@ module.exports = function(ast, options) {
 
           case op.IF_LT_DYNAMIC:     // IF_LT_DYNAMIC min, t, f
             value = stack.index(bc[ip + 1]);
-            compileCondition("\\count(" + stack.top() + ") < (\\is_numeric(" + value + ") ? " + value + " : 0)", 1);
+            compileCondition("\\is_numeric(" + value + ") ? \\count(" + stack.top() + ") < " + value + " : false", 1);
             break;
 
           case op.IF_GE_DYNAMIC:     // IF_GE_DYNAMIC max, t, f
             value = stack.index(bc[ip + 1]);
-            compileCondition("\\count(" + stack.top() + ") >= (\\is_numeric(" + value + ") ? " + value + " : 0)", 1);
+            compileCondition("\\is_numeric(" + value + ") ? \\count(" + stack.top() + ") >= " + value + " : true", 1);
             break;
 
           case op.LOAD_SAVED_POS:    // LOAD_SAVED_POS p
@@ -619,7 +619,7 @@ module.exports = function(ast, options) {
     "private int $peg_silentFails = 0;", // 0 = report failures, > 0 = silence failures
     "/** @var string[] $input */",
     "private array $input = [];",
-    "/** @var array<string, string> $options */",
+    "/** @var array<string, mixed> $options */",
     "private array $options = [];",
     "private int $input_length = 0;",
     "private " + phpGlobalNamespacePrefix + "stdClass $peg_FAILED;",
