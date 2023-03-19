@@ -11,9 +11,10 @@ PHPeggy is the successor of [`phpegjs`](https://github.com/nylen/phpegjs) which 
 
 ## Migrating from `phpegjs`
 
+Peggy version [1.x.x](https://github.com/MarcelBolten/phpeggy/tree/1.0.1) is compatible with the most recent phpegjs release. Follow these steps to upgrade:
+
 There are a few API changes compared to the most recent `phpegjs` release.
 - Options specific to PHPeggy have to be passed to `phpeggy` and not to `phpegjs`.
-- PHP ≥8.0 is required.
 
 Follow these steps to upgrade:
 
@@ -166,6 +167,7 @@ See [documentation of Peggy](https://peggyjs.org/documentation.html) with follow
 
 * action and predicate blocks should be written in PHP.
 * the _per-parse initializer_ code block is used to provide additional class methods, properties and constants. A special method `private function initialize()` can be provided and resembles the Peggy per-parse initializer i.e. this method is called before the generated parser starts parsing. All methods have access to the input (`$this->input`) and the options (`$this->options`).
+* the _global initializer_ code block can be used to add use statements, classes, functions, constants, ...
 
 Original Peggy rule:
 

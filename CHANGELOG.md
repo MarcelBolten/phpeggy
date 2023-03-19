@@ -17,7 +17,8 @@ Released: TBD
 
 - Use types in PHP wherever possible.
 - Keep up with Peggy development up to version 3.0.0:
-  Implementation of global initializer blocks, plucking, and repetition operator (see https://github.com/peggyjs/peggy/blob/main/CHANGELOG.md#major-changes).
+  Implementation of global initializer blocks, plucking (see https://github.com/peggyjs/peggy/blob/main/CHANGELOG.md#110), and repetition operator (see https://github.com/peggyjs/peggy/blob/main/CHANGELOG.md#300).
+- Add custom header to generated parser via PHPeggyOptions `phpeggy: { header: 'My custom header' }`.
 
 ### Developer
 
