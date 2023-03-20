@@ -560,7 +560,10 @@ module.exports = function(ast, options) {
   parts.push(...header);
 
   if (typeof options.phpeggy.header === "string") {
-    parts.push(options.phpeggy.header);
+    parts.push(
+      options.phpeggy.header,
+      ""
+    );
   }
 
   parts.push(

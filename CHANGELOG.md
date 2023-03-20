@@ -10,8 +10,8 @@ Released: TBD
 
 ### Breaking Changes
 
-- node ≥14 is required.
-- PHP ≥8.0 is required.
+- node ≥14 is required
+- PHP ≥8.0 is required
 
 ### Major Changes
 

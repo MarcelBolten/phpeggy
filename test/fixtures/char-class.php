@@ -6,6 +6,10 @@
  * https://github.com/marcelbolten/phpeggy
  */
 
+/* Some custom header */
+// More header
+# Even more
+
 declare(strict_types=1);
 
 namespace PHPeggy;

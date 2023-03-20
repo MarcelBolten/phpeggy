@@ -106,7 +106,7 @@ Here are the options available to pass this way:
     string matching, case-insensitive character classes, and empty character
     classes). Attempting to use these features with `mbstringAllowed: false`
     will cause `passes.check` to throw an error.
-  * `header` - you can provide a custom header that will be added at the top of the parser.
+  * `header` - you can provide a custom header that will be added at the top of the parser, e.g. `/* My custom header */`.
 
 Using the Parser
 ----------------
