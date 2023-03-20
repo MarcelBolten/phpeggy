@@ -166,7 +166,7 @@ Grammar Syntax and Semantics
 See [documentation of Peggy](https://peggyjs.org/documentation.html) with following differences:
 
 * action and predicate blocks should be written in PHP.
-* the _per-parse initializer_ code block is used to provide additional class methods, properties and constants. A special method `private function initialize()` can be provided and resembles the Peggy per-parse initializer i.e. this method is called before the generated parser starts parsing. All methods have access to the input (`$this->input`) and the options (`$this->options`).
+* the _per-parse initializer_ code block is used to provide additional class methods, properties and constants. A special method `private function initialize()` can be provided and resembles the Peggy per-parse initializer i.e. this method is called before the generated parser starts parsing (see [examples/fizzbuzz.pegjs](examples/fizzbuzz.pegjs)). All methods have access to the input (`$this->input`) and the options (`$this->options`).
 * the _global initializer_ code block can be used to add use statements, classes, functions, constants, ...
 
 Original Peggy rule:
