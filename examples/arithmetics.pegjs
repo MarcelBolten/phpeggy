@@ -44,9 +44,9 @@ Factor
   / Integer
 
 Integer "integer"
-  = _ [0-9]+
+  = _ int:$[0-9]+
   {
-    return intval($this->text());
+    return intval($int);
   }
 
 _ "whitespace"
