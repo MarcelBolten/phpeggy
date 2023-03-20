@@ -1,8 +1,10 @@
 .git/
 .github/
+.phpdoc
 docker/
 manual-test/
 node_modules/
+phpdoc
 src/.eslintrc.json
 test/
 vendor/

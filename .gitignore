@@ -1,3 +1,5 @@
+/.phpdoc
+/phpdoc
 /docker/xdebug_out
 /manual-test/output
 /node_modules
