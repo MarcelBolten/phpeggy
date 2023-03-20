@@ -6,7 +6,7 @@ This file documents all notable changes to PHPeggy.
 2.0.0
 -----
 
-Released: 2023-03-25
+Released: 2023-03-20
 
 ### Breaking Changes
 
