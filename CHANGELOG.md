@@ -6,19 +6,38 @@ This file documents all notable changes to PHPeggy.
 2.0.0
 -----
 
-Released: TBD
+Released: 2023-03-25
 
 ### Breaking Changes
 
 - node ≥14 is required
 - PHP ≥8.0 is required
+- The initializer code is not added to Parser->parse() anymore. Instead the code will be added to Parser and a method initialize() will be called if it is provided:
+  ~~~diff
+  class Parser
+  {
+  +   initializer code block
+  +   it may contain
+  +   function initialize() {...}
+  +
+      public function parse()
+      {
+          ...
+  -       initializer code block
+  +       if (method_exists($this, 'initialize')) {
+  +           $this->initialize();
+  +       }
+          ...
+      }
+  }
+  ~~~
 
 ### Major Changes
 
 - Use types in PHP wherever possible.
 - Keep up with Peggy development up to version 3.0.0:
-  Implementation of global initializer blocks, plucking (see [Peggy changelog](https://github.com/peggyjs/peggy/blob/main/CHANGELOG.md#110)), and repetition operator (see [Peggy changelog](https://github.com/peggyjs/peggy/blob/main/CHANGELOG.md#300)).
-- Add custom header to generated parser via PHPeggyOptions `phpeggy: { header: '/** My custom header */' }`.
+  Implementation of global initializer blocks, plucking (see [Peggy 1.1.0 changelog](https://github.com/peggyjs/peggy/blob/main/CHANGELOG.md#110)), and repetition operator (see [Peggy 3.0.0 changelog](https://github.com/peggyjs/peggy/blob/main/CHANGELOG.md#300)).
+- Add custom header to generated parser via PHPeggyOptions `phpeggy: { header: '/* My custom header */' }`.
 
 ### Developer
 
