@@ -7,14 +7,14 @@
     "peggy": "^3.0.0"
   },
   "devDependencies": {
-    "@peggyjs/eslint-config": "^3.0.0",
+    "@peggyjs/eslint-config": "^3.0.1",
     "@typescript-eslint/eslint-plugin": "^5.16.0",
     "@typescript-eslint/parser": "^5.16.0",
     "chai": "^4.3.3",
     "eslint": "^8.11.0",
     "mocha": "^10.2.0",
     "peggy": "^3.0.0",
-    "typescript": "^4.3.2"
+    "typescript": "^5.0.2"
   },
   "scripts": {
     "build:fixtures": "rm -f test/fixtures/*.php && GENERATE_MISSING_FIXTURES=y npm test",
