@@ -3,18 +3,18 @@ Change Log
 
 This file documents all notable changes to PHPeggy.
 
-Unreleased
-----------
+2.0.1
+-----
 
-Released: TBD
-
-### Major Changes
+Released: 2023-03-21
 
 ### Minor Changes
 
-### Bug Fixes
+- Downgrade package-lock.json to lockfile version 2
 
 ### Developer
+
+- use typescript 5
 
 2.0.0
 -----
