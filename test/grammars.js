@@ -91,8 +91,8 @@ const grammarNames = getUniqueBasenames(
 
 grammarNames.forEach(grammarName => {
   describe("Example grammar " + grammarName, () => {
-    let phpActual,
-      outputActual;
+    let phpActual = undefined;
+    let outputActual = undefined;
 
     it("generates the expected PHP code", () => {
       const grammar = fs.readFileSync(

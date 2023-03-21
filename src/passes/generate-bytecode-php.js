@@ -359,6 +359,7 @@ module.exports = function(ast) {
     return buildSequence(
       [op.PUSH_CURR_POS],
       [op.SILENT_FAILS_ON],
+      // eslint-disable-next-line no-use-before-define -- Mutual recursion
       generate(expression, {
         sp: context.sp + 1,
         env: cloneEnv(context.env),
@@ -497,9 +498,10 @@ module.exports = function(ast) {
       buildCondition(
         SOMETIMES_MATCH,
         checkCode,                // if (result.length < min) {
+        /* eslint-disable indent -- Clarity */
         [op.POP, op.POP_CURR_POS, //   currPos = savedPos;    stack:[  ]
-        // eslint-disable-next-line indent
          op.PUSH_FAILED],         //   result = peg_FAILED;   stack:[ peg_FAILED ]
+        /* eslint-enable indent */
         [op.NIP]                  // }                        stack:[ [elem...] ]
       )
     );
@@ -515,6 +517,7 @@ module.exports = function(ast) {
     if (delimiterNode) {
       return buildSequence(           //                          stack:[  ]
         [op.PUSH_CURR_POS],           // pos = peg_currPos;       stack:[ pos ]
+        // eslint-disable-next-line no-use-before-define -- Mutual recursion
         generate(delimiterNode, {     // item = delim();          stack:[ pos, delim ]
           // +1 for the saved offset
           sp: context.sp + offset + 1,
@@ -531,7 +534,7 @@ module.exports = function(ast) {
               -expressionMatch,
               [op.IF_ERROR],          //   if (item === peg_FAILED) {
               // If element FAILED, rollback currPos to saved value.
-              /* eslint-disable indent */
+              /* eslint-disable indent -- Clarity */
               [op.POP,                //                          stack:[ pos ]
                op.POP_CURR_POS,       //     peg_currPos = pos;   stack:[  ]
                op.PUSH_FAILED],       //     item = peg_FAILED;   stack:[ peg_FAILED ]

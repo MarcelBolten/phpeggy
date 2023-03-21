@@ -1,9 +1,5 @@
 "use strict";
 
-function quote(str) {
-  return '"' + stringEscape(str) + '"';
-}
-
 // Matches: /** <?php
 const regexPhpStart = /\/\*\*\s*<\?php/;
 // Matches: ?> **/
@@ -67,6 +63,10 @@ function stringEscape(s) {
     .replace(/[\x10-\x1F\x7F-\xFF]/g, ch => "\\x" + hex(ch))
     .replace(/[\u0100-\u0FFF]/g, ch => "\\u0" + hex(ch))
     .replace(/[\u1000-\uFFFF]/g, ch => "\\u" + hex(ch));
+}
+
+function quote(str) {
+  return '"' + stringEscape(str) + '"';
 }
 
 function escapePhpRegexp(s) {

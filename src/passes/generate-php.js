@@ -14,7 +14,8 @@ const commonMethods = require("./generate-php/common-methods");
 
 /* Generates parser PHP code. */
 module.exports = function(ast, options) {
-  let phpGlobalNamespacePrefix, phpGlobalNamePrefixOrNamespaceEscaped;
+  let phpGlobalNamespacePrefix = undefined;
+  let phpGlobalNamePrefixOrNamespaceEscaped = undefined;
   const phpNamespace = options.phpeggy.parserNamespace;
   const phpParserClass = options.phpeggy.parserClassName;
   const mbstringAllowed = options.phpeggy.mbstringAllowed;
@@ -36,16 +37,18 @@ module.exports = function(ast, options) {
 
   function generateTablesDeclaration() {
     function buildRegexp(cls) {
-      let regexp, classIndex;
+      let regexp = undefined;
+      let classIndex = undefined;
 
       if (cls.value.length > 0) {
         regexp = "/^["
           + (cls.inverted ? "^" : "")
-          + cls.value.map(part => Array.isArray(part)
+          + cls.value.map(part => (Array.isArray(part)
             ? internalUtils.escapePhpRegexp(part[0])
               + "-"
               + internalUtils.escapePhpRegexp(part[1])
-            : internalUtils.escapePhpRegexp(part)).join("")
+            : internalUtils.escapePhpRegexp(part)
+          )).join("")
           + "]/" + (cls.ignoreCase ? "i" : "");
       } else {
         /*
@@ -212,13 +215,15 @@ module.exports = function(ast, options) {
       let ip = 0;
       const end = bc.length;
       const parts = [];
-      let stackTop, value;
+      let stackTop = undefined;
+      let value = undefined;
 
       function compileCondition(cond, argCount) {
         const baseLength = argCount + 3;
         const thenLength = bc[ip + baseLength - 2];
         const elseLength = bc[ip + baseLength - 1];
-        let thenCode, elseCode;
+        let thenCode = undefined;
+        let elseCode = undefined;
 
         stack.checkedIf(
           ip,
@@ -247,7 +252,7 @@ module.exports = function(ast, options) {
       function compileLoop(cond) {
         const baseLength = 2;
         const bodyLength = bc[ip + baseLength - 1];
-        let bodyCode;
+        let bodyCode = undefined;
 
         stack.checkedLoop(ip, () => {
           ip += baseLength;
