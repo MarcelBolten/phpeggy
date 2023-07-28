@@ -7,9 +7,9 @@
     "peggy": "^3.0.0"
   },
   "devDependencies": {
-    "@peggyjs/eslint-config": "^3.0.1",
-    "@typescript-eslint/eslint-plugin": "^5.16.0",
-    "@typescript-eslint/parser": "^5.16.0",
+    "@peggyjs/eslint-config": "^3.0.5",
+    "@typescript-eslint/eslint-plugin": "^6.2.0",
+    "@typescript-eslint/parser": "^6.2.0",
     "chai": "^4.3.3",
     "eslint": "^8.11.0",
     "mocha": "^10.2.0",
