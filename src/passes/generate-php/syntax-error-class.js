@@ -6,8 +6,8 @@ module.exports = function(
 ) {
   return [
     "/* Syntax error exception */",
-    'if (!\\class_exists("' + phpGlobalNamePrefixOrNamespaceEscaped + 'SyntaxError", false)) {',
-    "    class SyntaxError extends " + phpGlobalNamespacePrefix + "Exception",
+    `if (!\\class_exists("${phpGlobalNamePrefixOrNamespaceEscaped}SyntaxError", false)) {`,
+    `    class SyntaxError extends ${phpGlobalNamespacePrefix}Exception`,
     "    {",
     '        public string $name = "SyntaxError";',
     "",
