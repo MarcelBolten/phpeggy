@@ -17,7 +17,7 @@ if (!\function_exists("PHPeggy\\chr_unicode")) {
     function chr_unicode(
         $code
     ): string {
-        return \html_entity_decode("&#" . (int) $code .";", ENT_QUOTES, "UTF-8");
+        return \html_entity_decode("&#" . (int) $code . ";", ENT_QUOTES, "UTF-8");
     }
 }
 
@@ -1697,8 +1697,8 @@ class Parser
     {
         $s0 = $this->peg_currPos;
         $s1 = $this->peg_currPos;
-        if (peg_regex_test($this->peg_c0, $this->input_substr($this->peg_currPos, 1))) {
-            $s2 = $this->input_substr($this->peg_currPos, 1);
+        $s2 = $this->input_substr($this->peg_currPos, 1);
+        if (peg_regex_test($this->peg_c0, $s2)) {
             $this->peg_currPos++;
         } else {
             $s2 = $this->peg_FAILED;
@@ -1708,8 +1708,8 @@ class Parser
         }
         if ($s2 !== $this->peg_FAILED) {
             $s3 = [];
-            if (peg_regex_test($this->peg_c1, $this->input_substr($this->peg_currPos, 1))) {
-                $s4 = $this->input_substr($this->peg_currPos, 1);
+            $s4 = $this->input_substr($this->peg_currPos, 1);
+            if (peg_regex_test($this->peg_c1, $s4)) {
                 $this->peg_currPos++;
             } else {
                 $s4 = $this->peg_FAILED;
@@ -1719,8 +1719,8 @@ class Parser
             }
             while ($s4 !== $this->peg_FAILED) {
                 $s3[] = $s4;
-                if (peg_regex_test($this->peg_c1, $this->input_substr($this->peg_currPos, 1))) {
-                    $s4 = $this->input_substr($this->peg_currPos, 1);
+                $s4 = $this->input_substr($this->peg_currPos, 1);
+                if (peg_regex_test($this->peg_c1, $s4)) {
                     $this->peg_currPos++;
                 } else {
                     $s4 = $this->peg_FAILED;
@@ -1979,8 +1979,8 @@ class Parser
 
     private function peg_parse_WS(): mixed
     {
-        if (peg_regex_test($this->peg_c2, $this->input_substr($this->peg_currPos, 1))) {
-            $s0 = $this->input_substr($this->peg_currPos, 1);
+        $s0 = $this->input_substr($this->peg_currPos, 1);
+        if (peg_regex_test($this->peg_c2, $s0)) {
             $this->peg_currPos++;
         } else {
             $s0 = $this->peg_FAILED;
@@ -1994,8 +1994,8 @@ class Parser
 
     private function peg_parse_Newline(): mixed
     {
-        if (peg_regex_test($this->peg_c3, $this->input_substr($this->peg_currPos, 1))) {
-            $s0 = $this->input_substr($this->peg_currPos, 1);
+        $s0 = $this->input_substr($this->peg_currPos, 1);
+        if (peg_regex_test($this->peg_c3, $s0)) {
             $this->peg_currPos++;
         } else {
             $s0 = $this->peg_FAILED;
@@ -2009,8 +2009,8 @@ class Parser
 
     private function peg_parse__(): mixed
     {
-        if (peg_regex_test($this->peg_c4, $this->input_substr($this->peg_currPos, 1))) {
-            $s0 = $this->input_substr($this->peg_currPos, 1);
+        $s0 = $this->input_substr($this->peg_currPos, 1);
+        if (peg_regex_test($this->peg_c4, $s0)) {
             $this->peg_currPos++;
         } else {
             $s0 = $this->peg_FAILED;

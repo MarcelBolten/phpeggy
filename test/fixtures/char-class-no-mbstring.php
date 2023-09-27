@@ -17,7 +17,7 @@ if (!\function_exists("PHPeggy\\chr_unicode")) {
     function chr_unicode(
         $code
     ): string {
-        return \html_entity_decode("&#" . (int) $code .";", ENT_QUOTES, "UTF-8");
+        return \html_entity_decode("&#" . (int) $code . ";", ENT_QUOTES, "UTF-8");
     }
 }
 
@@ -596,8 +596,8 @@ class Parser
     private function peg_parse_Letter_Or_Number(): mixed
     {
         $s0 = $this->peg_currPos;
-        if (peg_char_class_test($this->peg_c0, $this->input_substr($this->peg_currPos, 1))) {
-            $s1 = $this->input_substr($this->peg_currPos, 1);
+        $s1 = $this->input_substr($this->peg_currPos, 1);
+        if (peg_char_class_test($this->peg_c0, $s1)) {
             $this->peg_currPos++;
         } else {
             $s1 = $this->peg_FAILED;
@@ -617,8 +617,8 @@ class Parser
     private function peg_parse_Quote(): mixed
     {
         $s0 = $this->peg_currPos;
-        if (peg_char_class_test($this->peg_c1, $this->input_substr($this->peg_currPos, 1))) {
-            $s1 = $this->input_substr($this->peg_currPos, 1);
+        $s1 = $this->input_substr($this->peg_currPos, 1);
+        if (peg_char_class_test($this->peg_c1, $s1)) {
             $this->peg_currPos++;
         } else {
             $s1 = $this->peg_FAILED;
@@ -638,8 +638,8 @@ class Parser
     private function peg_parse_Char_Padding_Test(): mixed
     {
         $s0 = $this->peg_currPos;
-        if (peg_char_class_test($this->peg_c2, $this->input_substr($this->peg_currPos, 1))) {
-            $s1 = $this->input_substr($this->peg_currPos, 1);
+        $s1 = $this->input_substr($this->peg_currPos, 1);
+        if (peg_char_class_test($this->peg_c2, $s1)) {
             $this->peg_currPos++;
         } else {
             $s1 = $this->peg_FAILED;
@@ -659,8 +659,8 @@ class Parser
     private function peg_parse_Chinese_Character(): mixed
     {
         $s0 = $this->peg_currPos;
-        if (peg_char_class_test($this->peg_c3, $this->input_substr($this->peg_currPos, 1))) {
-            $s1 = $this->input_substr($this->peg_currPos, 1);
+        $s1 = $this->input_substr($this->peg_currPos, 1);
+        if (peg_char_class_test($this->peg_c3, $s1)) {
             $this->peg_currPos++;
         } else {
             $s1 = $this->peg_FAILED;
@@ -680,8 +680,8 @@ class Parser
     private function peg_parse_Pile_Of_Poo(): mixed
     {
         $s0 = $this->peg_currPos;
-        if (peg_char_class_test($this->peg_c4, $this->input_substr($this->peg_currPos, 1))) {
-            $s1 = $this->input_substr($this->peg_currPos, 1);
+        $s1 = $this->input_substr($this->peg_currPos, 1);
+        if (peg_char_class_test($this->peg_c4, $s1)) {
             $this->peg_currPos++;
         } else {
             $s1 = $this->peg_FAILED;
@@ -690,8 +690,8 @@ class Parser
             }
         }
         if ($s1 !== $this->peg_FAILED) {
-            if (peg_char_class_test($this->peg_c5, $this->input_substr($this->peg_currPos, 1))) {
-                $s2 = $this->input_substr($this->peg_currPos, 1);
+            $s2 = $this->input_substr($this->peg_currPos, 1);
+            if (peg_char_class_test($this->peg_c5, $s2)) {
                 $this->peg_currPos++;
             } else {
                 $s2 = $this->peg_FAILED;
@@ -718,8 +718,8 @@ class Parser
     {
         $s0 = $this->peg_currPos;
         $s1 = [];
-        if (peg_char_class_test($this->peg_c6, $this->input_substr($this->peg_currPos, 1))) {
-            $s2 = $this->input_substr($this->peg_currPos, 1);
+        $s2 = $this->input_substr($this->peg_currPos, 1);
+        if (peg_char_class_test($this->peg_c6, $s2)) {
             $this->peg_currPos++;
         } else {
             $s2 = $this->peg_FAILED;
@@ -730,8 +730,8 @@ class Parser
         if ($s2 !== $this->peg_FAILED) {
             while ($s2 !== $this->peg_FAILED) {
                 $s1[] = $s2;
-                if (peg_char_class_test($this->peg_c6, $this->input_substr($this->peg_currPos, 1))) {
-                    $s2 = $this->input_substr($this->peg_currPos, 1);
+                $s2 = $this->input_substr($this->peg_currPos, 1);
+                if (peg_char_class_test($this->peg_c6, $s2)) {
                     $this->peg_currPos++;
                 } else {
                     $s2 = $this->peg_FAILED;
