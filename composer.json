@@ -22,8 +22,8 @@
         "php" : ">=8.0"
     },
     "require-dev": {
-        "friendsofphp/php-cs-fixer": "^3.8.0",
-        "vimeo/psalm": "^5.7.0",
+        "friendsofphp/php-cs-fixer": "^3.41.0",
+        "vimeo/psalm": "^5.17.0",
         "phpstan/phpstan": "^1.10.0"
     },
     "license": "MIT"
