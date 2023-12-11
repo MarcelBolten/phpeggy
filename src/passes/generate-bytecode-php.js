@@ -354,7 +354,7 @@ module.exports = function(ast) {
   }
 
   function buildSimplePredicate(expression, negative, context) {
-    const match = expression.match | 0;
+    const match = expression.match || 0;
 
     return buildSequence(
       [op.PUSH_CURR_POS],
@@ -392,7 +392,7 @@ module.exports = function(ast) {
       [op.UPDATE_SAVED_POS],
       buildCall(functionIndex, 0, context.env, context.sp),
       buildCondition(
-        node.match | 0,
+        node.match || 0,
         [op.IF],
         buildSequence(
           [op.POP],
@@ -525,7 +525,7 @@ module.exports = function(ast) {
           action: null,
         }),
         buildCondition(
-          delimiterNode.match | 0,
+          delimiterNode.match || 0,
           [op.IF_NOT_ERROR],          // if (item !== peg_FAILED) {
           buildSequence(
             [op.POP],                 //                          stack:[ pos ]
@@ -572,10 +572,10 @@ module.exports = function(ast) {
     },
 
     named(node, context) {
-      const match = node.match | 0;
+      const match = node.match || 0;
       // Expectation not required if node always fail
       const nameIndex = (match === NEVER_MATCH)
-        ? null
+        ? -1
         : addExpectedConst({ type: "rule", value: node.name });
 
       // The code generated below is slightly suboptimal because |FAIL| pushes
@@ -592,7 +592,7 @@ module.exports = function(ast) {
 
     choice(node, context) {
       function buildAlternativesCode(alternatives, context) {
-        const match = alternatives[0].match | 0;
+        const match = alternatives[0].match || 0;
         const first = generate(alternatives[0], {
           sp: context.sp,
           env: cloneEnv(context.env),
@@ -637,11 +637,11 @@ module.exports = function(ast) {
         env,
         action: node,
       });
-      const match = node.expression.match | 0;
+      const match = node.expression.match || 0;
       // Function only required if expression can match
       const functionIndex = (emitCall && match !== NEVER_MATCH)
         ? addFunctionConst(false, Object.keys(env), node)
-        : null;
+        : -1;
 
       return emitCall
         ? buildSequence(
@@ -674,7 +674,7 @@ module.exports = function(ast) {
               action: null,
             }),
             buildCondition(
-              elements[0].match | 0,
+              elements[0].match || 0,
               [op.IF_NOT_ERROR],
               buildElementsCode(elements.slice(1), {
                 sp: context.sp + 1,
@@ -764,7 +764,7 @@ module.exports = function(ast) {
           action: null,
         }),
         buildCondition(
-          node.match | 0,
+          node.match || 0,
           [op.IF_NOT_ERROR],
           buildSequence([op.POP], [op.TEXT]),
           [op.NIP]
@@ -791,7 +791,7 @@ module.exports = function(ast) {
           // Check expression match, not the node match
           // If expression always match, no need to replace FAILED to NULL,
           // because FAILED will never appeared
-          -(node.expression.match | 0),
+          -(node.expression.match || 0),
           [op.IF_ERROR],
           buildSequence([op.POP], [op.PUSH_NULL]),
           []
@@ -826,7 +826,7 @@ module.exports = function(ast) {
         expressionCode,
         buildCondition(
           // Condition depends on the expression match, not the node match
-          node.expression.match | 0,
+          node.expression.match || 0,
           [op.IF_NOT_ERROR],
           buildSequence(buildAppendLoop(expressionCode), [op.POP]),
           buildSequence([op.POP], [op.POP], [op.PUSH_FAILED])
@@ -874,7 +874,7 @@ module.exports = function(ast) {
         : firstExpressionCode;
       const bodyCode = buildRangeBody(
         node.delimiter,
-        node.expression.match | 0,
+        node.expression.match || 0,
         expressionCode,
         context,
         offset
@@ -929,7 +929,7 @@ module.exports = function(ast) {
 
     literal(node) {
       if (node.value.length > 0) {
-        const match = node.match | 0;
+        const match = node.match || 0;
         // String only required if condition is generated or string is
         // case-sensitive and node always match
         const needConst = (match === SOMETIMES_MATCH)
@@ -940,7 +940,7 @@ module.exports = function(ast) {
               ? node.value.toLowerCase()
               : node.value
           )
-          : null;
+          : -1;
         // Expectation not required if node always match
         const expectedIndex = (match !== ALWAYS_MATCH)
           ? addExpectedConst({
@@ -948,7 +948,7 @@ module.exports = function(ast) {
             value: node.value,
             ignoreCase: node.ignoreCase,
           })
-          : null;
+          : -1;
 
         // For case-sensitive strings the value must match the beginning of the
         // remaining input exactly. As a result, we can use |ACCEPT_STRING| and
@@ -969,11 +969,11 @@ module.exports = function(ast) {
     },
 
     class(node) {
-      const match = node.match | 0;
+      const match = node.match || 0;
       // Character class constant only required if condition is generated
       const classIndex = (match === SOMETIMES_MATCH)
         ? addClassConst(node)
-        : null;
+        : -1;
       // Expectation not required if node always match
       const expectedIndex = (match !== ALWAYS_MATCH)
         ? addExpectedConst({
@@ -982,7 +982,7 @@ module.exports = function(ast) {
           inverted: node.inverted,
           ignoreCase: node.ignoreCase,
         })
-        : null;
+        : -1;
 
       return buildCondition(
         match,
@@ -993,13 +993,13 @@ module.exports = function(ast) {
     },
 
     any(node) {
-      const match = node.match | 0;
+      const match = node.match || 0;
       // Expectation not required if node always match
       const expectedIndex = (match !== ALWAYS_MATCH)
         ? addExpectedConst({
           type: "any",
         })
-        : null;
+        : -1;
 
       return buildCondition(
         match,
