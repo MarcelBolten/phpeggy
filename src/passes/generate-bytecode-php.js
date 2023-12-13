@@ -465,7 +465,7 @@ module.exports = function(ast) {
     if (max.value !== null) {
       const checkCode = (max.type === "constant")
         ? [op.IF_GE, max.value]
-        : [op.IF_GE_DYNAMIC, max.sp];
+        : [op.IF_GE_DYNAMIC, max.sp || 0];
 
       // Push `peg_FAILED` - this break loop on next iteration, so |result|
       // will contain not more then |max| elements.
@@ -491,7 +491,7 @@ module.exports = function(ast) {
   function buildCheckMin(expressionCode, min) {
     const checkCode = (min.type === "constant")
       ? [op.IF_LT, min.value]
-      : [op.IF_LT_DYNAMIC, min.sp];
+      : [op.IF_LT_DYNAMIC, min.sp || 0];
 
     return buildSequence(
       expressionCode,             // result = [elem...];      stack:[ pos, [elem...] ]
@@ -690,7 +690,7 @@ module.exports = function(ast) {
             )
           );
         } else {
-          if (context.pluck.length > 0) {
+          if (context.pluck && context.pluck.length > 0) {
             return buildSequence(
               [op.PLUCK, node.elements.length + 1, context.pluck.length],
               context.pluck.map(eSP => context.sp - eSP)
@@ -741,7 +741,7 @@ module.exports = function(ast) {
 
       if (label) {
         env = cloneEnv(context.env);
-        context.env[node.label] = sp;
+        context.env[label] = sp;
       }
 
       if (node.pick) {
