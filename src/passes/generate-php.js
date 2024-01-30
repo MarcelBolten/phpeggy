@@ -1,8 +1,8 @@
 "use strict";
 
 const asts = require("peggy/lib/compiler/asts");
-const op = require("../opcodes");
 const Stack = require("peggy/lib/compiler/stack");
+const op = require("../opcodes");
 const internalUtils = require("../utils");
 
 // Load static parser parts
@@ -620,15 +620,21 @@ module.exports = function(ast, options) {
   }
 
   // Global initializer
-  if (ast.topLevelInitializer) {
-    const topLevelInitializerCode = internalUtils.extractPhpCode(
-      ast.topLevelInitializer.code.trim()
-    );
-    if (topLevelInitializerCode !== "") {
-      parts.push(
-        topLevelInitializerCode,
-        ""
+  if (ast.topLevelInitializerl) {
+    const topLevel = Array.isArray(ast.topLevelInitializerl)
+      ? ast.topLevelInitializerl
+      : [ast.topLevelInitializerl];
+    // Put library code before code using it.
+    for (const topLevelInitializerl of topLevel.slice().reverse()) {
+      const topLevelInitializerCode = internalUtils.extractPhpCode(
+        topLevelInitializerl.code.trim()
       );
+      if (topLevelInitializerCode !== "") {
+        parts.push(
+          topLevelInitializerCode,
+          ""
+        );
+      }
     }
   }
 
@@ -699,14 +705,19 @@ module.exports = function(ast, options) {
 
   // Grammar-provided methods
   if (ast.initializer) {
-    const initializerCode = internalUtils.extractPhpCode(
-      ast.initializer.code.trim()
-    );
-    if (initializerCode !== "") {
-      parts.push(...[
-        initializerCode,
-        "",
-      ].map(line => indent(4, line)));
+    const astInitializer = Array.isArray(ast.initializer)
+      ? ast.initializer
+      : [ast.initializer];
+    for (const initializer of astInitializer) {
+      const initializerCode = internalUtils.extractPhpCode(
+        initializer.code.trim()
+      );
+      if (initializerCode !== "") {
+        parts.push(...[
+          initializerCode,
+          "",
+        ].map(line => indent(4, line)));
+      }
     }
   }
 
