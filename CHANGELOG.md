@@ -3,6 +3,15 @@ Change Log
 
 This file documents all notable changes to PHPeggy.
 
+2.1.0
+-----
+
+Released: 2025-04-28
+
+### Peggy 4.0
+
+- added support for Peggy 4.0
+
 2.0.1
 -----
 
