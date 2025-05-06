@@ -4,7 +4,7 @@
   "description": "PHP target for Peggy parser generator",
   "main": "src/phpeggy.js",
   "peerDependencies": {
-    "peggy": "^3.0.0"
+    "peggy": "^5.0.0"
   },
   "devDependencies": {
     "@peggyjs/eslint-config": "^3.0.5",
@@ -13,7 +13,7 @@
     "chai": "^4.3.3",
     "eslint": "^8.11.0",
     "mocha": "^10.2.0",
-    "peggy": "^3.0.0",
+    "peggy": "^5.0.0",
     "typescript": "^5.0.2"
   },
   "scripts": {
