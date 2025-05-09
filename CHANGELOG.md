@@ -10,6 +10,7 @@ Released: TBD
 
 ### Breaking Changes
 
+- Node.js v20+ is now required
 - `mbstring` extension is required now. The `mbstringAllowed` option is removed.
 - Drop support for Internet Explorer
 
