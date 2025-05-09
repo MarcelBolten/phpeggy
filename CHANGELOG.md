@@ -10,6 +10,8 @@ Released: TBD
 
 ### Breaking Changes
 
+- Drop support for Internet Explorer
+
 ### Major Changes
 
 ### Minor Changes

@@ -37,11 +37,10 @@ module.exports = function(ast, options) {
 
   function generateTablesDeclaration() {
     function buildRegexp(cls) {
-      let regexp = undefined;
       let classIndex = undefined;
 
-      if (cls.value.length > 0) {
-        regexp = "/^["
+      if (mbstringAllowed) {
+        const regexp = "/^["
           + (cls.inverted ? "^" : "")
           + cls.value.map(part => (Array.isArray(part)
             ? internalUtils.escapePhpRegexp(part[0])
@@ -50,15 +49,6 @@ module.exports = function(ast, options) {
             : internalUtils.escapePhpRegexp(part)
           )).join("")
           + "]/" + (cls.ignoreCase ? "i" : "");
-      } else {
-        /*
-         * IE considers regexps /[]/ and /[^]/ as syntactically invalid, so we
-         * translate them into equivalents it can handle.
-         */
-        regexp = cls.inverted ? "/^[\\S\\s]/" : "/^(?!)/";
-      }
-
-      if (mbstringAllowed) {
         classIndex = internalUtils.quotePhp(regexp);
       } else {
         classIndex = "["
