@@ -3,6 +3,19 @@ Change Log
 
 This file documents all notable changes to PHPeggy.
 
+3.0.0
+-----
+
+Released: TBD
+
+### Breaking Changes
+
+### Major Changes
+
+### Minor Changes
+
+### Developer
+
 2.0.1
 -----
 
