@@ -14,17 +14,14 @@ const commonMethods = require("./generate-php/common-methods");
 
 /* Generates parser PHP code. */
 module.exports = function(ast, options) {
-  let phpGlobalNamespacePrefix = undefined;
-  let phpGlobalNamePrefixOrNamespaceEscaped = undefined;
+  let phpGlobalNamespacePrefix = "";
+  let phpGlobalNamePrefixOrNamespaceEscaped = "";
   const phpNamespace = options.phpeggy.parserNamespace;
   const phpParserClass = options.phpeggy.parserClassName;
   if (phpNamespace) {
     phpGlobalNamespacePrefix = "\\";
     // For use within double quoted strings inside generated code, ensure there is a double backslash
     phpGlobalNamePrefixOrNamespaceEscaped = phpNamespace.replace(/\\+/g, "\\\\") + "\\\\";
-  } else {
-    phpGlobalNamespacePrefix = "";
-    phpGlobalNamePrefixOrNamespaceEscaped = "";
   }
 
   /* Only indent non-empty lines to avoid trailing whitespace. */
