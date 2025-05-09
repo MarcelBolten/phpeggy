@@ -34,7 +34,7 @@ Follow these steps to upgrade:
 
 ## Requirements
 
-* [Peggy](https://peggyjs.org/) (known compatible with v3.0.0)
+* [Peggy](https://peggyjs.org/) (known compatible with v5.0.0)
 * PHP version >=8 for the created parser
 * `mbstring` extension enabled
 
