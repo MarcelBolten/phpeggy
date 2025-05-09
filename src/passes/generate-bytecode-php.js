@@ -573,8 +573,8 @@ module.exports = function(ast) {
 
     named(node, context) {
       const match = node.match || 0;
-      // Expectation not required if node always fail
-      const nameIndex = (match === NEVER_MATCH)
+      // Expectation not required if node always match
+      const nameIndex = (match === ALWAYS_MATCH)
         ? -1
         : addExpectedConst({ type: "rule", value: node.name });
 
@@ -586,7 +586,7 @@ module.exports = function(ast) {
         [op.SILENT_FAILS_ON],
         generate(node.expression, context),
         [op.SILENT_FAILS_OFF],
-        buildCondition(match, [op.IF_ERROR], [op.FAIL, nameIndex], [])
+        buildCondition(-match, [op.IF_ERROR], [op.FAIL, nameIndex], [])
       );
     },
 

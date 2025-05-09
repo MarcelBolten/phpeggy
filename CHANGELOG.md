@@ -17,6 +17,9 @@ Released: TBD
 
 ### Minor Changes
 
+- Fix a bug with named NEVER_MATCH expressions.
+  compare to https://github.com/peggyjs/peggy/pull/454
+
 ### Developer
 
 2.0.1
