@@ -25,7 +25,7 @@ function extractPhpCode(code) {
   return phpCode ? phpCode.trim() : code;
 }
 
-/* eslint-disable no-control-regex */
+/* -eslint-disable no-control-regex */
 
 // Code from peggy
 // It was public on v. 1.1.0 but converted into private in version 1.2.0 (copying here to make phpeggy to work)

@@ -1,14 +1,18 @@
 "use strict";
-const describe = require("mocha").describe;
-const it = require("mocha").it;
-const expect = require("chai").expect;
-const fs = require("fs");
-const path = require("path");
-const cp = require("child_process");
-const util = require("util");
+import { describe, it } from "mocha";
+import { expect}  from  "chai";
+import fs from "fs";
+import path from "path";
+import cp  from "child_process";
+import util from "util";
+import { fileURLToPath } from "url";
 
-const peggy = require("peggy");
-const phpeggy = require("../src/phpeggy");
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+
+import peggy from "peggy";
+import phpeggy from "../src/phpeggy.js";
 
 function getUniqueBasenames(array) {
   return array
