@@ -18,7 +18,6 @@ module.exports = function(ast, options) {
   let phpGlobalNamePrefixOrNamespaceEscaped = undefined;
   const phpNamespace = options.phpeggy.parserNamespace;
   const phpParserClass = options.phpeggy.parserClassName;
-  const mbstringAllowed = options.phpeggy.mbstringAllowed;
   if (phpNamespace) {
     phpGlobalNamespacePrefix = "\\";
     // For use within double quoted strings inside generated code, ensure there is a double backslash
@@ -37,44 +36,24 @@ module.exports = function(ast, options) {
 
   function generateTablesDeclaration() {
     function buildRegexp(cls) {
-      let classIndex = undefined;
+      const regexp = "/^["
+        + (cls.inverted ? "^" : "")
+        + cls.value.map(part => (Array.isArray(part)
+          ? internalUtils.escapePhpRegexp(part[0])
+            + "-"
+            + internalUtils.escapePhpRegexp(part[1])
+          : internalUtils.escapePhpRegexp(part)
+        )).join("")
+        + "]/" + (cls.ignoreCase ? "i" : "");
 
-      if (mbstringAllowed) {
-        const regexp = "/^["
-          + (cls.inverted ? "^" : "")
-          + cls.value.map(part => (Array.isArray(part)
-            ? internalUtils.escapePhpRegexp(part[0])
-              + "-"
-              + internalUtils.escapePhpRegexp(part[1])
-            : internalUtils.escapePhpRegexp(part)
-          )).join("")
-          + "]/" + (cls.ignoreCase ? "i" : "");
-        classIndex = internalUtils.quotePhp(regexp);
-      } else {
-        classIndex = "["
-          + cls.value.map(part => {
-            if (!Array.isArray(part)) {
-              part = [part, part];
-            }
-            return "["
-              + part[0].charCodeAt(0) + ","
-              + part[1].charCodeAt(0) + "]";
-          }).join(", ")
-          + "]";
-      }
-      return classIndex;
+      return internalUtils.quotePhp(regexp);
     }
 
     const literals = ast.literals.map(
       (l, i) => "private string $peg_l" + i + " = " + internalUtils.quotePhp(l) + ";"
     );
     const classes = ast.classes.map(
-      (c, i) => (mbstringAllowed
-        ? ""
-        : "/** @var array<int, array<int, int>> $peg_c" + i + " */\n"
-      )
-      + "private " + (mbstringAllowed ? "string" : "array")
-      + " $peg_c" + i + " = " + buildRegexp(c) + ";"
+      (c, i) => "private string $peg_c" + i + " = " + buildRegexp(c) + ";"
     );
     const expectations = ast.expectations.map(
       (e, i) => "private pegExpectation $peg_e" + i + ";"
@@ -458,7 +437,7 @@ module.exports = function(ast, options) {
           case op.MATCH_CHAR_CLASS: {  // MATCH_CHAR_CLASS c, a, f, ...
             const regNum = bc[ip + 1];
             compileInputChunkCondition(
-              inputChunk => `${(mbstringAllowed ? "peg_regex_test" : "peg_char_class_test")}(${c(regNum)}, ${inputChunk})`,
+              inputChunk => `peg_regex_test(${c(regNum)}, ${inputChunk})`,
               1,
               1
             );
@@ -628,10 +607,7 @@ module.exports = function(ast, options) {
     }
   }
 
-  parts.push(...utilityFunctions(
-    phpGlobalNamePrefixOrNamespaceEscaped,
-    mbstringAllowed
-  ));
+  parts.push(...utilityFunctions(phpGlobalNamePrefixOrNamespaceEscaped));
 
   parts.push(...syntaxErrorClass(
     phpGlobalNamePrefixOrNamespaceEscaped,
@@ -739,13 +715,11 @@ module.exports = function(ast, options) {
     "",
   ].map(line => indent(8, line)));
 
-  if (mbstringAllowed) {
-    parts.push(...[
-      "$old_regex_encoding = (string) \\mb_regex_encoding();",
-      '\\mb_regex_encoding("UTF-8");',
-      "",
-    ].map(line => indent(8, line)));
-  }
+  parts.push(...[
+    "$old_regex_encoding = (string) \\mb_regex_encoding();",
+    '\\mb_regex_encoding("UTF-8");',
+    "",
+  ].map(line => indent(8, line)));
 
   parts.push(...[
     "if (method_exists($this, 'initialize')) {",
@@ -784,12 +758,10 @@ module.exports = function(ast, options) {
     ].map(line => indent(8, line)));
   }
 
-  if (mbstringAllowed) {
-    parts.push(...[
-      "\\mb_regex_encoding($old_regex_encoding);",
-      "",
-    ].map(line => indent(8, line)));
-  }
+  parts.push(...[
+    "\\mb_regex_encoding($old_regex_encoding);",
+    "",
+  ].map(line => indent(8, line)));
 
   parts.push(...[
     "if ($peg_result !== $this->peg_FAILED && $this->peg_currPos === $this->input_length) {",

@@ -10,6 +10,7 @@ Released: TBD
 
 ### Breaking Changes
 
+- `mbstring` extension is required now. The `mbstringAllowed` option is removed.
 - Drop support for Internet Explorer
 
 ### Major Changes

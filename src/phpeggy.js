@@ -1,9 +1,6 @@
 "use strict";
 
 exports.use = function(config, options) {
-  config.passes.check.push(
-    require("./passes/report-mbstring-incompatibility")
-  );
   config.passes.generate = [
     require("./passes/generate-bytecode-php"),
     require("./passes/generate-php"),
@@ -17,9 +14,6 @@ exports.use = function(config, options) {
   }
   if (options.phpeggy.parserClassName === undefined) {
     options.phpeggy.parserClassName = "Parser";
-  }
-  if (options.phpeggy.mbstringAllowed === undefined) {
-    options.phpeggy.mbstringAllowed = true;
   }
 };
 /*
