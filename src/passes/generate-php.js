@@ -586,14 +586,14 @@ module.exports = function(ast, options) {
   }
 
   // Global initializer
-  if (ast.topLevelInitializerl) {
-    const topLevel = Array.isArray(ast.topLevelInitializerl)
-      ? ast.topLevelInitializerl
-      : [ast.topLevelInitializerl];
+  if (ast.topLevelInitializer) {
+    const topLevel = Array.isArray(ast.topLevelInitializer)
+      ? ast.topLevelInitializer
+      : [ast.topLevelInitializer];
     // Put library code before code using it.
-    for (const topLevelInitializerl of topLevel.slice().reverse()) {
+    for (const topLevelInitializer of topLevel.slice().reverse()) {
       const topLevelInitializerCode = internalUtils.extractPhpCode(
-        topLevelInitializerl.code.trim()
+        topLevelInitializer.code.trim()
       );
       if (topLevelInitializerCode !== "") {
         parts.push(
