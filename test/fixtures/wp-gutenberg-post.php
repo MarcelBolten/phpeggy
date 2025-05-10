@@ -265,9 +265,6 @@ class Parser
         $this->peg_e13 = new pegExpectation("class", "[ \\t\\r\\n]", "[ \t\r\n]", "false");
     }
 
-    // The `maybeJSON` function is not needed in PHP because its return semantics
-    // are the same as `json_decode`
-
     // array arguments are backwards because of PHP
     private function peg_array_partition(array $array, callable $predicate): array
     {
