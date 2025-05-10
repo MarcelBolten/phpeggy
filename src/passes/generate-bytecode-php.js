@@ -5,6 +5,7 @@
 
 const asts = require("peggy/lib/compiler/asts");
 const visitor = require("peggy/lib/compiler/visitor");
+const Intern = require("peggy/lib/compiler/intern");
 const { ALWAYS_MATCH, SOMETIMES_MATCH, NEVER_MATCH } = require("peggy/lib/compiler/passes/inference-match-result");
 const op = require("../opcodes");
 
@@ -275,35 +276,19 @@ const op = require("../opcodes");
  * Wikipedia page (https://en.wikipedia.org/wiki/Asm.js#Code_generation)
  */
 module.exports = function(ast) {
-  const literals = [];
-  const classes = [];
-  const expectations = [];
-  const functions = [];
-
-  function addLiteralConst(value) {
-    const index = literals.indexOf(value);
-
-    return index === -1 ? literals.push(value) - 1 : index;
-  }
-
-  function addClassConst(node) {
-    const cls = {
+  const literals = new Intern();
+  const classes = new Intern({
+    stringify: JSON.stringify,
+    convert: node => ({
       value: node.parts,
       inverted: node.inverted,
       ignoreCase: node.ignoreCase,
-    };
-    const pattern = JSON.stringify(cls);
-    const index = classes.findIndex(c => JSON.stringify(c) === pattern);
-
-    return index === -1 ? classes.push(cls) - 1 : index;
-  }
-
-  function addExpectedConst(expected) {
-    const pattern = JSON.stringify(expected);
-    const index = expectations.findIndex(e => JSON.stringify(e) === pattern);
-
-    return (index === -1) ? expectations.push(expected) - 1 : index;
-  }
+    }),
+  });
+  const expectations = new Intern({
+      stringify: JSON.stringify,
+  });
+  const functions = [];
 
   function addFunctionConst(predicate, params, node) {
     const func = {
@@ -556,9 +541,9 @@ module.exports = function(ast) {
     grammar(node) {
       node.rules.forEach(generate);
 
-      node.literals = literals;
-      node.classes = classes;
-      node.expectations = expectations;
+      node.literals = literals.items;
+      node.classes = classes.items;
+      node.expectations = expectations.items;
       node.functions = functions;
     },
 
@@ -576,7 +561,7 @@ module.exports = function(ast) {
       // Expectation not required if node always match
       const nameIndex = (match === ALWAYS_MATCH)
         ? -1
-        : addExpectedConst({ type: "rule", value: node.name });
+        : expectations.add({ type: "rule", value: node.name });
 
       // The code generated below is slightly suboptimal because |FAIL| pushes
       // to the stack, so we need to stick a |POP| in front of it. We lack a
@@ -935,7 +920,7 @@ module.exports = function(ast) {
         const needConst = (match === SOMETIMES_MATCH)
           || (match === ALWAYS_MATCH && !node.ignoreCase);
         const stringIndex = needConst
-          ? addLiteralConst(
+          ? literals.add(
             node.ignoreCase
               ? node.value.toLowerCase()
               : node.value
@@ -943,7 +928,7 @@ module.exports = function(ast) {
           : -1;
         // Expectation not required if node always match
         const expectedIndex = (match !== ALWAYS_MATCH)
-          ? addExpectedConst({
+          ? expectations.add({
             type: "literal",
             value: node.value,
             ignoreCase: node.ignoreCase,
@@ -972,11 +957,11 @@ module.exports = function(ast) {
       const match = node.match || 0;
       // Character class constant only required if condition is generated
       const classIndex = (match === SOMETIMES_MATCH)
-        ? addClassConst(node)
+        ? classes.add(node)
         : -1;
       // Expectation not required if node always match
       const expectedIndex = (match !== ALWAYS_MATCH)
-        ? addExpectedConst({
+        ? expectations.add({
           type: "class",
           value: node.parts,
           inverted: node.inverted,
@@ -996,7 +981,7 @@ module.exports = function(ast) {
       const match = node.match || 0;
       // Expectation not required if node always match
       const expectedIndex = (match !== ALWAYS_MATCH)
-        ? addExpectedConst({
+        ? expectations.add({
           type: "any",
         })
         : -1;
