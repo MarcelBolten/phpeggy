@@ -20,3 +20,4 @@ composer.lock
 docker-compose.yml
 phpstan.neon
 psalm.xml
+pnpm-lock.yaml

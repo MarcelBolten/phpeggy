@@ -1,4 +1,5 @@
 /.phpdoc
+/.pnpm-store/
 /phpdoc
 /docker/xdebug_out
 /manual-test/output
