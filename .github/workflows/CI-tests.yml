@@ -19,15 +19,30 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+
+      - name: "Install PHP"
+        uses: "shivammathur/setup-php@v2"
+        with:
+          coverage: "none"
+          php-version: "8.0"
+          tools: composer:v2
+          ini-values: error_reporting=-1
+
+      - name: "Install PHP dependencies"
+        run: "composer install --no-interaction --no-progress"
+
       - name: Install pnpm
         uses: pnpm/action-setup@v4
+
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
           cache: pnpm
+
       - name: Install dependencies
         run: pnpm install
+
       - name: Test
         run: npm run test
 

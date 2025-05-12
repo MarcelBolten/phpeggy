@@ -10,6 +10,7 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+const minPHPVersion = "8.0";
 
 import peggy from "peggy";
 import phpeggy from "../src/phpeggy.js";
@@ -57,11 +58,12 @@ if (!match) {
   throw new Error("Unable to determine PHP version.");
 }
 console.log("PHP version: " + match[0].trim());
+const [minMajor, minMinor] = minPHPVersion.split(".");
 const major = Number(match[1]);
 const minor = Number(match[2]);
-if (major < 7 || (major === 7 && minor < 4)) {
+if (major < Number(minMajor) || (major === Number(minMajor) && minor < Number(minMinor))) {
   throw new Error(
-    "This library requires at least PHP 7.4."
+    `This library requires at least PHP ${minPHPVersion}.`
   );
 }
 console.log("Running tests");
