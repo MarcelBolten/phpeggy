@@ -30,7 +30,7 @@ RUN apk upgrade -U -a && apk add --no-cache \
 
 ADD --chmod=0755 https://github.com/mlocati/docker-php-extension-installer/releases/download/$DOCKER_PHP_EXTENSION_INSTALLER/install-php-extensions /usr/local/bin/
 
-RUN install-php-extensions xdebug mbstring ctype
+RUN install-php-extensions xdebug
 
 RUN echo 'memory_limit = 1024M' >> /usr/local/etc/php/conf.d/docker-php-memlimit.ini
 RUN echo 'zend_extension=opcache' >> /usr/local/etc/php/conf.d/docker-php-ext-opcache.ini
