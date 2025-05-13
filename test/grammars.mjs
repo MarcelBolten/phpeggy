@@ -7,13 +7,13 @@ import cp  from "child_process";
 import util from "util";
 import { fileURLToPath } from "url";
 
+import peggy from "peggy";
+import phpeggy from "../src/phpeggy.js";
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const minPHPVersion = "8.0";
-
-import peggy from "peggy";
-import phpeggy from "../src/phpeggy.js";
 
 function getUniqueBasenames(array) {
   return array
