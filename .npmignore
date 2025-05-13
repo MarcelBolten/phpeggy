@@ -1,10 +1,11 @@
 .git/
 .github/
-.phpdoc
+.phpdoc/
+.vscode/
 docker/
 manual-test/
 node_modules/
-phpdoc
+phpdoc/
 src/.eslintrc.json
 test/
 vendor/
@@ -19,5 +20,5 @@ composer.json
 composer.lock
 docker-compose.yml
 phpstan.neon
-psalm.xml
 pnpm-lock.yaml
+psalm.xml

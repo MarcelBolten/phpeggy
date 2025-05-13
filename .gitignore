@@ -1,8 +1,9 @@
-/.phpdoc
-/.pnpm-store/
-/phpdoc
-/docker/xdebug_out
-/manual-test/output
-/node_modules
-/vendor
+.phpdoc/
+.pnpm-store/
+.vscode/
+phpdoc/
+docker/xdebug_out/
+manual-test/output/
+node_modules/
+vendor/
 composer.lock
