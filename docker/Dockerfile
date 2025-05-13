@@ -25,6 +25,7 @@ ENV COMPOSER_HOME=/composer
 COPY --from=composer-version-workaround /usr/bin/composer /usr/bin/composer
 
 RUN apk upgrade -U -a && apk add --no-cache \
+    nodejs-current \
     npm
 
 ADD --chmod=0755 https://github.com/mlocati/docker-php-extension-installer/releases/download/$DOCKER_PHP_EXTENSION_INSTALLER/install-php-extensions /usr/local/bin/
@@ -35,3 +36,7 @@ RUN echo 'memory_limit = 1024M' >> /usr/local/etc/php/conf.d/docker-php-memlimit
 RUN echo 'zend_extension=opcache' >> /usr/local/etc/php/conf.d/docker-php-ext-opcache.ini
 
 WORKDIR /app
+
+# avoid download prompt
+ENV COREPACK_ENABLE_DOWNLOAD_PROMPT=0
+RUN corepack enable pnpm && npm install -g corepack@latest
