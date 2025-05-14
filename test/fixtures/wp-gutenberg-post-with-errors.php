@@ -507,7 +507,7 @@ class Parser
             }
 
             $expectedDesc = \count($expected) > 1
-                ? \implode (", ", \array_slice($expectedDescs, 0, -1))
+                ? \implode(", ", \array_slice($expectedDescs, 0, -1))
                     . " or "
                     . ($expectedDescs[\count($expected) - 1] ?? "")
                 : $expectedDescs[0] ?? "";
