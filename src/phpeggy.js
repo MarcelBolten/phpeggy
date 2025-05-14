@@ -5,13 +5,14 @@ exports.use = function(config, options) {
     require("./passes/generate-bytecode-php"),
     require("./passes/generate-php"),
   ];
-  options.output = "source";
   if (!options.phpeggy) {
     options.phpeggy = {};
   }
+
   if (options.phpeggy.parserNamespace === undefined) {
     options.phpeggy.parserNamespace = "PHPeggy";
   }
+
   if (options.phpeggy.parserClassName === undefined) {
     options.phpeggy.parserClassName = "Parser";
   }
