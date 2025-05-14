@@ -30,6 +30,7 @@ function generateParser(input_file, output_file, classname) {
       peggy.generate(data.toString(), {
         cache: true,
         grammarSource: input_file,
+        output: "source",
         plugins: [phpeggy],
         phpeggy: {
           parserNamespace: "Parser",
