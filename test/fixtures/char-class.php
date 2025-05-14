@@ -497,14 +497,14 @@ class Parser
             }
 
             $expectedDesc = \count($expected) > 1
-                ? join(", ", \array_slice($expectedDescs, 0, -1))
+                ? \implode (", ", \array_slice($expectedDescs, 0, -1))
                     . " or "
                     . ($expectedDescs[\count($expected) - 1] ?? "")
                 : $expectedDescs[0] ?? "";
 
             $foundDesc = $found === null ? "end of input" : \json_encode($found, JSON_THROW_ON_ERROR);
 
-            $message = sprintf("Expected %s but %s found.", $expectedDesc, $foundDesc);
+            $message = \sprintf("Expected %s but %s found.", $expectedDesc, $foundDesc);
         }
 
         return new SyntaxError(
