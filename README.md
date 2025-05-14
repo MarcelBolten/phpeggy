@@ -34,7 +34,7 @@ Follow these steps to upgrade:
 
 ## Requirements
 
-* [Peggy](https://peggyjs.org/) (known compatible with v5.0.0)
+* [Peggy](https://peggyjs.org/) (known compatible with version 5)
 * PHP version >=8 for the created parser
 * `mbstring` extension enabled
 
@@ -46,7 +46,7 @@ Installation
 Install Peggy with `phpeggy` plugin
 
 ```sh
-$ npm install peggy@3.0.0 phpeggy
+$ npm install peggy@^5.0.0 phpeggy
 ```
 
 Usage
