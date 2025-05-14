@@ -117,9 +117,10 @@ grammarNames.forEach(grammarName => {
           fixtureFilePath(grammarName + ".options.json"),
           "utf8"
         ));
-        extraOptions.output = "source";
       } catch (err) {
         // Continue regardless of error
+      } finally {
+        extraOptions.output = "source";
       }
 
       for (const key in extraOptions) {
