@@ -36,9 +36,11 @@ function runPhp(args, stdin) {
     input: stdin || null,
     encoding: "utf8",
   });
+
   if (result.error) {
     throw result.error;
   }
+
   if (result.status) {
     console.log({
       stderr: result.stderr,
@@ -48,24 +50,55 @@ function runPhp(args, stdin) {
       "Non-zero exit code from PHP: " + result.status
     );
   }
+
+  return result;
+}
+
+function runPeggyCli(args, stdin) {
+  args.unshift('peggy');
+  const result = cp.spawnSync("npx", args, {
+    input: stdin || null,
+    encoding: "utf8",
+  });
+
+  if (result.error) {
+    throw result.error;
+  }
+
+  if (result.status) {
+    console.log({
+      stderr: result.stderr,
+      stdout: result.stdout,
+    });
+    throw new Error(
+      "Non-zero exit code from peggy: " + result.status
+    );
+  }
+
   return result;
 }
 
 console.log("Determining version of PHP command-line executable...");
+
 const result = runPhp(["--version"]);
 const match = result.stdout.match(/^PHP (\d+)\.(\d+)(\.[^ ]+) /);
+
 if (!match) {
   throw new Error("Unable to determine PHP version.");
 }
+
 console.log("PHP version: " + match[0].trim());
+
 const [minMajor, minMinor] = minPHPVersion.split(".");
 const major = Number(match[1]);
 const minor = Number(match[2]);
+
 if (major < Number(minMajor) || (major === Number(minMajor) && minor < Number(minMinor))) {
   throw new Error(
     `This library requires at least PHP ${minPHPVersion}.`
   );
 }
+
 console.log("Running tests");
 
 function getPHPParserTestCode(parser, input) {
@@ -100,7 +133,7 @@ grammarNames.forEach(grammarName => {
     let phpActual = undefined;
     let outputActual = undefined;
 
-    it("generates the expected PHP code", () => {
+    it("generates the expected PHP code via js api", () => {
       const grammar = fs.readFileSync(
         fixtureFilePath(grammarName + ".pegjs"),
         "utf8"
@@ -117,7 +150,7 @@ grammarNames.forEach(grammarName => {
           fixtureFilePath(grammarName + ".options.json"),
           "utf8"
         ));
-      } catch (err) {
+      } catch (error) {
         // Continue regardless of error
       } finally {
         extraOptions.output = "source";
@@ -156,6 +189,46 @@ grammarNames.forEach(grammarName => {
       );
 
       expect(phpActual).to.eql(phpExpected);
+    });
+
+    it("generates the expected PHP code via cli", () => {
+      const grammar = fs.readFileSync(
+        fixtureFilePath(grammarName + ".pegjs"),
+        "utf8"
+      );
+
+      const peggyCliArgs = ['--plugin', __dirname + '/../src/phpeggy.js'];
+
+      let extraOptions = {};
+
+      try {
+        extraOptions = JSON.parse(fs.readFileSync(
+          fixtureFilePath(grammarName + ".options.json"),
+          "utf8"
+        ));
+      } catch (error) {
+        // Continue regardless of error
+      }
+
+      if (extraOptions.cache) {
+        peggyCliArgs.push('--cache');
+      }
+      if (extraOptions.phpeggy) {
+        peggyCliArgs.push(`--extra-options`, JSON.stringify({phpeggy: extraOptions.phpeggy}));
+      }
+
+      const result = runPeggyCli(peggyCliArgs, grammar);
+
+      const phpExpectedPath = fixtureFilePath(
+        grammarName + ".php"
+      );
+
+      const phpExpected = fs.readFileSync(
+        phpExpectedPath,
+        "utf8"
+      );
+
+      expect(result.stdout).to.eql(phpExpected);
     });
 
     let testNames = [];
