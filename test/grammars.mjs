@@ -59,6 +59,7 @@ function runPeggyCli(args, stdin) {
   const result = cp.spawnSync("npx", args, {
     input: stdin || null,
     encoding: "utf8",
+    timeout: 10000,
   });
 
   if (result.error) {
