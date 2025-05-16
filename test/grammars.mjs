@@ -24,11 +24,11 @@ function getUniqueBasenames(array) {
 }
 
 function fixtureFilePath(filename) {
-  if (Array.isArray(filename)) {
-    return path.join(...[__dirname, "fixtures"].concat(filename));
-  } else {
-    return path.join(__dirname, "fixtures", filename);
+  if (!Array.isArray(filename)) {
+    filename = [filename];
   }
+
+  return path.join(...[__dirname, "fixtures"].concat(filename));
 }
 
 function runPhp(args, stdin) {
@@ -224,6 +224,7 @@ grammarNames.forEach(grammarName => {
       if (extraOptions.cache) {
         peggyCliArgs.push('--cache');
       }
+
       if (extraOptions.phpeggy) {
         let jsonArg = JSON.stringify({ phpeggy: extraOptions.phpeggy });
 
