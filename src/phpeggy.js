@@ -1,5 +1,7 @@
 "use strict";
 
+const path = require("path");
+
 exports.use = function(config, options) {
   config.passes.generate = [
     require("./passes/generate-bytecode-php"),
@@ -14,7 +16,7 @@ exports.use = function(config, options) {
   // However, the cli relies on source.code from the ast compare to
   // https://github.com/peggyjs/peggy/blob/7a8fd86d43ff14ddfd2f1f5034c47bb6db380cc9/bin/peggy-cli.js#L517)
   // We use this dirty hack to detect if we are in the cli or not.
-  if (!new Error().stack.includes("peggy/bin/peggy-cli.js")) {
+  if (!new Error().stack.includes(path.join("peggy", "bin", "peggy-cli.js"))) {
     options.output = "source";
   }
 
