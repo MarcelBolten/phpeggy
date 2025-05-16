@@ -204,7 +204,7 @@ grammarNames.forEach(grammarName => {
         "utf8"
       );
 
-      const peggyCliArgs = ['--plugin', __dirname + '/../src/phpeggy.js'];
+      const peggyCliArgs = ['--plugin', path.join(__dirname, '..', 'src', 'phpeggy.js')];
 
       let extraOptions = {};
 
