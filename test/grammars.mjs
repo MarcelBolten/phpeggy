@@ -63,6 +63,9 @@ function runPeggyCli(args, stdin) {
     input: stdin || null,
     encoding: "utf8",
     timeout: 10000,
+    env: {
+      PATH: process.env.PATH,
+    },
   });
 
   if (result.error) {
