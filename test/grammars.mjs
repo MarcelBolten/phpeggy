@@ -223,14 +223,15 @@ grammarNames.forEach(grammarName => {
       }
       if (extraOptions.phpeggy) {
         let jsonArg = JSON.stringify({ phpeggy: extraOptions.phpeggy });
-        let quote = "";
+
+        // Escape double quotes for Windows as we use shell: true
+        // and hence the quotes are not escaped by default
         if (isWin) {
-          jsonArg = jsonArg.replace(/"/g, '\\"');
-          quote = '"';
+          jsonArg = '"' + jsonArg.replace(/"/g, '\\"') + '"';
         }
-        peggyCliArgs.push('--extra-options', `${quote}${jsonArg}${quote}`);
+
+        peggyCliArgs.push('--extra-options', `${jsonArg}`);
       }
-      console.log("peggyCliArgs", peggyCliArgs);
 
       const result = runPeggyCli(peggyCliArgs, grammar);
 
