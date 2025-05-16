@@ -223,6 +223,7 @@ grammarNames.forEach(grammarName => {
       if (extraOptions.phpeggy) {
         peggyCliArgs.push(`--extra-options`, JSON.stringify({phpeggy: extraOptions.phpeggy}));
       }
+      console.log("peggyCliArgs", peggyCliArgs);
 
       const result = runPeggyCli(peggyCliArgs, grammar);
 
