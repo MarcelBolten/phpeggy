@@ -4,15 +4,17 @@
         "expected": [
             {
                 "type": "literal",
-                "value": "<!--",
                 "description": "\"<!--\"",
-                "ignoreCase": "false"
+                "value": "<!--",
+                "ignoreCase": "false",
+                "unicode": null
             },
             {
                 "type": "end",
                 "description": "end of input",
+                "value": null,
                 "ignoreCase": null,
-                "value": null
+                "unicode": null
             }
         ],
         "found": "\"",

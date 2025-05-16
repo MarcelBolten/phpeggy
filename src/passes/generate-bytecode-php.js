@@ -183,6 +183,14 @@ const op = require("../opcodes");
  *          interpret(ip + 4 + a, ip + 4 + a + f);
  *        }
  *
+ * [42] MATCH_UNICODE_CLASS c, a, f, ...
+ *
+ *        if (classes[c].test(input.unicodeCharAt(currPos))) {
+ *          interpret(ip + 4, ip + 4 + a);
+ *        } else {
+ *          interpret(ip + 4 + a, ip + 4 + a + f);
+ *        }
+ *
  * [21] ACCEPT_N n
  *
  *        stack.push(input.substring(currPos, n));
@@ -283,6 +291,7 @@ module.exports = function(ast) {
       value: node.parts,
       inverted: node.inverted,
       ignoreCase: node.ignoreCase,
+      unicode: node.unicode,
     }),
   });
   const expectations = new Intern({
@@ -966,13 +975,17 @@ module.exports = function(ast) {
           value: node.parts,
           inverted: node.inverted,
           ignoreCase: node.ignoreCase,
+          unicode: node.unicode,
         })
         : -1;
 
       return buildCondition(
         match,
-        [op.MATCH_CHAR_CLASS, classIndex],
-        [op.ACCEPT_N, 1],
+        [
+          node.unicode ? op.MATCH_UNICODE_CLASS : op.MATCH_CHAR_CLASS,
+          classIndex,
+        ],
+        [op.ACCEPT_N, node.unicode ? -1 : 1],
         [op.FAIL, expectedIndex]
       );
     },

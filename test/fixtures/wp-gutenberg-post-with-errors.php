@@ -134,7 +134,8 @@ if (!\class_exists("PHPeggy\\pegExpectation", false)) {
             public ?string $type = null,
             public ?string $description = null,
             public ?string $value = null,
-            public ?string $ignoreCase = null
+            public ?string $ignoreCase = null,
+            public ?string $unicode = null
         ) {
         }
     }
@@ -254,9 +255,9 @@ class Parser
         $this->peg_e6 = new pegExpectation("literal", "\"{\"", "{", "false");
         $this->peg_e7 = new pegExpectation("literal", "\"}\"", "}", "false");
         $this->peg_e8 = new pegExpectation("any", "any character");
-        $this->peg_e9 = new pegExpectation("class", "[-0-9A-Z_a-z]", "[-0-9A-Z_a-z]", "false");
-        $this->peg_e10 = new pegExpectation("class", "[a-zA-Z]", "[a-zA-Z]", "false");
-        $this->peg_e11 = new pegExpectation("class", "[ \\t\\r\\n]", "[ \t\r\n]", "false");
+        $this->peg_e9 = new pegExpectation("class", "[-0-9A-Z_a-z]", "[-0-9A-Z_a-z]", "false", "false");
+        $this->peg_e10 = new pegExpectation("class", "[a-zA-Z]", "[a-zA-Z]", "false", "false");
+        $this->peg_e11 = new pegExpectation("class", "[ \\t\\r\\n]", "[ \t\r\n]", "false", "false");
     }
 
     /**

@@ -138,7 +138,8 @@ if (!\class_exists("PHPeggy\\pegExpectation", false)) {
             public ?string $type = null,
             public ?string $description = null,
             public ?string $value = null,
-            public ?string $ignoreCase = null
+            public ?string $ignoreCase = null,
+            public ?string $unicode = null
         ) {
         }
     }
@@ -240,13 +241,13 @@ class Parser
     {
         $this->peg_FAILED = new \stdClass();
         $this->peg_cachedPosDetails = new pegCachedPosDetails();
-        $this->peg_e0 = new pegExpectation("class", "[a-z0-9]", "[a-z0-9]", "true");
-        $this->peg_e1 = new pegExpectation("class", "['\\\"]", "['\"]", "false");
-        $this->peg_e2 = new pegExpectation("class", "[\\x{000FF}-\\x{00100}]", "[\x{000FF}-\x{00100}]", "false");
-        $this->peg_e3 = new pegExpectation("class", "[\\x{02E80}-\\x{02FD5}\\x{03400}-\\x{04DBF}\\x{04E00}-\\x{09FCC}]", "[\x{02E80}-\x{02FD5}\x{03400}-\x{04DBF}\x{04E00}-\x{09FCC}]", "false");
-        $this->peg_e4 = new pegExpectation("class", "[\\x{0D83D}]", "[\x{0D83D}]", "false");
-        $this->peg_e5 = new pegExpectation("class", "[\\x{0DCA9}]", "[\x{0DCA9}]", "false");
-        $this->peg_e6 = new pegExpectation("class", "[ \\t\\r\\n]", "[ \t\r\n]", "false");
+        $this->peg_e0 = new pegExpectation("class", "[a-z0-9]", "[a-z0-9]", "true", "false");
+        $this->peg_e1 = new pegExpectation("class", "['\\\"]", "['\"]", "false", "false");
+        $this->peg_e2 = new pegExpectation("class", "[\\x{000FF}-\\x{00100}]", "[\x{000FF}-\x{00100}]", "false", "false");
+        $this->peg_e3 = new pegExpectation("class", "[\\x{02E80}-\\x{02FD5}\\x{03400}-\\x{04DBF}\\x{04E00}-\\x{09FCC}]", "[\x{02E80}-\x{02FD5}\x{03400}-\x{04DBF}\x{04E00}-\x{09FCC}]", "false", "false");
+        $this->peg_e4 = new pegExpectation("class", "[\\x{0D83D}]", "[\x{0D83D}]", "false", "false");
+        $this->peg_e5 = new pegExpectation("class", "[\\x{0DCA9}]", "[\x{0DCA9}]", "false", "false");
+        $this->peg_e6 = new pegExpectation("class", "[ \\t\\r\\n]", "[ \t\r\n]", "false", "false");
     }
 
     /**

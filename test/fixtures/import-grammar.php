@@ -145,7 +145,8 @@ if (!\class_exists("PHPeggy\\pegExpectation", false)) {
             public ?string $type = null,
             public ?string $description = null,
             public ?string $value = null,
-            public ?string $ignoreCase = null
+            public ?string $ignoreCase = null,
+            public ?string $unicode = null
         ) {
         }
     }
@@ -266,14 +267,14 @@ class Parser
         $this->peg_e3 = new pegExpectation("any", "any character");
         $this->peg_e4 = new pegExpectation("other", "end of line comment");
         $this->peg_e5 = new pegExpectation("literal", "\"//\"", "//", "false");
-        $this->peg_e6 = new pegExpectation("class", "[\\n]", "[\n]", "false");
+        $this->peg_e6 = new pegExpectation("class", "[\\n]", "[\n]", "false", "false");
         $this->peg_e7 = new pegExpectation("other", "number without trailing comment");
         $this->peg_e8 = new pegExpectation("literal", "\"0x\"", "0x", "false");
-        $this->peg_e9 = new pegExpectation("class", "[0-9a-f]", "[0-9a-f]", "true");
-        $this->peg_e10 = new pegExpectation("class", "[0-9]", "[0-9]", "false");
-        $this->peg_e11 = new pegExpectation("class", "[ \\t]", "[ \t]", "false");
+        $this->peg_e9 = new pegExpectation("class", "[0-9a-f]", "[0-9a-f]", "true", "false");
+        $this->peg_e10 = new pegExpectation("class", "[0-9]", "[0-9]", "false", "false");
+        $this->peg_e11 = new pegExpectation("class", "[ \\t]", "[ \t]", "false", "false");
         $this->peg_e12 = new pegExpectation("other", "newline");
-        $this->peg_e13 = new pegExpectation("class", "[\\n\\r]", "[\n\r]", "false");
+        $this->peg_e13 = new pegExpectation("class", "[\\n\\r]", "[\n\r]", "false", "false");
         $this->peg_e14 = new pegExpectation("literal", "\"buzz\"", "buzz", "true");
         $this->peg_e15 = new pegExpectation("literal", "\"fizz\"", "fizz", "true");
     }

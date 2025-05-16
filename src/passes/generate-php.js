@@ -41,7 +41,8 @@ module.exports = function(ast, options) {
             + internalUtils.escapePhpRegexp(part[1])
           : internalUtils.escapePhpRegexp(part)
         )).join("")
-        + "]/" + (cls.ignoreCase ? "i" : "");
+        + "]/" + (cls.ignoreCase ? "i" : "") + (cls.unicode ? "u" : "");
+        // maybe need/use r modifier in future for fine tuning, only as of php 8.4.0
 
       return internalUtils.quotePhp(regexp);
     }
@@ -73,9 +74,10 @@ module.exports = function(ast, options) {
         case "literal": {
           return "new pegExpectation("
             + ['"literal",',
-              internalUtils.quotePhp(internalUtils.quotePhp(e.value)) + ",",
-              internalUtils.quotePhp(e.value) + ",",
-              internalUtils.quotePhp(e.ignoreCase.toString())].join(" ")
+                internalUtils.quotePhp(internalUtils.quotePhp(e.value)) + ",",
+                internalUtils.quotePhp(e.value) + ",",
+                internalUtils.quotePhp(e.ignoreCase.toString())
+              ].join(" ")
             + ")";
         }
 
@@ -90,9 +92,11 @@ module.exports = function(ast, options) {
 
           return "new pegExpectation("
             + ['"class",',
-              internalUtils.quotePhp(internalUtils.escapePhp(rawText)) + ",",
-              internalUtils.quotePhp(rawText) + ",",
-              internalUtils.quotePhp(e.ignoreCase.toString())].join(" ")
+                internalUtils.quotePhp(internalUtils.escapePhp(rawText)) + ",",
+                internalUtils.quotePhp(rawText) + ",",
+                internalUtils.quotePhp(e.ignoreCase.toString()) + ",",
+                internalUtils.quotePhp(e.unicode.toString()),
+              ].join(" ")
             + ")";
         }
 
