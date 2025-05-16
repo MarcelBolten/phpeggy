@@ -1,27 +1,29 @@
 {
   "name": "phpeggy",
-  "version": "2.0.1",
+  "version": "3.0.0",
   "description": "PHP target for Peggy parser generator",
   "main": "src/phpeggy.js",
   "peerDependencies": {
-    "peggy": "^3.0.0"
+    "peggy": "^5.0.2"
   },
   "devDependencies": {
-    "@peggyjs/eslint-config": "^3.0.5",
-    "@typescript-eslint/eslint-plugin": "^6.2.0",
-    "@typescript-eslint/parser": "^6.2.0",
-    "chai": "^4.3.3",
-    "eslint": "^8.11.0",
-    "mocha": "^10.2.0",
-    "peggy": "^3.0.0",
-    "typescript": "^5.0.2"
+    "@eslint/eslintrc": "^3.3.1",
+    "@eslint/js": "^9.26.0",
+    "@peggyjs/eslint-config": "^6.0.0",
+    "@typescript-eslint/eslint-plugin": "^8.32.1",
+    "@typescript-eslint/parser": "^8.32.1",
+    "chai": "^5.2.0",
+    "eslint": "^9.26.0",
+    "mocha": "^11.2.2",
+    "peggy": "^5.0.2",
+    "typescript": "^5.8.3"
   },
   "scripts": {
     "build:fixtures": "rm -f test/fixtures/*.php && GENERATE_MISSING_FIXTURES=y npm test",
     "build:manual-tests": "cd manual-test && node test.js",
     "lint": "eslint .",
     "php:csfix": "PHP_CS_FIXER_IGNORE_ENV=1 ./vendor/bin/php-cs-fixer fix --config=.php-cs-fixer.dist.php -v --dry-run --diff --using-cache=no",
-    "php:csfix-manual": "./vendor/bin/php-cs-fixer fix --config=.php-cs-fixer.dist.manual.php -v --dry-run --diff --using-cache=no",
+    "php:csfix-manual": "PHP_CS_FIXER_IGNORE_ENV=1 ./vendor/bin/php-cs-fixer fix --config=.php-cs-fixer.dist.manual.php -v --dry-run --diff --using-cache=no",
     "php:static": "for f in test/fixtures/*.php; do echo \"\nProcessing $f ...\nPHPStan:\"; ./vendor/bin/phpstan analyse -c phpstan.neon --no-progress $f; echo \"Psalm:\" ; ./vendor/bin/psalm $f; done",
     "php:static-manual": "for f in manual-test/output/*.php; do echo \"\nProcessing $f ...\nPHPStan:\"; ./vendor/bin/phpstan analyse -c phpstan.neon --no-progress $f; echo \"Psalm:\" ; ./vendor/bin/psalm $f; done",
     "php:test": "npm run php:csfix && npm run php:static",
@@ -49,5 +51,9 @@
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/marcelbolten/phpeggy/issues"
+  },
+  "packageManager": "pnpm@10.11.0+sha512.6540583f41cc5f628eb3d9773ecee802f4f9ef9923cc45b69890fb47991d4b092964694ec3a4f738a420c918a333062c8b925d312f42e4f0c263eb603551f977",
+  "engines": {
+    "node": ">=20"
   }
 }

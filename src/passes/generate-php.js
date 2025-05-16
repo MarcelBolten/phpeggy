@@ -1,8 +1,8 @@
 "use strict";
 
 const asts = require("peggy/lib/compiler/asts");
-const op = require("../opcodes");
 const Stack = require("peggy/lib/compiler/stack");
+const op = require("../opcodes");
 const internalUtils = require("../utils");
 
 // Load static parser parts
@@ -14,18 +14,14 @@ const commonMethods = require("./generate-php/common-methods");
 
 /* Generates parser PHP code. */
 module.exports = function(ast, options) {
-  let phpGlobalNamespacePrefix = undefined;
-  let phpGlobalNamePrefixOrNamespaceEscaped = undefined;
+  let phpGlobalNamespacePrefix = "";
+  let phpGlobalNamePrefixOrNamespaceEscaped = "";
   const phpNamespace = options.phpeggy.parserNamespace;
   const phpParserClass = options.phpeggy.parserClassName;
-  const mbstringAllowed = options.phpeggy.mbstringAllowed;
   if (phpNamespace) {
     phpGlobalNamespacePrefix = "\\";
     // For use within double quoted strings inside generated code, ensure there is a double backslash
     phpGlobalNamePrefixOrNamespaceEscaped = phpNamespace.replace(/\\+/g, "\\\\") + "\\\\";
-  } else {
-    phpGlobalNamespacePrefix = "";
-    phpGlobalNamePrefixOrNamespaceEscaped = "";
   }
 
   /* Only indent non-empty lines to avoid trailing whitespace. */
@@ -37,54 +33,24 @@ module.exports = function(ast, options) {
 
   function generateTablesDeclaration() {
     function buildRegexp(cls) {
-      let regexp = undefined;
-      let classIndex = undefined;
+      const regexp = "/^["
+        + (cls.inverted ? "^" : "")
+        + cls.value.map(part => (Array.isArray(part)
+          ? internalUtils.escapePhpRegexp(part[0])
+            + "-"
+            + internalUtils.escapePhpRegexp(part[1])
+          : internalUtils.escapePhpRegexp(part)
+        )).join("")
+        + "]/" + (cls.ignoreCase ? "i" : "");
 
-      if (cls.value.length > 0) {
-        regexp = "/^["
-          + (cls.inverted ? "^" : "")
-          + cls.value.map(part => (Array.isArray(part)
-            ? internalUtils.escapePhpRegexp(part[0])
-              + "-"
-              + internalUtils.escapePhpRegexp(part[1])
-            : internalUtils.escapePhpRegexp(part)
-          )).join("")
-          + "]/" + (cls.ignoreCase ? "i" : "");
-      } else {
-        /*
-         * IE considers regexps /[]/ and /[^]/ as syntactically invalid, so we
-         * translate them into equivalents it can handle.
-         */
-        regexp = cls.inverted ? "/^[\\S\\s]/" : "/^(?!)/";
-      }
-
-      if (mbstringAllowed) {
-        classIndex = internalUtils.quotePhp(regexp);
-      } else {
-        classIndex = "["
-          + cls.value.map(part => {
-            if (!Array.isArray(part)) {
-              part = [part, part];
-            }
-            return "["
-              + part[0].charCodeAt(0) + ","
-              + part[1].charCodeAt(0) + "]";
-          }).join(", ")
-          + "]";
-      }
-      return classIndex;
+      return internalUtils.quotePhp(regexp);
     }
 
     const literals = ast.literals.map(
       (l, i) => "private string $peg_l" + i + " = " + internalUtils.quotePhp(l) + ";"
     );
     const classes = ast.classes.map(
-      (c, i) => (mbstringAllowed
-        ? ""
-        : "/** @var array<int, array<int, int>> $peg_c" + i + " */\n"
-      )
-      + "private " + (mbstringAllowed ? "string" : "array")
-      + " $peg_c" + i + " = " + buildRegexp(c) + ";"
+      (c, i) => "private string $peg_c" + i + " = " + buildRegexp(c) + ";"
     );
     const expectations = ast.expectations.map(
       (e, i) => "private pegExpectation $peg_e" + i + ";"
@@ -468,7 +434,7 @@ module.exports = function(ast, options) {
           case op.MATCH_CHAR_CLASS: {  // MATCH_CHAR_CLASS c, a, f, ...
             const regNum = bc[ip + 1];
             compileInputChunkCondition(
-              inputChunk => `${(mbstringAllowed ? "peg_regex_test" : "peg_char_class_test")}(${c(regNum)}, ${inputChunk})`,
+              inputChunk => `peg_regex_test(${c(regNum)}, ${inputChunk})`,
               1,
               1
             );
@@ -621,21 +587,24 @@ module.exports = function(ast, options) {
 
   // Global initializer
   if (ast.topLevelInitializer) {
-    const topLevelInitializerCode = internalUtils.extractPhpCode(
-      ast.topLevelInitializer.code.trim()
-    );
-    if (topLevelInitializerCode !== "") {
-      parts.push(
-        topLevelInitializerCode,
-        ""
+    const topLevel = Array.isArray(ast.topLevelInitializer)
+      ? ast.topLevelInitializer
+      : [ast.topLevelInitializer];
+    // Put library code before code using it.
+    for (const topLevelInitializer of topLevel.slice().reverse()) {
+      const topLevelInitializerCode = internalUtils.extractPhpCode(
+        topLevelInitializer.code.trim()
       );
+      if (topLevelInitializerCode !== "") {
+        parts.push(
+          topLevelInitializerCode,
+          ""
+        );
+      }
     }
   }
 
-  parts.push(...utilityFunctions(
-    phpGlobalNamePrefixOrNamespaceEscaped,
-    mbstringAllowed
-  ));
+  parts.push(...utilityFunctions(phpGlobalNamePrefixOrNamespaceEscaped));
 
   parts.push(...syntaxErrorClass(
     phpGlobalNamePrefixOrNamespaceEscaped,
@@ -699,14 +668,19 @@ module.exports = function(ast, options) {
 
   // Grammar-provided methods
   if (ast.initializer) {
-    const initializerCode = internalUtils.extractPhpCode(
-      ast.initializer.code.trim()
-    );
-    if (initializerCode !== "") {
-      parts.push(...[
-        initializerCode,
-        "",
-      ].map(line => indent(4, line)));
+    const astInitializer = Array.isArray(ast.initializer)
+      ? ast.initializer
+      : [ast.initializer];
+    for (const initializer of astInitializer) {
+      const initializerCode = internalUtils.extractPhpCode(
+        initializer.code.trim()
+      );
+      if (initializerCode !== "") {
+        parts.push(...[
+          initializerCode,
+          "",
+        ].map(line => indent(4, line)));
+      }
     }
   }
 
@@ -738,13 +712,11 @@ module.exports = function(ast, options) {
     "",
   ].map(line => indent(8, line)));
 
-  if (mbstringAllowed) {
-    parts.push(...[
-      "$old_regex_encoding = (string) \\mb_regex_encoding();",
-      '\\mb_regex_encoding("UTF-8");',
-      "",
-    ].map(line => indent(8, line)));
-  }
+  parts.push(...[
+    "$old_regex_encoding = (string) \\mb_regex_encoding();",
+    '\\mb_regex_encoding("UTF-8");',
+    "",
+  ].map(line => indent(8, line)));
 
   parts.push(...[
     "if (method_exists($this, 'initialize')) {",
@@ -783,12 +755,10 @@ module.exports = function(ast, options) {
     ].map(line => indent(8, line)));
   }
 
-  if (mbstringAllowed) {
-    parts.push(...[
-      "\\mb_regex_encoding($old_regex_encoding);",
-      "",
-    ].map(line => indent(8, line)));
-  }
+  parts.push(...[
+    "\\mb_regex_encoding($old_regex_encoding);",
+    "",
+  ].map(line => indent(8, line)));
 
   parts.push(...[
     "if ($peg_result !== $this->peg_FAILED && $this->peg_currPos === $this->input_length) {",

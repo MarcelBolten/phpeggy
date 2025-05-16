@@ -142,7 +142,7 @@ Comment = '<!--' value:(!'--' @Char)* '-->'
   {
     return [
         "type" => "comment",
-        "value" => implode('', $value),
+        "value" => \implode('', $value),
     ];
   }
 

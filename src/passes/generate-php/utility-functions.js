@@ -1,8 +1,7 @@
 "use strict";
 
 module.exports = function(
-  phpGlobalNamePrefixOrNamespaceEscaped,
-  mbstringAllowed
+  phpGlobalNamePrefixOrNamespaceEscaped
 ) {
   return [
     "/* BEGIN Utility functions */",
@@ -39,43 +38,19 @@ module.exports = function(
     "}",
     "",
 
-    ...mbstringAllowed
-      ? [
-          "/* peg_regex_test - multibyte regex test */",
-          `if (!\\function_exists("${phpGlobalNamePrefixOrNamespaceEscaped}peg_regex_test")) {`,
-          "    function peg_regex_test(",
-          "        string $pattern,",
-          "        string $string",
-          "    ): bool {",
-          '        if ($pattern[-1] === "i") {',
-          "            return \\mb_eregi(\\substr($pattern, 1, -2), $string);",
-          "        }",
-          "",
-          "        return \\mb_ereg(\\substr($pattern, 1, -1), $string);",
-          "    }",
-          "}",
-        ]
-      : [
-          // Case-insensitive character classes are disallowed via passes.check in file
-          // `report-mbstring-incompatibility.js` if the `mbstringAllowed` option is set to false.
-          "/* peg_char_class_test - simple character class test */",
-          `if (!\\function_exists("${phpGlobalNamePrefixOrNamespaceEscaped}peg_char_class_test")) {`,
-          "    /** @param array<int, array<int, int>> $class */",
-          "    function peg_char_class_test(",
-          "        array $class,",
-          "        string $character",
-          "    ): bool {",
-          "        $code = ord_unicode($character);",
-          "        foreach ($class as $range) {",
-          "            if ($code >= $range[0] && $code <= $range[1]) {",
-          "                return true;",
-          "            }",
-          "        }",
-          "",
-          "        return false;",
-          "    }",
-          "}",
-        ],
+    "/* peg_regex_test - multibyte regex test */",
+    `if (!\\function_exists("${phpGlobalNamePrefixOrNamespaceEscaped}peg_regex_test")) {`,
+    "    function peg_regex_test(",
+    "        string $pattern,",
+    "        string $string",
+    "    ): bool {",
+    '        if ($pattern[-1] === "i") {',
+    "            return \\mb_eregi(\\substr($pattern, 1, -2), $string);",
+    "        }",
+    "",
+    "        return \\mb_ereg(\\substr($pattern, 1, -1), $string);",
+    "    }",
+    "}",
     "/* END Utility functions */",
     "",
   ];

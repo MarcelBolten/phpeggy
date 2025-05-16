@@ -281,7 +281,7 @@ SingleEscapeCharacter
     $ch = str_replace("n", "\n", $ch);
     $ch = str_replace("r", "\r", $ch);
     $ch = str_replace("t", "\t", $ch);
-    $ch = str_replace("v", "\x0B", $ch); // IE does not recognize "\v".
+    $ch = str_replace("v", "\v", $ch);
     return $ch;
   }
 

@@ -5,6 +5,7 @@
 
 const asts = require("peggy/lib/compiler/asts");
 const visitor = require("peggy/lib/compiler/visitor");
+const Intern = require("peggy/lib/compiler/intern");
 const { ALWAYS_MATCH, SOMETIMES_MATCH, NEVER_MATCH } = require("peggy/lib/compiler/passes/inference-match-result");
 const op = require("../opcodes");
 
@@ -275,35 +276,19 @@ const op = require("../opcodes");
  * Wikipedia page (https://en.wikipedia.org/wiki/Asm.js#Code_generation)
  */
 module.exports = function(ast) {
-  const literals = [];
-  const classes = [];
-  const expectations = [];
-  const functions = [];
-
-  function addLiteralConst(value) {
-    const index = literals.indexOf(value);
-
-    return index === -1 ? literals.push(value) - 1 : index;
-  }
-
-  function addClassConst(node) {
-    const cls = {
+  const literals = new Intern();
+  const classes = new Intern({
+    stringify: JSON.stringify,
+    convert: node => ({
       value: node.parts,
       inverted: node.inverted,
       ignoreCase: node.ignoreCase,
-    };
-    const pattern = JSON.stringify(cls);
-    const index = classes.findIndex(c => JSON.stringify(c) === pattern);
-
-    return index === -1 ? classes.push(cls) - 1 : index;
-  }
-
-  function addExpectedConst(expected) {
-    const pattern = JSON.stringify(expected);
-    const index = expectations.findIndex(e => JSON.stringify(e) === pattern);
-
-    return (index === -1) ? expectations.push(expected) - 1 : index;
-  }
+    }),
+  });
+  const expectations = new Intern({
+      stringify: JSON.stringify,
+  });
+  const functions = [];
 
   function addFunctionConst(predicate, params, node) {
     const func = {
@@ -359,7 +344,7 @@ module.exports = function(ast) {
     return buildSequence(
       [op.PUSH_CURR_POS],
       [op.SILENT_FAILS_ON],
-      // eslint-disable-next-line no-use-before-define -- Mutual recursion
+      // -eslint-disable-next-line no-use-before-define -- Mutual recursion
       generate(expression, {
         sp: context.sp + 1,
         env: cloneEnv(context.env),
@@ -480,7 +465,7 @@ module.exports = function(ast) {
     return expressionCode;
   }
 
-  /* eslint capitalized-comments: "off" */
+  /* -eslint capitalized-comments: "off" */
   /**
    * @param {number[]} expressionCode Bytecode for parsing repeated elements
    * @param {import("../../peg").ast.RepeatedBoundary} min Minimum boundary of repetitions.
@@ -498,10 +483,10 @@ module.exports = function(ast) {
       buildCondition(
         SOMETIMES_MATCH,
         checkCode,                // if (result.length < min) {
-        /* eslint-disable indent -- Clarity */
+        /* -eslint-disable indent -- Clarity */
         [op.POP, op.POP_CURR_POS, //   currPos = savedPos;    stack:[  ]
          op.PUSH_FAILED],         //   result = peg_FAILED;   stack:[ peg_FAILED ]
-        /* eslint-enable indent */
+        /* -eslint-enable indent */
         [op.NIP]                  // }                        stack:[ [elem...] ]
       )
     );
@@ -517,7 +502,7 @@ module.exports = function(ast) {
     if (delimiterNode) {
       return buildSequence(           //                          stack:[  ]
         [op.PUSH_CURR_POS],           // pos = peg_currPos;       stack:[ pos ]
-        // eslint-disable-next-line no-use-before-define -- Mutual recursion
+        // -eslint-disable-next-line no-use-before-define -- Mutual recursion
         generate(delimiterNode, {     // item = delim();          stack:[ pos, delim ]
           // +1 for the saved offset
           sp: context.sp + offset + 1,
@@ -534,11 +519,11 @@ module.exports = function(ast) {
               -expressionMatch,
               [op.IF_ERROR],          //   if (item === peg_FAILED) {
               // If element FAILED, rollback currPos to saved value.
-              /* eslint-disable indent -- Clarity */
+              /* -eslint-disable indent -- Clarity */
               [op.POP,                //                          stack:[ pos ]
                op.POP_CURR_POS,       //     peg_currPos = pos;   stack:[  ]
                op.PUSH_FAILED],       //     item = peg_FAILED;   stack:[ peg_FAILED ]
-              /* eslint-enable indent */
+              /* -eslint-enable indent */
               // Else, just drop saved currPos.
               [op.NIP]                //   }                      stack:[ item ]
             )
@@ -556,9 +541,9 @@ module.exports = function(ast) {
     grammar(node) {
       node.rules.forEach(generate);
 
-      node.literals = literals;
-      node.classes = classes;
-      node.expectations = expectations;
+      node.literals = literals.items;
+      node.classes = classes.items;
+      node.expectations = expectations.items;
       node.functions = functions;
     },
 
@@ -573,10 +558,10 @@ module.exports = function(ast) {
 
     named(node, context) {
       const match = node.match || 0;
-      // Expectation not required if node always fail
-      const nameIndex = (match === NEVER_MATCH)
+      // Expectation not required if node always match
+      const nameIndex = (match === ALWAYS_MATCH)
         ? -1
-        : addExpectedConst({ type: "rule", value: node.name });
+        : expectations.add({ type: "rule", value: node.name });
 
       // The code generated below is slightly suboptimal because |FAIL| pushes
       // to the stack, so we need to stick a |POP| in front of it. We lack a
@@ -586,7 +571,7 @@ module.exports = function(ast) {
         [op.SILENT_FAILS_ON],
         generate(node.expression, context),
         [op.SILENT_FAILS_OFF],
-        buildCondition(match, [op.IF_ERROR], [op.FAIL, nameIndex], [])
+        buildCondition(-match, [op.IF_ERROR], [op.FAIL, nameIndex], [])
       );
     },
 
@@ -935,7 +920,7 @@ module.exports = function(ast) {
         const needConst = (match === SOMETIMES_MATCH)
           || (match === ALWAYS_MATCH && !node.ignoreCase);
         const stringIndex = needConst
-          ? addLiteralConst(
+          ? literals.add(
             node.ignoreCase
               ? node.value.toLowerCase()
               : node.value
@@ -943,7 +928,7 @@ module.exports = function(ast) {
           : -1;
         // Expectation not required if node always match
         const expectedIndex = (match !== ALWAYS_MATCH)
-          ? addExpectedConst({
+          ? expectations.add({
             type: "literal",
             value: node.value,
             ignoreCase: node.ignoreCase,
@@ -972,11 +957,11 @@ module.exports = function(ast) {
       const match = node.match || 0;
       // Character class constant only required if condition is generated
       const classIndex = (match === SOMETIMES_MATCH)
-        ? addClassConst(node)
+        ? classes.add(node)
         : -1;
       // Expectation not required if node always match
       const expectedIndex = (match !== ALWAYS_MATCH)
-        ? addExpectedConst({
+        ? expectations.add({
           type: "class",
           value: node.parts,
           inverted: node.inverted,
@@ -996,7 +981,7 @@ module.exports = function(ast) {
       const match = node.match || 0;
       // Expectation not required if node always match
       const expectedIndex = (match !== ALWAYS_MATCH)
-        ? addExpectedConst({
+        ? expectations.add({
           type: "any",
         })
         : -1;

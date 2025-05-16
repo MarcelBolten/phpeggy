@@ -34,7 +34,9 @@ Follow these steps to upgrade:
 
 ## Requirements
 
-* [Peggy](https://peggyjs.org/) (known compatible with v3.0.0)
+* [Peggy](https://peggyjs.org/) (known compatible with version 5)
+* PHP version >=8 for the created parser
+* `mbstring` extension enabled
 
 Installation
 ------------
@@ -44,7 +46,7 @@ Installation
 Install Peggy with `phpeggy` plugin
 
 ```sh
-$ npm install peggy@3.0.0 phpeggy
+$ npm install peggy@^5.0.0 phpeggy
 ```
 
 Usage
@@ -99,13 +101,6 @@ Here are the options available to pass this way:
   * `parserNamespace` - namespace of generated parser (default: `PHPeggy`). If
     value is `''` or `null`, no namespace will be used.
   * `parserClassName` - name of generated class for parser (default: `Parser`).
-  * `mbstringAllowed` - whether to allow usage of PHP's `mb_*` functions which
-    depend on the `mbstring` extension being installed (default: `true`). This
-    can be disabled for compatibility with a wider range of PHP configurations,
-    but this will also disable several features of Peggy (case-insensitive
-    string matching, case-insensitive character classes, and empty character
-    classes). Attempting to use these features with `mbstringAllowed: false`
-    will cause `passes.check` to throw an error.
   * `header` - you can provide a custom header that will be added at the top of the parser, e.g. `/* My custom header */`.
 
 Using the Parser

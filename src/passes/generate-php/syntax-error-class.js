@@ -46,7 +46,7 @@ module.exports = function(
     '                $loc = $this->location->source . ":" . $start->line . ":" . $start->column;',
     "                if ($src) {",
     "                    $end = $this->location->end;",
-    '                    $filler = $this->peg_padEnd("", $start->line !== 0 ? (int) \\floor(\\log10($start->line) + 1) : 1);',
+    '                    $filler = $this->peg_padEnd("", $start->line !== 0 ? (int) \\floor(\\log10($start->line) + 1.0) : 1);',
     "                    $line = $src[$start->line - 1];",
     "                    $last = $start->line === $end->line ? $end->column : \\strlen($line) + 1;",
     "                    $hatLen = ($last - $start->column) ?: 1;",

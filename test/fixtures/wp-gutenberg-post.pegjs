@@ -108,10 +108,10 @@ function partition(predicate, list) {
 
 {
 
-/** <?php
 // The `maybeJSON` function is not needed in PHP because its return semantics
 // are the same as `json_decode`
 
+/** <?php
 // array arguments are backwards because of PHP
 private function peg_array_partition(array $array, callable $predicate): array
 {
