@@ -197,7 +197,7 @@ grammarNames.forEach(grammarName => {
       expect(phpActual).to.eql(phpExpected);
     });
 
-    it("generates the expected PHP code via cli", () => {
+    it("generates the expected PHP code via cli", function() {
       this.timeout(10000);
       const grammar = fs.readFileSync(
         fixtureFilePath(grammarName + ".pegjs"),
