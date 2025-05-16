@@ -291,7 +291,7 @@ class Parser
 
     private function notFizzBuzz(int $n): bool
     {
-        foreach(FizzBuzz::cases() as $case) {
+        foreach (FizzBuzz::cases() as $case) {
             if ($n % $case->value === 0) {
                 return false;
             }
@@ -622,12 +622,12 @@ class Parser
 
     private function peg_f8(
     ): mixed {
-        return $this->currentNumber % Fizzbuzz::Buzz->value;
+        return $this->currentNumber % FizzBuzz::Buzz->value;
     }
 
     private function peg_f9(
     ): mixed {
-        return $this->currentNumber % Fizzbuzz::Fizz->value;
+        return $this->currentNumber % FizzBuzz::Fizz->value;
     }
 
     private function peg_parse_top(): mixed

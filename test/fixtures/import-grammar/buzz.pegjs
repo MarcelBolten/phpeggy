@@ -6,4 +6,4 @@
   // from buzz
 }
 
-buzz = @"buzz"i !{ return $this->currentNumber % Fizzbuzz::Buzz->value; }
+buzz = @"buzz"i !{ return $this->currentNumber % FizzBuzz::Buzz->value; }

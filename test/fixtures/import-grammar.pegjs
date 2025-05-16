@@ -31,7 +31,7 @@ private function initialize(): void
 
 private function notFizzBuzz(int $n): bool
 {
-    foreach(FizzBuzz::cases() as $case) {
+    foreach (FizzBuzz::cases() as $case) {
         if ($n % $case->value === 0) {
             return false;
         }
