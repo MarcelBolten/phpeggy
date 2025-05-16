@@ -61,7 +61,6 @@ function runPeggyCli(args, stdin) {
   const result = cp.spawnSync(npx, args, {
     input: stdin || null,
     encoding: "utf8",
-    timeout: 10000,
     shell: isWin ? true : false,
     env: {
       PATH: process.env.PATH,
@@ -199,6 +198,7 @@ grammarNames.forEach(grammarName => {
     });
 
     it("generates the expected PHP code via cli", () => {
+      this.timeout(10000);
       const grammar = fs.readFileSync(
         fixtureFilePath(grammarName + ".pegjs"),
         "utf8"
