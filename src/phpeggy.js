@@ -7,9 +7,6 @@ exports.use = function(config, options) {
     require("./passes/generate-bytecode-php"),
     require("./passes/generate-php"),
   ];
-  if (!options.phpeggy) {
-    options.phpeggy = {};
-  }
 
   // Before peggy 4.1 it was possible to use the option output=source
   // and there was no difference between the cli and the js api.
@@ -18,6 +15,10 @@ exports.use = function(config, options) {
   // We use this dirty hack to detect if we are in the cli or not.
   if (!new Error().stack.includes(path.join("peggy", "bin", "peggy-cli.js"))) {
     options.output = "source";
+  }
+
+  if (!options.phpeggy) {
+    options.phpeggy = {};
   }
 
   if (options.phpeggy.parserNamespace === undefined) {
