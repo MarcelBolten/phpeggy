@@ -1,9 +1,12 @@
 1
 2
+/* multi line
+ * comment
+ */
 fizz
 4
 buzz
-fizz
+fizz // end of line comment
 7
 8
 fizz
@@ -13,4 +16,5 @@ fizz
 13
 14
 fizzbuzz
-16
+/* can do hex numbers too */
+0x10
