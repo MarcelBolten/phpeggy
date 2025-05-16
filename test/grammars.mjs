@@ -199,7 +199,10 @@ grammarNames.forEach(grammarName => {
     });
 
     it("generates the expected PHP code via cli", function() {
-      this.timeout(10000);
+      // increase timeout for this test
+      // as it takes a while to run the cli
+      this.timeout(20000);
+
       const grammar = fs.readFileSync(
         fixtureFilePath(grammarName + ".pegjs"),
         "utf8"
