@@ -57,7 +57,7 @@ function runPhp(args, stdin) {
 function runPeggyCli(args, stdin) {
   args.unshift("peggy");
   const isWin = process.platform === "win32";
-  const npx = "npx" + (isWin ? "cmd" : "");
+  const npx = "npx" + (isWin ? ".cmd" : "");
   const result = cp.spawnSync(npx, args, {
     input: stdin || null,
     encoding: "utf8",
