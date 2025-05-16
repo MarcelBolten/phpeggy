@@ -15,7 +15,10 @@ const __dirname = path.dirname(__filename);
 
 const minPHPVersion = "8.0";
 
-function getUniqueBasenames(array) {
+function getUniqueBasenames(array, onlyParserInput = false) {
+  if (onlyParserInput) {
+    array = array.filter(filename => filename.endsWith(".txt"));
+  }
   return array
     // Strip extensions
     .map(filename => filename.replace(/\..+$/, ""))
@@ -54,15 +57,17 @@ function runPhp(args, stdin) {
   return result;
 }
 
-const isWin = process.platform === "win32";
+function isWin() {
+  return process.platform === "win32";
+}
 
 function runPeggyCli(args, stdin) {
   args.unshift("peggy");
-  const npx = "npx" + (isWin ? ".cmd" : "");
+  const npx = "npx" + (isWin() ? ".cmd" : "");
   const result = cp.spawnSync(npx, args, {
     input: stdin || null,
     encoding: "utf8",
-    shell: isWin ? true : false,
+    shell: isWin() ? true : false,
     env: {
       PATH: process.env.PATH,
     },
@@ -84,29 +89,6 @@ function runPeggyCli(args, stdin) {
 
   return result;
 }
-
-console.log("Determining version of PHP command-line executable...");
-
-const result = runPhp(["--version"]);
-const match = result.stdout.match(/^PHP (\d+)\.(\d+)(\.[^ ]+) /);
-
-if (!match) {
-  throw new Error("Unable to determine PHP version.");
-}
-
-console.log("PHP version: " + match[0].trim());
-
-const [minMajor, minMinor] = minPHPVersion.split(".");
-const major = Number(match[1]);
-const minor = Number(match[2]);
-
-if (major < Number(minMajor) || (major === Number(minMajor) && minor < Number(minMinor))) {
-  throw new Error(
-    `This library requires at least PHP ${minPHPVersion}.`
-  );
-}
-
-console.log("Running tests");
 
 function getPHPParserTestCode(parser, input) {
   return parser + `
@@ -131,6 +113,31 @@ try {
 `;
 }
 
+
+console.log("Determining version of PHP command-line executable...");
+
+const result = runPhp(["--version"]);
+const match = result.stdout.match(/^PHP (\d+)\.(\d+)(\.[^ ]+) /);
+
+if (!match) {
+  throw new Error("Unable to determine PHP version.");
+}
+
+console.log("PHP version: " + match[0].trim());
+
+const [minMajor, minMinor] = minPHPVersion.split(".");
+const major = Number(match[1]);
+const minor = Number(match[2]);
+
+if (major < Number(minMajor) || (major === Number(minMajor) && minor < Number(minMinor))) {
+  throw new Error(
+    `This library requires at least PHP ${minPHPVersion}.`
+  );
+}
+
+console.log("Running tests");
+
+
 const grammarNames = getUniqueBasenames(
   fs.readdirSync(path.join(__dirname, "fixtures"))
 );
@@ -141,10 +148,13 @@ grammarNames.forEach(grammarName => {
     let outputActual = undefined;
 
     it("generates the expected PHP code via js api", () => {
-      const grammar = fs.readFileSync(
-        fixtureFilePath(grammarName + ".pegjs"),
-        "utf8"
-      );
+      let grammar = [{
+        "source": grammarName + ".pegjs",
+        "text": fs.readFileSync(
+          fixtureFilePath(grammarName + ".pegjs"),
+          "utf8"
+        )
+      }];
 
       const peggyOptions = {
         plugins: [phpeggy],
@@ -165,7 +175,19 @@ grammarNames.forEach(grammarName => {
 
       for (const key in extraOptions) {
         if (Object.prototype.hasOwnProperty.call(extraOptions, key)) {
-          peggyOptions[key] = extraOptions[key];
+          if (key === "tests-only" && extraOptions[key]['imports']) {
+            extraOptions[key]['imports'].forEach(importGrammarName => {
+              grammar.push({
+                "source": importGrammarName,
+                "text": fs.readFileSync(
+                  fixtureFilePath([grammarName, importGrammarName]),
+                  "utf8"
+                )
+              });
+            });
+          } else {
+            peggyOptions[key] = extraOptions[key];
+          }
         }
       }
 
@@ -203,12 +225,12 @@ grammarNames.forEach(grammarName => {
       // as it takes a while to run the cli
       this.timeout(20000);
 
-      const grammar = fs.readFileSync(
+      let grammar = fs.readFileSync(
         fixtureFilePath(grammarName + ".pegjs"),
         "utf8"
       );
 
-      const peggyCliArgs = ['--plugin', path.join(__dirname, '..', 'src', 'phpeggy.js')];
+      const peggyCliArgs = ['--output', '-', '--plugin', path.join(__dirname, '..', 'src', 'phpeggy.js')];
 
       let extraOptions = {};
 
@@ -230,11 +252,19 @@ grammarNames.forEach(grammarName => {
 
         // Escape double quotes for Windows as we use shell: true
         // and hence the quotes are not escaped by default
-        if (isWin) {
+        if (isWin()) {
           jsonArg = '"' + jsonArg.replace(/"/g, '\\"') + '"';
         }
 
         peggyCliArgs.push('--extra-options', `${jsonArg}`);
+      }
+
+      if (extraOptions['tests-only']) {
+        grammar = null;
+        peggyCliArgs.push(fixtureFilePath(grammarName + ".pegjs"));
+        extraOptions['tests-only'].imports.forEach(importGrammarName => {
+          peggyCliArgs.push(fixtureFilePath([grammarName, importGrammarName]));
+        });
       }
 
       const result = runPeggyCli(peggyCliArgs, grammar);
@@ -256,7 +286,8 @@ grammarNames.forEach(grammarName => {
       const stats = fs.statSync(fixtureFilePath(grammarName));
       if (stats.isDirectory()) {
         testNames = getUniqueBasenames(
-          fs.readdirSync(fixtureFilePath(grammarName))
+          fs.readdirSync(fixtureFilePath(grammarName)),
+          true
         );
       }
     } catch (err) {
