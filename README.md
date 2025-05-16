@@ -43,7 +43,7 @@ Installation
 
 ### Node.js
 
-Install Peggy with `phpeggy` plugin
+Install Peggy with PHPeggy plugin
 
 ```sh
 $ npm install peggy@^5.0.0 phpeggy
@@ -54,18 +54,20 @@ Usage
 
 ### Generating a Parser
 
-In Node.js, require both the Peggy parser generator and the `phpeggy` plugin:
+#### JS API
+
+In Node.js, require both the Peggy parser generator and the PHPeggy plugin:
 
 ```js
-var peggy = require("peggy");
-var phpeggy = require("phpeggy");
+const peggy = require("peggy");
+const phpeggy = require("phpeggy");
 ```
 
-To generate a PHP parser, pass both the `phpeggy` plugin and your grammar to
+To generate a PHP parser, pass both the PHPeggy plugin and your grammar to
 `peggy.generate`:
 
 ```js
-var parser = peggy.generate("start = ('a' / 'b')+", {
+const parser = peggy.generate("start = ('a' / 'b')+", {
     plugins: [phpeggy]
 });
 ```
@@ -90,7 +92,7 @@ Supported options of `peggy.generate`:
 You can also pass options specific to the PHPeggy plugin as follows:
 
 ```js
-var parser = peggy.generate("start = ('a' / 'b')+", {
+const parser = peggy.generate("start = ('a' / 'b')+", {
     plugins: [phpeggy],
     phpeggy: { /* phpeggy-specific options */ }
 });
@@ -102,6 +104,33 @@ Here are the options available to pass this way:
     value is `''` or `null`, no namespace will be used.
   * `parserClassName` - name of generated class for parser (default: `Parser`).
   * `header` - you can provide a custom header that will be added at the top of the parser, e.g. `/* My custom header */`.
+
+#### Command Line
+
+To generate a parser from your grammar, use the peggy command:
+
+```bash
+npx peggy --plugin /path/to/phpeggy/src/phpeggy.js arithmetics.pegjs
+```
+
+The following options might be of interest in the context of PHPeggy:
+
+- `--allowed-start-rules <rules>`
+- `--cache`
+- `--extra-options <options>`
+- `-c, --extra-options-file <file>`
+- `-o, --output <file>`
+- `-S, --start-rule <rule>`
+
+`--format` is irrelevant as PHPeggy will provide php no matter what.
+
+Here is a more complex example:
+
+```bash
+npx peggy -o arithmeticsParser.php --plugin /path/to/phpeggy/src/phpeggy.js arithmetics.pegjs --cache --extra-option '{ "phpeggy" : { "parserNamespace" : "MyNameSpace", "parserClassName" : "ArithmeticsParser", "header" : "/* My custom header */" } }'
+```
+
+A more detailed description of the different options can be found in the [peggy documentation](https://peggyjs.org/documentation.html#generating-a-parser-command-line).
 
 Using the Parser
 ----------------
@@ -163,13 +192,14 @@ See [documentation of Peggy](https://peggyjs.org/documentation.html) with follow
 * action and predicate blocks should be written in PHP.
 * the _per-parse initializer_ code block is used to provide additional methods, properties and constants to the Parser class. A special method `function initialize()` can be provided and resembles the Peggy per-parse initializer i.e. this method is called before the generated parser starts parsing (see [examples/fizzbuzz.pegjs](examples/fizzbuzz.pegjs)). All methods have access to the input (`$this->input`) and the options (`$this->options`).
 * the _global initializer_ code block can be used to add use statements, classes, functions, constants, ...
+* [Importing External Rules](https://peggyjs.org/documentation.html#importing-external-rules) works only from the Command Line.
 
 Original Peggy rule:
 
 ```js
 media_list = head:medium tail:("," S* medium)* {
-  var result = [head];
-  for (var i = 0; i < tail.length; i++) {
+  let result = [head];
+  for (let i = 0; i < tail.length; i++) {
     result.push(tail[i][2]);
   }
   return result;
@@ -201,8 +231,8 @@ media_list = head:medium tail:("," S* medium)* {
   return $result;
   ?> **/
 
-  var result = [head];
-  for (var i = 0; i < tail.length; i++) {
+  let result = [head];
+  for (let i = 0; i < tail.length; i++) {
     result.push(tail[i][2]);
   }
   return result;
