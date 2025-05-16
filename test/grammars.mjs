@@ -54,9 +54,10 @@ function runPhp(args, stdin) {
   return result;
 }
 
+const isWin = process.platform === "win32";
+
 function runPeggyCli(args, stdin) {
   args.unshift("peggy");
-  const isWin = process.platform === "win32";
   const npx = "npx" + (isWin ? ".cmd" : "");
   const result = cp.spawnSync(npx, args, {
     input: stdin || null,
@@ -221,7 +222,13 @@ grammarNames.forEach(grammarName => {
         peggyCliArgs.push('--cache');
       }
       if (extraOptions.phpeggy) {
-        peggyCliArgs.push(`--extra-options`, JSON.stringify({phpeggy: extraOptions.phpeggy}));
+        let jsonArg = JSON.stringify({ phpeggy: extraOptions.phpeggy });
+        let quote = "";
+        if (isWin) {
+          jsonArg = jsonArg.replace(/"/g, '\\"');
+          quote = '"';
+        }
+        peggyCliArgs.push('--extra-options', `${quote}${jsonArg}${quote}`);
       }
       console.log("peggyCliArgs", peggyCliArgs);
 
