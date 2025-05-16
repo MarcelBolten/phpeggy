@@ -56,13 +56,13 @@ function runPhp(args, stdin) {
 
 function runPeggyCli(args, stdin) {
   args.unshift("peggy");
-  const npx = process.platform === "win32"
-    ? "npx.cmd"
-    : "npx";
+  const isWin = process.platform === "win32";
+  const npx = "npx" + (isWin ? "cmd" : "");
   const result = cp.spawnSync(npx, args, {
     input: stdin || null,
     encoding: "utf8",
     timeout: 10000,
+    shell: isWin ? true : false,
     env: {
       PATH: process.env.PATH,
     },
