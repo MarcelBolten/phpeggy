@@ -291,7 +291,6 @@ module.exports = function(ast) {
       value: node.parts,
       inverted: node.inverted,
       ignoreCase: node.ignoreCase,
-      unicode: node.unicode, // not use by phpeggy but used by peggy
     }),
   });
   const expectations = new Intern({
@@ -975,7 +974,6 @@ module.exports = function(ast) {
           value: node.parts,
           inverted: node.inverted,
           ignoreCase: node.ignoreCase,
-          unicode: node.unicode, // not use by phpeggy but used by peggy
         })
         : -1;
 
