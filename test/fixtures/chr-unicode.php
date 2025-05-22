@@ -134,8 +134,7 @@ if (!\class_exists("PHPeggy\\pegExpectation", false)) {
             public ?string $type = null,
             public ?string $description = null,
             public ?string $value = null,
-            public ?string $ignoreCase = null,
-            public ?string $unicode = null
+            public ?string $ignoreCase = null
         ) {
         }
     }
@@ -234,10 +233,10 @@ class Parser
         $this->peg_FAILED = new \stdClass();
         $this->peg_cachedPosDetails = new pegCachedPosDetails();
         $this->peg_e0 = new pegExpectation("literal", "\"\\\\x\"", "\\x", "false");
-        $this->peg_e1 = new pegExpectation("class", "[0-9a-f]", "[0-9a-f]", "true", "false");
+        $this->peg_e1 = new pegExpectation("class", "[0-9a-f]", "[0-9a-f]", "true");
         $this->peg_e2 = new pegExpectation("literal", "\"//\"", "//", "false");
-        $this->peg_e3 = new pegExpectation("class", "[\\r\\n]", "[\r\n]", "false", "false");
-        $this->peg_e4 = new pegExpectation("class", "[ \\t\\r\\n]", "[ \t\r\n]", "false", "false");
+        $this->peg_e3 = new pegExpectation("class", "[\\r\\n]", "[\r\n]", "false");
+        $this->peg_e4 = new pegExpectation("class", "[ \\t\\r\\n]", "[ \t\r\n]", "false");
     }
 
     /**
@@ -287,6 +286,7 @@ class Parser
             $this->peg_cleanup_state();
             return $peg_result;
         }
+
         if ($peg_result !== $this->peg_FAILED && $this->peg_currPos < $this->input_length) {
             $this->peg_fail(new pegExpectation("end", "end of input"));
         }

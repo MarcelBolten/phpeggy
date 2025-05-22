@@ -6,7 +6,9 @@ Thing
   / Quote
   / Char_Padding_Test
   / Chinese_Character
-  / Pile_Of_Poo
+  / Person_Using_Computer
+  / Surfing_Woman_Or_Man
+  / Emoji
   / Whitespace
 
 Letter_Or_Number
@@ -29,13 +31,21 @@ Chinese_Character // https://stackoverflow.com/a/41155368
     return ['rule' => 'Chinese_Character', 'value' => $a];
   }
 
-// I would have used a character class like \u1f000-\u1ffff here but parsing >2
-// byte characters all at once at a time is not supported by PEG.js.  But this
-// doesn't work either, because PHP splits 4-byte emoji into one piece, while
-// JavaScript handles this as two 2-byte characters.
-Pile_Of_Poo
-  = a:[\ud83d][\udca9] {
-    return ['rule' => 'Pile_Of_Poo', 'value' => $a];
+Person_Using_Computer // grapheme clusters, split into class and string literal
+  = a:(@[👩👨] // women or man class
+    @"\u200D💻" // zero-width joiner + laptop
+  ) {
+    return ['rule' => 'Person_Using_Computer', 'value' => \implode('', $a)];
+  }
+
+Surfing_Woman_Or_Man // grapheme clusters, intentionally as string literal and not as class
+  = a:("\u{1F3C4}\u200D\u2640\uFE0F" / "\u{1F3C4}\u200D\u2642\uFE0F") {
+    return ['rule' => 'Surfing_Woman_Or_Man', 'value' => $a];
+  }
+
+Emoji
+  = a:[\u2600-\u27BF\u{1F300}-\u{1F64F}\u{1F680}-\u{1F6FC}\u{1F900}-\u{1F9FF}\u{1FA70}-\u{1FAF8}] {
+    return ['rule' => 'Emoji', 'value' => $a];
   }
 
 Whitespace

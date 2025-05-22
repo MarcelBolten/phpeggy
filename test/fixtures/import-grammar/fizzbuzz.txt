@@ -6,15 +6,19 @@
 fizz
 4
 buzz
-fizz // end of line comment
+🍺 // it does fizz
 7
 8
-fizz
-buzz
+🍻 // it does fizz more with friends
+🐝 // bees buzz
 11
-fizz
+FIZZ
 13
 14
 fizzbuzz
 /* can do hex numbers too */
 0x10
+17
+Fizz
+19
+BUZZ

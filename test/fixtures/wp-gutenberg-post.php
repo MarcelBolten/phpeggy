@@ -134,8 +134,7 @@ if (!\class_exists("PHPeggy\\pegExpectation", false)) {
             public ?string $type = null,
             public ?string $description = null,
             public ?string $value = null,
-            public ?string $ignoreCase = null,
-            public ?string $unicode = null
+            public ?string $ignoreCase = null
         ) {
         }
     }
@@ -259,11 +258,11 @@ class Parser
         $this->peg_e6 = new pegExpectation("literal", "\"/-->\"", "/-->", "false");
         $this->peg_e7 = new pegExpectation("literal", "\"/wp:\"", "/wp:", "false");
         $this->peg_e8 = new pegExpectation("literal", "\"/\"", "/", "false");
-        $this->peg_e9 = new pegExpectation("class", "[a-z]", "[a-z]", "false", "false");
-        $this->peg_e10 = new pegExpectation("class", "[a-z0-9_-]", "[a-z0-9_-]", "false", "false");
+        $this->peg_e9 = new pegExpectation("class", "[a-z]", "[a-z]", "false");
+        $this->peg_e10 = new pegExpectation("class", "[a-z0-9_-]", "[a-z0-9_-]", "false");
         $this->peg_e11 = new pegExpectation("literal", "\"{\"", "{", "false");
         $this->peg_e12 = new pegExpectation("literal", "\"}\"", "}", "false");
-        $this->peg_e13 = new pegExpectation("class", "[ \\t\\r\\n]", "[ \t\r\n]", "false", "false");
+        $this->peg_e13 = new pegExpectation("class", "[ \\t\\r\\n]", "[ \t\r\n]", "false");
     }
 
     // array arguments are backwards because of PHP
@@ -353,6 +352,7 @@ class Parser
             $this->peg_cleanup_state();
             return $peg_result;
         }
+
         if ($peg_result !== $this->peg_FAILED && $this->peg_currPos < $this->input_length) {
             $this->peg_fail(new pegExpectation("end", "end of input"));
         }
