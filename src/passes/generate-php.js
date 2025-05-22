@@ -289,6 +289,11 @@ module.exports = function(ast, options) {
         parts.push("}");
       }
 
+      // length of string in terms of code points
+      function countCodePoints(str) {
+        return [...str].length;
+      }
+
       /*
        * Extracted into a function just to silence JSHint complaining about
        * creating functions in a loop.
@@ -427,7 +432,7 @@ module.exports = function(ast, options) {
             compileInputChunkCondition(
               inputChunk => `${inputChunk} === ${l(litNum)}`,
               1,
-              [...ast.literals[litNum]].length // length of literal in terms of code points
+              countCodePoints(ast.literals[litNum])
             );
             break;
           }
@@ -437,7 +442,7 @@ module.exports = function(ast, options) {
             compileInputChunkCondition(
               inputChunk => `\\mb_strtolower(${inputChunk}, "UTF-8") === ${l(litNum)}`,
               1,
-              [...ast.literals[litNum]].length // length of literal in terms of code points
+              countCodePoints(ast.literals[litNum])
             );
             break;
           }
@@ -466,7 +471,7 @@ module.exports = function(ast, options) {
 
           case op.ACCEPT_STRING:          // ACCEPT_STRING s
             parts.push(stack.push(l(bc[ip + 1])));
-            const length = [...ast.literals[bc[ip + 1]]].length; // length of value in terms of code points
+            const length = countCodePoints(ast.literals[bc[ip + 1]]);
             parts.push(
               length > 1
                 ? `$this->peg_currPos += ${length};`
