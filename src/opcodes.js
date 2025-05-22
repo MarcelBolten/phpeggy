@@ -81,6 +81,7 @@ const opcodes = {
    * SOURCE_MAP_LABEL_POP:    40,   // SOURCE_MAP_LABEL_POP sp
    * LIBRARY_RULE:            41,
    * MATCH_UNICODE_CLASS:     42,
+   *
    */
 };
 

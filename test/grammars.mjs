@@ -91,20 +91,15 @@ function runPeggyCli(args, stdin) {
   return result;
 }
 
-function getPHPParserTestCode(input, grammarName, parserNamespace) {
-  parserNamespace = parserNamespace ? parserNamespace + '\\' : '';
-  return `<?php
-  declare(strict_types=1);
-
-  include_once '${grammarName}';
-
-  $input = base64_decode('${Buffer.from(input).toString("base64")}');
+function getPHPParserTestCode(parser, input) {
+  return parser + `
+$input = base64_decode('${Buffer.from(input).toString("base64")}');
 
 try {
-    $parser = new ${parserNamespace}Parser;
+    $parser = new Parser;
     $result = $parser->parse($input);
     echo json_encode($result);
-} catch (${parserNamespace}SyntaxError $ex) {
+} catch (SyntaxError $ex) {
     echo json_encode([
         'error' => [
             'message' => $ex->getMessage(),
@@ -152,7 +147,6 @@ grammarNames.forEach(grammarName => {
   describe("Example grammar " + grammarName, () => {
     let phpActual = undefined;
     let outputActual = undefined;
-    let extraOptions = {};
 
     it("generates the expected PHP code via js api", () => {
       let grammar = [{
@@ -167,7 +161,7 @@ grammarNames.forEach(grammarName => {
         plugins: [phpeggy],
       };
 
-      extraOptions = {};
+      let extraOptions = {};
 
       try {
         extraOptions = JSON.parse(fs.readFileSync(
@@ -239,7 +233,7 @@ grammarNames.forEach(grammarName => {
 
       const peggyCliArgs = ['--output', '-', '--plugin', path.join(__dirname, '..', 'src', 'phpeggy.js')];
 
-      extraOptions = {};
+      let extraOptions = {};
 
       try {
         extraOptions = JSON.parse(fs.readFileSync(
@@ -308,11 +302,7 @@ grammarNames.forEach(grammarName => {
           "utf8"
         );
 
-        const result = runPhp([], getPHPParserTestCode(
-          input,
-          fixtureFilePath([grammarName + ".php"]),
-          extraOptions.phpeggy?.parserNamespace !== false ? "PHPeggy" : false ,
-        ));
+        const result = runPhp([], getPHPParserTestCode(phpActual, input));
         expect(result.stderr).to.eql(
           "",
           "Received messages from PHP stderr"

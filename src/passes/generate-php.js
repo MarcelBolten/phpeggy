@@ -102,8 +102,7 @@ module.exports = function(ast, options) {
             + ['"class",',
                 internalUtils.quotePhp(internalUtils.escapePhp(rawText)) + ",",
                 internalUtils.quotePhp(rawText) + ",",
-                internalUtils.quotePhp(e.ignoreCase.toString()) + ",",
-                internalUtils.quotePhp(e.unicode.toString()),
+                internalUtils.quotePhp(e.ignoreCase.toString()),
               ].join(" ")
             + ")";
         }
