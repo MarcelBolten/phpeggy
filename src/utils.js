@@ -25,48 +25,13 @@ function extractPhpCode(code) {
   return phpCode ? phpCode.trim() : code;
 }
 
-/* -eslint-disable no-control-regex */
-
-// Code from peggy
-// It was public on v. 1.1.0 but converted into private in version 1.2.0 (copying here to make phpeggy to work)
-
 function hex(ch) {
-  return ch.charCodeAt(0).toString(16).toUpperCase();
+  return ch.codePointAt(0).toString(16).toUpperCase();
 }
 
-function hex1(ch) {
-  let hexCode = hex(ch);
-  hexCode = "0".repeat(4 - hexCode.length + 1) + hexCode;
-  return "\\x{" + hexCode + "}";
-}
-
-function stringEscape(s) {
-  /*
-   * ECMA-262, 5th ed., 7.8.4: All characters may appear literally in a string
-   * literal except for the closing quote character, backslash, carriage
-   * return, line separator, paragraph separator, and line feed. Any character
-   * may appear in the form of an escape sequence.
-   *
-   * For portability, we also escape all control and non-ASCII characters.
-   */
-  return s
-    .replace(/\\/g, "\\\\")  // Backslash
-    .replace(/"/g, "\\\"")   // Closing double quote
-    .replace(/\0/g, "\\0")   // Null
-    .replace(/\x08/g, "\\b") // Backspace
-    .replace(/\t/g, "\\t")   // Horizontal tab
-    .replace(/\n/g, "\\n")   // Line feed
-    .replace(/\v/g, "\\v")   // Vertical tab
-    .replace(/\f/g, "\\f")   // Form feed
-    .replace(/\r/g, "\\r")   // Carriage return
-    .replace(/[\x00-\x0F]/g, ch => "\\x0" + hex(ch))
-    .replace(/[\x10-\x1F\x7F-\xFF]/g, ch => "\\x" + hex(ch))
-    .replace(/[\u0100-\u0FFF]/g, ch => "\\u0" + hex(ch))
-    .replace(/[\u1000-\uFFFF]/g, ch => "\\u" + hex(ch));
-}
-
-function quote(str) {
-  return '"' + stringEscape(str) + '"';
+function hexPad(ch, len) {
+  const hexCode = hex(ch);
+  return "0".repeat(len - hexCode.length) + hexCode;
 }
 
 function escapePhpRegexp(s) {
@@ -86,9 +51,10 @@ function escapePhpRegexp(s) {
     .replace(/\v/g, "\\x0B")       // Vertical tab
     .replace(/\f/g, "\\f")         // Form feed
     .replace(/\r/g, "\\r")         // Carriage return
-    .replace(/[\x00-\x0F]/g, ch => "\\x0" + hex(ch))
-    .replace(/[\x10-\x1F\x7F-\x9F]/g, ch => "\\x" + hex(ch))
-    .replace(/[\xFF-\uFFFF]/g, ch => hex1(ch));
+    .replace(/[\u{10000}-\u{10FFFF}]/gu,  ch => "\\x{" + hexPad(ch, 6) + "}")
+    .replace(/[\u0100-\uFFFF]/g,          ch => "\\x{" + hexPad(ch, 4) + "}")
+    .replace(/[\x10-\x1F\x7F-\x9F\xFF]/g, ch => "\\x"  + hex(ch))
+    .replace(/[\x00-\x0F]/g,              ch => "\\x0" + hex(ch));
 }
 
 function escapePhp(s) {
@@ -102,9 +68,10 @@ function escapePhp(s) {
     .replace(/\f/g, "\\f")   // Form feed
     .replace(/\r/g, "\\r")   // Carriage return
     .replace(/\$/g, "\\$")   // Dollar
-    .replace(/[\x00-\x0F]/g, ch => "\\x0" + hex(ch))
-    .replace(/[\x10-\x1F\x7F-\x9F]/g, ch => "\\x" + hex(ch))
-    .replace(/[\xFF-\uFFFF]/g, ch => hex1(ch));
+    .replace(/[\u{10000}-\u{10FFFF}]/gu,  ch => "\\u{" + hexPad(ch, 6) + "}")
+    .replace(/[\u0100-\uFFFF]/g,          ch => "\\u{" + hexPad(ch, 4) + "}")
+    .replace(/[\x10-\x1F\x7F-\x9F\xFF]/g, ch => "\\x"  + hex(ch))
+    .replace(/[\x00-\x0F]/g,              ch => "\\x0" + hex(ch));
 }
 
 function quotePhp(s) {
@@ -112,7 +79,6 @@ function quotePhp(s) {
 }
 
 module.exports = {
-  quote,
   extractPhpCode,
   escapePhpRegexp,
   escapePhp,

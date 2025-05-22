@@ -15,6 +15,7 @@ module.exports = function(
     "    }",
     "}",
     "",
+
     "/* ord_unicode - get unicode char code from string */",
     `if (!\\function_exists("${phpGlobalNamePrefixOrNamespaceEscaped}ord_unicode")) {`,
     "    function ord_unicode(",

@@ -549,7 +549,6 @@ module.exports = function(ast) {
   const generate = visitor.build({
     grammar(node) {
       node.rules.forEach(generate);
-
       node.literals = literals.items;
       node.classes = classes.items;
       node.expectations = expectations.items;
@@ -922,7 +921,8 @@ module.exports = function(ast) {
     },
 
     literal(node) {
-      if (node.value.length > 0) {
+      // length of value in terms of code points
+      if ([...node.value].length > 0) {
         const match = node.match || 0;
         // String only required if condition is generated or string is
         // case-sensitive and node always match
@@ -953,7 +953,7 @@ module.exports = function(ast) {
             ? [op.MATCH_STRING_IC, stringIndex]
             : [op.MATCH_STRING, stringIndex],
           node.ignoreCase
-            ? [op.ACCEPT_N, node.value.length]
+            ? [op.ACCEPT_N, [...node.value].length] // length of value in terms of code points
             : [op.ACCEPT_STRING, stringIndex],
           [op.FAIL, expectedIndex]
         );
@@ -981,11 +981,8 @@ module.exports = function(ast) {
 
       return buildCondition(
         match,
-        [
-          node.unicode ? op.MATCH_UNICODE_CLASS : op.MATCH_CHAR_CLASS,
-          classIndex,
-        ],
-        [op.ACCEPT_N, node.unicode ? -1 : 1],
+        [op.MATCH_CHAR_CLASS, classIndex],
+        [op.ACCEPT_N, 1],
         [op.FAIL, expectedIndex]
       );
     },

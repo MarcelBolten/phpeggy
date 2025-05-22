@@ -64,6 +64,7 @@ function isWin() {
 function runPeggyCli(args, stdin) {
   args.unshift("peggy");
   const npx = "npx" + (isWin() ? ".cmd" : "");
+  // console.log("cli command: npx " + args.join(" "));
   const result = cp.spawnSync(npx, args, {
     input: stdin || null,
     encoding: "utf8",
@@ -90,15 +91,20 @@ function runPeggyCli(args, stdin) {
   return result;
 }
 
-function getPHPParserTestCode(parser, input) {
-  return parser + `
-$input = base64_decode('${Buffer.from(input).toString("base64")}');
+function getPHPParserTestCode(input, grammarName, parserNamespace) {
+  parserNamespace = parserNamespace ? parserNamespace + '\\' : '';
+  return `<?php
+  declare(strict_types=1);
+
+  include_once '${grammarName}';
+
+  $input = base64_decode('${Buffer.from(input).toString("base64")}');
 
 try {
-    $parser = new Parser;
+    $parser = new ${parserNamespace}Parser;
     $result = $parser->parse($input);
     echo json_encode($result);
-} catch (SyntaxError $ex) {
+} catch (${parserNamespace}SyntaxError $ex) {
     echo json_encode([
         'error' => [
             'message' => $ex->getMessage(),
@@ -146,6 +152,7 @@ grammarNames.forEach(grammarName => {
   describe("Example grammar " + grammarName, () => {
     let phpActual = undefined;
     let outputActual = undefined;
+    let extraOptions = {};
 
     it("generates the expected PHP code via js api", () => {
       let grammar = [{
@@ -160,7 +167,7 @@ grammarNames.forEach(grammarName => {
         plugins: [phpeggy],
       };
 
-      let extraOptions = {};
+      extraOptions = {};
 
       try {
         extraOptions = JSON.parse(fs.readFileSync(
@@ -232,7 +239,7 @@ grammarNames.forEach(grammarName => {
 
       const peggyCliArgs = ['--output', '-', '--plugin', path.join(__dirname, '..', 'src', 'phpeggy.js')];
 
-      let extraOptions = {};
+      extraOptions = {};
 
       try {
         extraOptions = JSON.parse(fs.readFileSync(
@@ -301,7 +308,11 @@ grammarNames.forEach(grammarName => {
           "utf8"
         );
 
-        const result = runPhp([], getPHPParserTestCode(phpActual, input));
+        const result = runPhp([], getPHPParserTestCode(
+          input,
+          fixtureFilePath([grammarName + ".php"]),
+          extraOptions.phpeggy?.parserNamespace !== false ? "PHPeggy" : false ,
+        ));
         expect(result.stderr).to.eql(
           "",
           "Received messages from PHP stderr"
