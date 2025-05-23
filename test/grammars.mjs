@@ -64,6 +64,7 @@ function isWin() {
 function runPeggyCli(args, stdin) {
   args.unshift("peggy");
   const npx = "npx" + (isWin() ? ".cmd" : "");
+  // console.log("cli command: npx " + args.join(" "));
   const result = cp.spawnSync(npx, args, {
     input: stdin || null,
     encoding: "utf8",

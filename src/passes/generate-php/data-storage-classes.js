@@ -15,6 +15,7 @@ module.exports = function(phpGlobalNamePrefixOrNamespaceEscaped) {
     "    }",
     "}",
     "",
+
     `if (!\\class_exists("${phpGlobalNamePrefixOrNamespaceEscaped}pegCacheItem", false)) {`,
     "    class pegCacheItem",
     "    {",
@@ -26,6 +27,7 @@ module.exports = function(phpGlobalNamePrefixOrNamespaceEscaped) {
     "    }",
     "}",
     "",
+
     `if (!\\class_exists("${phpGlobalNamePrefixOrNamespaceEscaped}pegCachedPosDetails", false)) {`,
     "    class pegCachedPosDetails",
     "    {",
@@ -38,6 +40,7 @@ module.exports = function(phpGlobalNamePrefixOrNamespaceEscaped) {
     "    }",
     "}",
     "",
+
     `if (!\\class_exists("${phpGlobalNamePrefixOrNamespaceEscaped}pegLocation", false)) {`,
     "    class pegLocation",
     "    {",
@@ -50,6 +53,7 @@ module.exports = function(phpGlobalNamePrefixOrNamespaceEscaped) {
     "    }",
     "}",
     "",
+
     `if (!\\class_exists("${phpGlobalNamePrefixOrNamespaceEscaped}pegPosition", false)) {`,
     "    class pegPosition",
     "    {",
@@ -62,6 +66,7 @@ module.exports = function(phpGlobalNamePrefixOrNamespaceEscaped) {
     "    }",
     "}",
     "",
+
     `if (!\\class_exists("${phpGlobalNamePrefixOrNamespaceEscaped}pegRange", false)) {`,
     "    class pegRange",
     "    {",

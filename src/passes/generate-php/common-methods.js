@@ -22,6 +22,7 @@ module.exports = function(useCache) {
     '    $this->peg_source = "";',
     "}",
     "",
+
     "private function input_substr(",
     "    int $start,",
     "    int $length",
@@ -37,21 +38,25 @@ module.exports = function(useCache) {
     "    return $substr;",
     "}",
     "",
+
     "private function text(): string",
     "{",
     "    return $this->input_substr($this->peg_reportedPos, $this->peg_currPos - $this->peg_reportedPos);",
     "}",
     "",
+
     "private function offset(): int",
     "{",
     "    return $this->peg_reportedPos;",
     "}",
     "",
+
     "private function range(): pegRange",
     "{",
     "    return new pegRange($this->peg_source, $this->peg_reportedPos, $this->peg_currPos);",
     "}",
     "",
+
     "private function location(",
     "    bool $fail = false",
     "): pegLocation {",
@@ -71,16 +76,19 @@ module.exports = function(useCache) {
     "    );",
     "}",
     "",
+
     "private function line(): int",
     "{",
     "    return $this->peg_computePosDetails($this->peg_reportedPos)->line;",
     "}",
     "",
+
     "private function column(): int",
     "{",
     "    return $this->peg_computePosDetails($this->peg_reportedPos)->column;",
     "}",
     "",
+
     "/**",
     " * @throws SyntaxError",
     " */",
@@ -95,6 +103,7 @@ module.exports = function(useCache) {
     "    );",
     "}",
     "",
+
     "/**",
     " * @throws SyntaxError",
     " */",
@@ -109,6 +118,7 @@ module.exports = function(useCache) {
     "    );",
     "}",
     "",
+
     "private function peg_advancePos(",
     "    pegCachedPosDetails $details,",
     "    int $startPos,",
@@ -133,6 +143,7 @@ module.exports = function(useCache) {
     "    }",
     "}",
     "",
+
     "private function peg_computePosDetails(",
     "    int $pos",
     "): pegCachedPosDetails {",
@@ -148,6 +159,7 @@ module.exports = function(useCache) {
     "    return $this->peg_cachedPosDetails;",
     "}",
     "",
+
     "private function peg_fail(",
     "    pegExpectation $expected",
     "): void {",
@@ -163,6 +175,7 @@ module.exports = function(useCache) {
     "    $this->peg_maxFailExpected[] = $expected;",
     "}",
     "",
+
     "private function peg_buildException_expectedComparator(",
     "    pegExpectation $a,",
     "    pegExpectation $b",
@@ -170,6 +183,7 @@ module.exports = function(useCache) {
     "    return $a->description <=> $b->description;",
     "}",
     "",
+
     "/** @param pegExpectation[]|null $expected */",
     "private function peg_buildException(",
     "    ?string $message,",

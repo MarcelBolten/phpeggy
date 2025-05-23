@@ -284,6 +284,7 @@ class Parser
             $this->peg_cleanup_state();
             return $peg_result;
         }
+
         if ($peg_result !== $this->peg_FAILED && $this->peg_currPos < $this->input_length) {
             $this->peg_fail(new pegExpectation("end", "end of input"));
         }

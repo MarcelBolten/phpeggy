@@ -1,5 +1,5 @@
 /*
- * ! This is modified version of file "peggy/lib/compiler/passes/generate-bytecode.js"
+ * ! This is a modified version of file "peggy/lib/compiler/passes/generate-bytecode.js"
  */
 "use strict";
 
@@ -178,6 +178,14 @@ const op = require("../opcodes");
  * [20] MATCH_CHAR_CLASS c, a, f, ...
  *
  *        if (classes[c].test(input.charAt(currPos))) {
+ *          interpret(ip + 4, ip + 4 + a);
+ *        } else {
+ *          interpret(ip + 4 + a, ip + 4 + a + f);
+ *        }
+ *
+ * [42] MATCH_UNICODE_CLASS c, a, f, ...
+ *
+ *        if (classes[c].test(input.unicodeCharAt(currPos))) {
  *          interpret(ip + 4, ip + 4 + a);
  *        } else {
  *          interpret(ip + 4 + a, ip + 4 + a + f);
@@ -540,7 +548,6 @@ module.exports = function(ast) {
   const generate = visitor.build({
     grammar(node) {
       node.rules.forEach(generate);
-
       node.literals = literals.items;
       node.classes = classes.items;
       node.expectations = expectations.items;
@@ -913,7 +920,8 @@ module.exports = function(ast) {
     },
 
     literal(node) {
-      if (node.value.length > 0) {
+      // length of value in terms of code points
+      if ([...node.value].length > 0) {
         const match = node.match || 0;
         // String only required if condition is generated or string is
         // case-sensitive and node always match
@@ -944,7 +952,7 @@ module.exports = function(ast) {
             ? [op.MATCH_STRING_IC, stringIndex]
             : [op.MATCH_STRING, stringIndex],
           node.ignoreCase
-            ? [op.ACCEPT_N, node.value.length]
+            ? [op.ACCEPT_N, [...node.value].length] // length of value in terms of code points
             : [op.ACCEPT_STRING, stringIndex],
           [op.FAIL, expectedIndex]
         );
@@ -999,11 +1007,11 @@ module.exports = function(ast) {
 };
 /*
  * MIT License
- * Copyright (c) 2010-2023 The Peggy AUTHORS
+ * Copyright (c) 2010-2025 The Peggy AUTHORS
  *
  * ------------------------------------------------------------------
  * Copyright (c) 2010-2013 David Majda
- * Copyright (c) 2014-2023 The PHPeggy AUTHORS
+ * Copyright (c) 2014-2025 The PHPeggy AUTHORS
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation

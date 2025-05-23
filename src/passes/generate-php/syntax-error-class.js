@@ -11,6 +11,7 @@ module.exports = function(
     "    {",
     '        public string $name = "SyntaxError";',
     "",
+
     "        /**",
     "         * @param pegExpectation[]|null $expected",
     "         */",
@@ -26,6 +27,7 @@ module.exports = function(
     '            parent::__construct($message ?? "", 0);',
     "        }",
     "",
+
     "        /**",
     "         * @param array<int, array<string, string>> $sources",
     "         */",
@@ -62,6 +64,7 @@ module.exports = function(
     "            return $str;",
     "        }",
     "",
+
     "        private function peg_padEnd(",
     "            string $str,",
     "            int $targetLength,",

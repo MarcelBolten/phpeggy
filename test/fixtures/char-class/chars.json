@@ -83,5 +83,117 @@
         "rule": "Chinese_Character",
         "value": "鱼"
     },
+    "\n",
+    {
+        "rule": "Emoji",
+        "value": "☀"
+    },
+    {
+        "rule": "Emoji",
+        "value": "☢"
+    },
+    {
+        "rule": "Emoji",
+        "value": "✅"
+    },
+    {
+        "rule": "Emoji",
+        "value": "❤"
+    },
+    {
+        "rule": "Emoji",
+        "value": "➿"
+    },
+    {
+        "rule": "Emoji",
+        "value": "🌀"
+    },
+    {
+        "rule": "Emoji",
+        "value": "🐘"
+    },
+    {
+        "rule": "Emoji",
+        "value": "💩"
+    },
+    {
+        "rule": "Emoji",
+        "value": "🖥"
+    },
+    {
+        "rule": "Emoji",
+        "value": "🙏"
+    },
+    {
+        "rule": "Emoji",
+        "value": "🚀"
+    },
+    {
+        "rule": "Emoji",
+        "value": "🚨"
+    },
+    {
+        "rule": "Emoji",
+        "value": "🛼"
+    },
+    {
+        "rule": "Emoji",
+        "value": "🤌"
+    },
+    {
+        "rule": "Emoji",
+        "value": "🦖"
+    },
+    {
+        "rule": "Emoji",
+        "value": "🧿"
+    },
+    {
+        "rule": "Emoji",
+        "value": "🩰"
+    },
+    {
+        "rule": "Emoji",
+        "value": "🪩"
+    },
+    {
+        "rule": "Emoji",
+        "value": "🫸"
+    },
+    "\n",
+    {
+        "rule": "Surfing_Woman_Or_Man",
+        "value": "🏄‍♀️"
+    },
+    {
+        "rule": "Surfing_Woman_Or_Man",
+        "value": "🏄‍♂️"
+    },
+    "\n",
+    {
+        "rule": "Person_Using_Computer",
+        "value": "👩‍💻"
+    },
+    {
+        "rule": "Person_Using_Computer",
+        "value": "👨‍💻"
+    },
+    "\n",
+    {
+        "rule": "Ascii",
+        "value": "$"
+    },
+    {
+        "rule": "Ascii",
+        "value": "@"
+    },
+    {
+        "rule": "Ascii",
+        "value": "}"
+    },
+    {
+        "rule": "Ascii",
+        "value": "`"
+    },
     "\n"
 ]
