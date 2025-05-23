@@ -11,18 +11,18 @@ Released: TBD
 ### Breaking Changes
 
 - Node.js v20+ is now required
-- JavaScript API now requires explicitly option output = "source"
 - `mbstring` extension is required now. The `mbstringAllowed` option is removed.
 - Drop support for Internet Explorer
 
 ### Major Changes
 
+- Add wider support for unicode in grammar files:
+
+
 ### Minor Changes
 
 - Fix a bug with named NEVER_MATCH expressions.
   compare to https://github.com/peggyjs/peggy/pull/454
-
-### Developer
 
 2.0.1
 -----
