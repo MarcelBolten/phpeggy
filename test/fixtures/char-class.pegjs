@@ -10,6 +10,7 @@ Thing
   / Surfing_Woman_Or_Man
   / Emoji
   / Whitespace
+  / Ascii
 
 Letter_Or_Number
   = a:[a-z0-9]i {
@@ -19,6 +20,11 @@ Letter_Or_Number
 Quote
   = a:['"] {
     return ['rule' => 'Quote', 'value' => $a];
+  }
+
+Ascii
+  = a:[\p{ASCII}] {
+    return ['rule' => 'Ascii', 'value' => $a];
   }
 
 Char_Padding_Test

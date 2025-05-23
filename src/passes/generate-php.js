@@ -42,9 +42,7 @@ module.exports = function(ast, options) {
       const regexp = "/^["
         + (cls.inverted ? "^" : "")
         + cls.value.map(part => (Array.isArray(part)
-          ? internalUtils.escapePhpRegexp(part[0])
-            + "-"
-            + internalUtils.escapePhpRegexp(part[1])
+          ? part.map(internalUtils.escapePhpRegexp).join("-")
           : internalUtils.escapePhpRegexp(part)
         )).join("")
         + "]/" + (cls.ignoreCase ? "i" : "");
@@ -90,18 +88,17 @@ module.exports = function(ast, options) {
         }
 
         case "class": {
-          const rawText = "[" + e.value.map(part => {
-            if (typeof part === "string") {
-              return part;
-            }
-            return part.join("-");
-          }).join("")
-          + "]";
+          const escapedClass = "["
+            + e.value.map(part => Array.isArray(part)
+                ? part.map(internalUtils.escapePhp).join("-")
+                : internalUtils.escapePhp(part)
+              ).join("")
+            + "]";
 
           return "new pegExpectation("
             + ['"class",',
-                internalUtils.quotePhp(internalUtils.escapePhp(rawText)) + ",",
-                internalUtils.quotePhp(rawText) + ",",
+                internalUtils.quotePhp(escapedClass) + ",",
+                `"${escapedClass}",`,
                 internalUtils.quotePhp(e.ignoreCase.toString()),
               ].join(" ")
             + ")";

@@ -35,6 +35,10 @@ function hexPad(ch, len) {
 }
 
 function escapePhpRegexp(s) {
+  if (typeof s === "object") {
+    return `\\${s.value}`;
+  }
+
   return s
     .replace(/\\/g, "\\\\")        // Backslash
     .replace(/\//g, "\\/")         // Closing slash
@@ -58,6 +62,10 @@ function escapePhpRegexp(s) {
 }
 
 function escapePhp(s) {
+  if (typeof s === "object") {
+    return `\\${s.value}`;
+  }
+
   return s
     .replace(/\\/g, "\\\\")  // Backslash
     .replace(/"/g, '\\"')    // Closing quote character

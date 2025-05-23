@@ -178,5 +178,22 @@
         "rule": "Person_Using_Computer",
         "value": "👨‍💻"
     },
+    "\n",
+    {
+        "rule": "Ascii",
+        "value": "$"
+    },
+    {
+        "rule": "Ascii",
+        "value": "@"
+    },
+    {
+        "rule": "Ascii",
+        "value": "}"
+    },
+    {
+        "rule": "Ascii",
+        "value": "`"
+    },
     "\n"
 ]
