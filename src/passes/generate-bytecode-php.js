@@ -1,5 +1,5 @@
 /*
- * ! This is modified version of file "peggy/lib/compiler/passes/generate-bytecode.js"
+ * ! This is a modified version of file "peggy/lib/compiler/passes/generate-bytecode.js"
  */
 "use strict";
 
