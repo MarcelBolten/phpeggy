@@ -45,7 +45,7 @@ module.exports = function(ast, options) {
           ? part.map(internalUtils.escapePhpRegexp).join("-")
           : internalUtils.escapePhpRegexp(part)
         )).join("")
-        + "]/" + (cls.ignoreCase ? "i" : "");
+        + "]/" + (cls.ignoreCase ? "i" : "") + "u";
         // should use r modifier in future for fine tuning, only as of php 8.4.0
 
       return internalUtils.quotePhp(regexp);
@@ -249,7 +249,8 @@ module.exports = function(ast, options) {
         let inputChunk = inputSubstr("$this->peg_currPos", inputChunkLength);
         let thenFn = null;
         if (bc[ip + baseLength] === op.ACCEPT_N
-              && bc[ip + baseLength + 1] === inputChunkLength) {
+            && bc[ip + baseLength + 1] === inputChunkLength
+        ) {
           // Push the assignment to the next available variable.
           parts.push(stack.push(inputChunk));
           inputChunk = stack.pop();
@@ -447,7 +448,8 @@ module.exports = function(ast, options) {
           case op.MATCH_CHAR_CLASS: {    // MATCH_CHAR_CLASS c, a, f, ...
             const regNum = bc[ip + 1];
             compileInputChunkCondition(
-              inputChunk => `peg_regex_test(${c(regNum)}, ${inputChunk})`,
+              inputChunk => `\\preg_match(${c(regNum)}, ${inputChunk})`,
+              // inputChunk => `peg_regex_test(${c(regNum)}, ${inputChunk})`,
               1,
               1
             );
