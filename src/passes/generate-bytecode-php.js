@@ -921,7 +921,8 @@ module.exports = function(ast) {
 
     literal(node) {
       // length of value in terms of code points
-      if ([...node.value].length > 0) {
+      const valueLength = [...node.value].length;
+      if (valueLength > 0) {
         const match = node.match || 0;
         // String only required if condition is generated or string is
         // case-sensitive and node always match
@@ -952,7 +953,7 @@ module.exports = function(ast) {
             ? [op.MATCH_STRING_IC, stringIndex]
             : [op.MATCH_STRING, stringIndex],
           node.ignoreCase
-            ? [op.ACCEPT_N, [...node.value].length] // length of value in terms of code points
+            ? [op.ACCEPT_N, valueLength]
             : [op.ACCEPT_STRING, stringIndex],
           [op.FAIL, expectedIndex]
         );
