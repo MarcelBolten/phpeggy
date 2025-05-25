@@ -40,20 +40,6 @@ if (!\function_exists("PHPeggy\\ord_unicode")) {
         return $utf16_1;
     }
 }
-
-/* peg_regex_test - multibyte regex test */
-if (!\function_exists("PHPeggy\\peg_regex_test")) {
-    function peg_regex_test(
-        string $pattern,
-        string $string
-    ): bool {
-        if ($pattern[-1] === "i") {
-            return \mb_eregi(\substr($pattern, 1, -2), $string);
-        }
-
-        return \mb_ereg(\substr($pattern, 1, -1), $string);
-    }
-}
 /* END Utility functions */
 
 /* Syntax error exception */
@@ -134,7 +120,8 @@ if (!\class_exists("PHPeggy\\pegExpectation", false)) {
             public ?string $type = null,
             public ?string $description = null,
             public ?string $value = null,
-            public ?string $ignoreCase = null
+            public ?string $ignoreCase = null,
+            public ?string $unicode = null
         ) {
         }
     }
@@ -254,9 +241,9 @@ class Parser
         $this->peg_e6 = new pegExpectation("literal", "\"{\"", "{", "false");
         $this->peg_e7 = new pegExpectation("literal", "\"}\"", "}", "false");
         $this->peg_e8 = new pegExpectation("any", "any character");
-        $this->peg_e9 = new pegExpectation("class", "[-0-9A-Z_a-z]", "[-0-9A-Z_a-z]", "false");
-        $this->peg_e10 = new pegExpectation("class", "[a-zA-Z]", "[a-zA-Z]", "false");
-        $this->peg_e11 = new pegExpectation("class", "[ \\t\\r\\n]", "[ \t\r\n]", "false");
+        $this->peg_e9 = new pegExpectation("class", "[-0-9A-Z_a-z]", "[-0-9A-Z_a-z]", "false", "false");
+        $this->peg_e10 = new pegExpectation("class", "[a-zA-Z]", "[a-zA-Z]", "false", "false");
+        $this->peg_e11 = new pegExpectation("class", "[ \\t\\r\\n]", "[ \t\r\n]", "false", "false");
     }
 
     /**
@@ -1322,7 +1309,7 @@ class Parser
     private function peg_parse_ASCII_AlphaNumeric(): mixed
     {
         $s0 = $this->input_substr($this->peg_currPos, 1);
-        if (peg_regex_test($this->peg_c0, $s0)) {
+        if (\preg_match($this->peg_c0, $s0)) {
             $this->peg_currPos++;
         } else {
             $s0 = $this->peg_FAILED;
@@ -1337,7 +1324,7 @@ class Parser
     private function peg_parse_ASCII_Letter(): mixed
     {
         $s0 = $this->input_substr($this->peg_currPos, 1);
-        if (peg_regex_test($this->peg_c1, $s0)) {
+        if (\preg_match($this->peg_c1, $s0)) {
             $this->peg_currPos++;
         } else {
             $s0 = $this->peg_FAILED;
@@ -1352,7 +1339,7 @@ class Parser
     private function peg_parse_WS(): mixed
     {
         $s0 = $this->input_substr($this->peg_currPos, 1);
-        if (peg_regex_test($this->peg_c2, $s0)) {
+        if (\preg_match($this->peg_c2, $s0)) {
             $this->peg_currPos++;
         } else {
             $s0 = $this->peg_FAILED;

@@ -189,11 +189,24 @@
     },
     {
         "rule": "Ascii",
-        "value": "}"
+        "value": "{"
     },
     {
         "rule": "Ascii",
         "value": "`"
+    },
+    "\n",
+    {
+        "rule": "No_Automatic_Addition_Of_Unicode_Property",
+        "value": "~"
+    },
+    {
+        "rule": "Automatic_Addition_Of_Unicode_Property",
+        "value": "ā"
+    },
+    {
+        "rule": "Force_Addition_Of_Unicode_Property",
+        "value": "|"
     },
     "\n"
 ]

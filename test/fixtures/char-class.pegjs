@@ -10,6 +10,9 @@ Thing
   / Surfing_Woman_Or_Man
   / Emoji
   / Whitespace
+  / No_Automatic_Addition_Of_Unicode_Property
+  / Automatic_Addition_Of_Unicode_Property
+  / Force_Addition_Of_Unicode_Property
   / Ascii
 
 Letter_Or_Number
@@ -25,6 +28,21 @@ Quote
 Ascii
   = a:[\p{ASCII}] {
     return ['rule' => 'Ascii', 'value' => $a];
+  }
+
+No_Automatic_Addition_Of_Unicode_Property
+  = a:[~] {
+    return ['rule' => 'No_Automatic_Addition_Of_Unicode_Property', 'value' => $a];
+  }
+
+Automatic_Addition_Of_Unicode_Property
+  = a:[\u0101] {
+    return ['rule' => 'Automatic_Addition_Of_Unicode_Property', 'value' => $a];
+  }
+
+Force_Addition_Of_Unicode_Property
+  = a:[|]u {
+    return ['rule' => 'Force_Addition_Of_Unicode_Property', 'value' => $a];
   }
 
 Char_Padding_Test

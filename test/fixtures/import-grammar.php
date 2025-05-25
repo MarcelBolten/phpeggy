@@ -51,20 +51,6 @@ if (!\function_exists("PHPeggy\\ord_unicode")) {
         return $utf16_1;
     }
 }
-
-/* peg_regex_test - multibyte regex test */
-if (!\function_exists("PHPeggy\\peg_regex_test")) {
-    function peg_regex_test(
-        string $pattern,
-        string $string
-    ): bool {
-        if ($pattern[-1] === "i") {
-            return \mb_eregi(\substr($pattern, 1, -2), $string);
-        }
-
-        return \mb_ereg(\substr($pattern, 1, -1), $string);
-    }
-}
 /* END Utility functions */
 
 /* Syntax error exception */
@@ -145,7 +131,8 @@ if (!\class_exists("PHPeggy\\pegExpectation", false)) {
             public ?string $type = null,
             public ?string $description = null,
             public ?string $value = null,
-            public ?string $ignoreCase = null
+            public ?string $ignoreCase = null,
+            public ?string $unicode = null
         ) {
         }
     }
@@ -240,7 +227,7 @@ class Parser
     private string $peg_c2 = "/^[0-9]/";
     private string $peg_c3 = "/^[ \\t]/";
     private string $peg_c4 = "/^[\\n\\r]/";
-    private string $peg_c5 = "/^[\\x{01F37A}\\x{01F37B}]/";
+    private string $peg_c5 = "/^[\\x{01F37A}\\x{01F37B}]/u";
     private pegExpectation $peg_e0;
     private pegExpectation $peg_e1;
     private pegExpectation $peg_e2;
@@ -270,18 +257,18 @@ class Parser
         $this->peg_e3 = new pegExpectation("any", "any character");
         $this->peg_e4 = new pegExpectation("other", "end of line comment");
         $this->peg_e5 = new pegExpectation("literal", "\"//\"", "//", "false");
-        $this->peg_e6 = new pegExpectation("class", "[\\n]", "[\n]", "false");
+        $this->peg_e6 = new pegExpectation("class", "[\\n]", "[\n]", "false", "false");
         $this->peg_e7 = new pegExpectation("other", "number without trailing comment");
         $this->peg_e8 = new pegExpectation("literal", "\"0x\"", "0x", "false");
-        $this->peg_e9 = new pegExpectation("class", "[0-9a-f]", "[0-9a-f]", "true");
-        $this->peg_e10 = new pegExpectation("class", "[0-9]", "[0-9]", "false");
-        $this->peg_e11 = new pegExpectation("class", "[ \\t]", "[ \t]", "false");
+        $this->peg_e9 = new pegExpectation("class", "[0-9a-f]", "[0-9a-f]", "true", "false");
+        $this->peg_e10 = new pegExpectation("class", "[0-9]", "[0-9]", "false", "false");
+        $this->peg_e11 = new pegExpectation("class", "[ \\t]", "[ \t]", "false", "false");
         $this->peg_e12 = new pegExpectation("other", "newline");
-        $this->peg_e13 = new pegExpectation("class", "[\\n\\r]", "[\n\r]", "false");
+        $this->peg_e13 = new pegExpectation("class", "[\\n\\r]", "[\n\r]", "false", "false");
         $this->peg_e14 = new pegExpectation("literal", "\"buzz\"", "buzz", "true");
         $this->peg_e15 = new pegExpectation("literal", "\"\\u{01F41D}\"", "\u{01F41D}", "false");
         $this->peg_e16 = new pegExpectation("literal", "\"fizz\"", "fizz", "true");
-        $this->peg_e17 = new pegExpectation("class", "[\\u{01F37A}\\u{01F37B}]", "[\u{01F37A}\u{01F37B}]", "false");
+        $this->peg_e17 = new pegExpectation("class", "[\\u{01F37A}\\u{01F37B}]", "[\u{01F37A}\u{01F37B}]", "false", "true");
     }
 
     // from fizzbuzz
@@ -867,7 +854,7 @@ class Parser
         if ($s2 !== $this->peg_FAILED) {
             $s3 = [];
             $s4 = $this->input_substr($this->peg_currPos, 1);
-            if (peg_regex_test($this->peg_c0, $s4)) {
+            if (\preg_match($this->peg_c0, $s4)) {
                 $this->peg_currPos++;
             } else {
                 $s4 = $this->peg_FAILED;
@@ -879,7 +866,7 @@ class Parser
                 while ($s4 !== $this->peg_FAILED) {
                     $s3[] = $s4;
                     $s4 = $this->input_substr($this->peg_currPos, 1);
-                    if (peg_regex_test($this->peg_c0, $s4)) {
+                    if (\preg_match($this->peg_c0, $s4)) {
                         $this->peg_currPos++;
                     } else {
                         $s4 = $this->peg_FAILED;
@@ -987,7 +974,7 @@ class Parser
             $s2 = $this->peg_currPos;
             $s3 = [];
             $s4 = $this->input_substr($this->peg_currPos, 1);
-            if (peg_regex_test($this->peg_c1, $s4)) {
+            if (\preg_match($this->peg_c1, $s4)) {
                 $this->peg_currPos++;
             } else {
                 $s4 = $this->peg_FAILED;
@@ -999,7 +986,7 @@ class Parser
                 while ($s4 !== $this->peg_FAILED) {
                     $s3[] = $s4;
                     $s4 = $this->input_substr($this->peg_currPos, 1);
-                    if (peg_regex_test($this->peg_c1, $s4)) {
+                    if (\preg_match($this->peg_c1, $s4)) {
                         $this->peg_currPos++;
                     } else {
                         $s4 = $this->peg_FAILED;
@@ -1047,7 +1034,7 @@ class Parser
             $s1 = $this->peg_currPos;
             $s2 = [];
             $s3 = $this->input_substr($this->peg_currPos, 1);
-            if (peg_regex_test($this->peg_c2, $s3)) {
+            if (\preg_match($this->peg_c2, $s3)) {
                 $this->peg_currPos++;
             } else {
                 $s3 = $this->peg_FAILED;
@@ -1059,7 +1046,7 @@ class Parser
                 while ($s3 !== $this->peg_FAILED) {
                     $s2[] = $s3;
                     $s3 = $this->input_substr($this->peg_currPos, 1);
-                    if (peg_regex_test($this->peg_c2, $s3)) {
+                    if (\preg_match($this->peg_c2, $s3)) {
                         $this->peg_currPos++;
                     } else {
                         $s3 = $this->peg_FAILED;
@@ -1116,7 +1103,7 @@ class Parser
         $s0 = $this->peg_currPos;
         $s1 = [];
         $s2 = $this->input_substr($this->peg_currPos, 1);
-        if (peg_regex_test($this->peg_c3, $s2)) {
+        if (\preg_match($this->peg_c3, $s2)) {
             $this->peg_currPos++;
         } else {
             $s2 = $this->peg_FAILED;
@@ -1127,7 +1114,7 @@ class Parser
         while ($s2 !== $this->peg_FAILED) {
             $s1[] = $s2;
             $s2 = $this->input_substr($this->peg_currPos, 1);
-            if (peg_regex_test($this->peg_c3, $s2)) {
+            if (\preg_match($this->peg_c3, $s2)) {
                 $this->peg_currPos++;
             } else {
                 $s2 = $this->peg_FAILED;
@@ -1147,7 +1134,7 @@ class Parser
         $this->peg_silentFails++;
         $s0 = [];
         $s1 = $this->input_substr($this->peg_currPos, 1);
-        if (peg_regex_test($this->peg_c4, $s1)) {
+        if (\preg_match($this->peg_c4, $s1)) {
             $this->peg_currPos++;
         } else {
             $s1 = $this->peg_FAILED;
@@ -1159,7 +1146,7 @@ class Parser
             while ($s1 !== $this->peg_FAILED) {
                 $s0[] = $s1;
                 $s1 = $this->input_substr($this->peg_currPos, 1);
-                if (peg_regex_test($this->peg_c4, $s1)) {
+                if (\preg_match($this->peg_c4, $s1)) {
                     $this->peg_currPos++;
                 } else {
                     $s1 = $this->peg_FAILED;
@@ -1259,7 +1246,7 @@ class Parser
         }
         if ($s0 === $this->peg_FAILED) {
             $s0 = $this->input_substr($this->peg_currPos, 1);
-            if (peg_regex_test($this->peg_c5, $s0)) {
+            if (\preg_match($this->peg_c5, $s0)) {
                 $this->peg_currPos++;
             } else {
                 $s0 = $this->peg_FAILED;
