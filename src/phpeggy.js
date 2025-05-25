@@ -3,6 +3,9 @@
 const path = require("path");
 
 exports.use = function(config, options) {
+  config.passes.transform.push(
+    require("./passes/annotate-php-unicode-classes"),
+  );
   config.passes.generate = [
     require("./passes/generate-bytecode-php"),
     require("./passes/generate-php"),

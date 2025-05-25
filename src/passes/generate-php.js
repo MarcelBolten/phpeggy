@@ -45,7 +45,7 @@ module.exports = function(ast, options) {
           ? part.map(internalUtils.escapePhpRegexp).join("-")
           : internalUtils.escapePhpRegexp(part)
         )).join("")
-        + "]/" + (cls.ignoreCase ? "i" : "") + "u";
+        + "]/" + (cls.ignoreCase ? "i" : "") + (cls.unicode ? "u" : "");
         // should use r modifier in future for fine tuning, only as of php 8.4.0
 
       return internalUtils.quotePhp(regexp);
@@ -82,7 +82,7 @@ module.exports = function(ast, options) {
             + ['"literal",',
                 internalUtils.quotePhp(internalUtils.quotePhp(e.value)) + ",",
                 internalUtils.quotePhp(e.value) + ",",
-                internalUtils.quotePhp(e.ignoreCase.toString())
+                internalUtils.quotePhp(e.ignoreCase.toString()),
               ].join(" ")
             + ")";
         }
@@ -99,7 +99,8 @@ module.exports = function(ast, options) {
             + ['"class",',
                 internalUtils.quotePhp(escapedClass) + ",",
                 `"${escapedClass}",`,
-                internalUtils.quotePhp(e.ignoreCase.toString()),
+                internalUtils.quotePhp(e.ignoreCase.toString()) + ",",
+                internalUtils.quotePhp(e.unicode.toString()),
               ].join(" ")
             + ")";
         }

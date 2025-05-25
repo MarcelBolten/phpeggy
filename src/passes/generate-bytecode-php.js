@@ -291,6 +291,7 @@ module.exports = function(ast) {
       value: node.parts,
       inverted: node.inverted,
       ignoreCase: node.ignoreCase,
+      unicode: node.unicode,
     }),
   });
   const expectations = new Intern({
@@ -975,6 +976,7 @@ module.exports = function(ast) {
           value: node.parts,
           inverted: node.inverted,
           ignoreCase: node.ignoreCase,
+          unicode: node.unicode,
         })
         : -1;
 
