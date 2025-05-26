@@ -180,19 +180,19 @@
     },
     "\n",
     {
-        "rule": "Curreny_Symbol",
+        "rule": "Currency_Symbol",
         "value": "₢"
     },
     {
-        "rule": "Curreny_Symbol",
+        "rule": "Currency_Symbol",
         "value": "$"
     },
     {
-        "rule": "Curreny_Symbol",
+        "rule": "Currency_Symbol",
         "value": "﷼"
     },
     {
-        "rule": "Curreny_Symbol",
+        "rule": "Currency_Symbol",
         "value": "₿"
     },
     "\n",

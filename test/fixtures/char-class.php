@@ -542,7 +542,7 @@ class Parser
     private function peg_f2(
         mixed $a,
     ): mixed {
-        return ['rule' => 'Curreny_Symbol', 'value' => $a];
+        return ['rule' => 'Currency_Symbol', 'value' => $a];
     }
 
     private function peg_f3(
@@ -639,7 +639,7 @@ class Parser
                                             if ($s0 === $this->peg_FAILED) {
                                                 $s0 = $this->peg_parse_Force_Addition_Of_Unicode_Property();
                                                 if ($s0 === $this->peg_FAILED) {
-                                                    $s0 = $this->peg_parse_Curreny_Symbol();
+                                                    $s0 = $this->peg_parse_Currency_Symbol();
                                                 }
                                             }
                                         }
@@ -697,7 +697,7 @@ class Parser
         return $s0;
     }
 
-    private function peg_parse_Curreny_Symbol(): mixed
+    private function peg_parse_Currency_Symbol(): mixed
     {
         $s0 = $this->peg_currPos;
         $s1 = $this->input_substr($this->peg_currPos, 1);

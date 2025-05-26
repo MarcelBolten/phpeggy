@@ -13,7 +13,7 @@ Thing
   / No_Automatic_Addition_Of_Unicode_Property
   / Automatic_Addition_Of_Unicode_Property
   / Force_Addition_Of_Unicode_Property
-  / Curreny_Symbol
+  / Currency_Symbol
 
 Letter_Or_Number
   = a:[a-z0-9]i {
@@ -25,9 +25,9 @@ Quote
     return ['rule' => 'Quote', 'value' => $a];
   }
 
-Curreny_Symbol
+Currency_Symbol
   = a:[\p{Sc}] {
-    return ['rule' => 'Curreny_Symbol', 'value' => $a];
+    return ['rule' => 'Currency_Symbol', 'value' => $a];
   }
 
 No_Automatic_Addition_Of_Unicode_Property
