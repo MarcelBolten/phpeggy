@@ -12,4 +12,13 @@
       <directory name="vendor" />
     </ignoreFiles>
   </projectFiles>
+
+  <issueHandlers>
+    <ArgumentTypeCoercion>
+      <!-- preg_match needs non-empty-string as 1st argument but it is declared as string -->
+      <errorLevel type="suppress">
+        <directory name="test/fixtures" />
+      </errorLevel>
+    </ArgumentTypeCoercion>
+  </issueHandlers>
 </psalm>
