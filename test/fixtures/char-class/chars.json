@@ -180,20 +180,20 @@
     },
     "\n",
     {
-        "rule": "Ascii",
+        "rule": "Curreny_Symbol",
+        "value": "₢"
+    },
+    {
+        "rule": "Curreny_Symbol",
         "value": "$"
     },
     {
-        "rule": "Ascii",
-        "value": "@"
+        "rule": "Curreny_Symbol",
+        "value": "﷼"
     },
     {
-        "rule": "Ascii",
-        "value": "{"
-    },
-    {
-        "rule": "Ascii",
-        "value": "`"
+        "rule": "Curreny_Symbol",
+        "value": "₿"
     },
     "\n",
     {

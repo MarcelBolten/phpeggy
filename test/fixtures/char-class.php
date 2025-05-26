@@ -213,7 +213,7 @@ class Parser
     private string $peg_l2 = "\u{01F3C4}\u{200D}\u{2642}\u{FE0F}";
     private string $peg_c0 = "/^[a-z0-9]/i";
     private string $peg_c1 = "/^['\"]/";
-    private string $peg_c2 = "/^[\\p{ASCII}]/u";
+    private string $peg_c2 = "/^[\\p{Sc}]/u";
     private string $peg_c3 = "/^[~]/";
     private string $peg_c4 = "/^[\\x{0101}]/u";
     private string $peg_c5 = "/^[|]/u";
@@ -243,7 +243,7 @@ class Parser
         $this->peg_cachedPosDetails = new pegCachedPosDetails();
         $this->peg_e0 = new pegExpectation("class", "[a-z0-9]", "[a-z0-9]", "true", "false");
         $this->peg_e1 = new pegExpectation("class", "['\\\"]", "['\"]", "false", "false");
-        $this->peg_e2 = new pegExpectation("class", "[\\p{ASCII}]", "[\p{ASCII}]", "false", "true");
+        $this->peg_e2 = new pegExpectation("class", "[\\p{Sc}]", "[\p{Sc}]", "false", "true");
         $this->peg_e3 = new pegExpectation("class", "[~]", "[~]", "false", "false");
         $this->peg_e4 = new pegExpectation("class", "[\\u{0101}]", "[\u{0101}]", "false", "true");
         $this->peg_e5 = new pegExpectation("class", "[|]", "[|]", "false", "true");
@@ -542,7 +542,7 @@ class Parser
     private function peg_f2(
         mixed $a,
     ): mixed {
-        return ['rule' => 'Ascii', 'value' => $a];
+        return ['rule' => 'Curreny_Symbol', 'value' => $a];
     }
 
     private function peg_f3(
@@ -639,7 +639,7 @@ class Parser
                                             if ($s0 === $this->peg_FAILED) {
                                                 $s0 = $this->peg_parse_Force_Addition_Of_Unicode_Property();
                                                 if ($s0 === $this->peg_FAILED) {
-                                                    $s0 = $this->peg_parse_Ascii();
+                                                    $s0 = $this->peg_parse_Curreny_Symbol();
                                                 }
                                             }
                                         }
@@ -697,7 +697,7 @@ class Parser
         return $s0;
     }
 
-    private function peg_parse_Ascii(): mixed
+    private function peg_parse_Curreny_Symbol(): mixed
     {
         $s0 = $this->peg_currPos;
         $s1 = $this->input_substr($this->peg_currPos, 1);
