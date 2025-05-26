@@ -6,13 +6,15 @@
                 "type": "literal",
                 "description": "\"<!--\"",
                 "value": "<!--",
-                "ignoreCase": "false"
+                "ignoreCase": "false",
+                "unicode": null
             },
             {
                 "type": "end",
                 "description": "end of input",
                 "value": null,
-                "ignoreCase": null
+                "ignoreCase": null,
+                "unicode": null
             }
         ],
         "found": "\f",

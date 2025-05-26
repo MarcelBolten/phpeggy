@@ -180,20 +180,33 @@
     },
     "\n",
     {
-        "rule": "Ascii",
+        "rule": "Currency_Symbol",
+        "value": "₢"
+    },
+    {
+        "rule": "Currency_Symbol",
         "value": "$"
     },
     {
-        "rule": "Ascii",
-        "value": "@"
+        "rule": "Currency_Symbol",
+        "value": "﷼"
     },
     {
-        "rule": "Ascii",
-        "value": "}"
+        "rule": "Currency_Symbol",
+        "value": "₿"
+    },
+    "\n",
+    {
+        "rule": "No_Automatic_Addition_Of_Unicode_Property",
+        "value": "~"
     },
     {
-        "rule": "Ascii",
-        "value": "`"
+        "rule": "Automatic_Addition_Of_Unicode_Property",
+        "value": "ā"
+    },
+    {
+        "rule": "Force_Addition_Of_Unicode_Property",
+        "value": "|"
     },
     "\n"
 ]

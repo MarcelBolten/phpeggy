@@ -10,7 +10,10 @@ Thing
   / Surfing_Woman_Or_Man
   / Emoji
   / Whitespace
-  / Ascii
+  / No_Automatic_Addition_Of_Unicode_Property
+  / Automatic_Addition_Of_Unicode_Property
+  / Force_Addition_Of_Unicode_Property
+  / Currency_Symbol
 
 Letter_Or_Number
   = a:[a-z0-9]i {
@@ -22,9 +25,24 @@ Quote
     return ['rule' => 'Quote', 'value' => $a];
   }
 
-Ascii
-  = a:[\p{ASCII}] {
-    return ['rule' => 'Ascii', 'value' => $a];
+Currency_Symbol
+  = a:[\p{Sc}] {
+    return ['rule' => 'Currency_Symbol', 'value' => $a];
+  }
+
+No_Automatic_Addition_Of_Unicode_Property
+  = a:[~] {
+    return ['rule' => 'No_Automatic_Addition_Of_Unicode_Property', 'value' => $a];
+  }
+
+Automatic_Addition_Of_Unicode_Property
+  = a:[\u0101] {
+    return ['rule' => 'Automatic_Addition_Of_Unicode_Property', 'value' => $a];
+  }
+
+Force_Addition_Of_Unicode_Property
+  = a:[|]u {
+    return ['rule' => 'Force_Addition_Of_Unicode_Property', 'value' => $a];
   }
 
 Char_Padding_Test

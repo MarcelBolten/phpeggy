@@ -63,6 +63,7 @@ function isWin() {
 
 function runPeggyCli(args, stdin) {
   args.unshift("peggy");
+  args.push("--verbose");
   const npx = "npx" + (isWin() ? ".cmd" : "");
   // console.log("cli command: npx " + args.join(" "));
   const result = cp.spawnSync(npx, args, {
@@ -224,7 +225,7 @@ grammarNames.forEach(grammarName => {
     it("generates the expected PHP code via cli", function() {
       // increase timeout for this test
       // as it takes a while to run the cli
-      this.timeout(20000);
+      this.timeout(40000);
 
       let grammar = fs.readFileSync(
         fixtureFilePath(grammarName + ".pegjs"),

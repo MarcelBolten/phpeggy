@@ -40,20 +40,6 @@ if (!\function_exists("PHPeggy\\ord_unicode")) {
         return $utf16_1;
     }
 }
-
-/* peg_regex_test - multibyte regex test */
-if (!\function_exists("PHPeggy\\peg_regex_test")) {
-    function peg_regex_test(
-        string $pattern,
-        string $string
-    ): bool {
-        if ($pattern[-1] === "i") {
-            return \mb_eregi(\substr($pattern, 1, -2), $string);
-        }
-
-        return \mb_ereg(\substr($pattern, 1, -1), $string);
-    }
-}
 /* END Utility functions */
 
 /* Syntax error exception */
@@ -134,7 +120,8 @@ if (!\class_exists("PHPeggy\\pegExpectation", false)) {
             public ?string $type = null,
             public ?string $description = null,
             public ?string $value = null,
-            public ?string $ignoreCase = null
+            public ?string $ignoreCase = null,
+            public ?string $unicode = null
         ) {
         }
     }
@@ -233,10 +220,10 @@ class Parser
         $this->peg_FAILED = new \stdClass();
         $this->peg_cachedPosDetails = new pegCachedPosDetails();
         $this->peg_e0 = new pegExpectation("literal", "\"\\\\x\"", "\\x", "false");
-        $this->peg_e1 = new pegExpectation("class", "[0-9a-f]", "[0-9a-f]", "true");
+        $this->peg_e1 = new pegExpectation("class", "[0-9a-f]", "[0-9a-f]", "true", "false");
         $this->peg_e2 = new pegExpectation("literal", "\"//\"", "//", "false");
-        $this->peg_e3 = new pegExpectation("class", "[\\r\\n]", "[\r\n]", "false");
-        $this->peg_e4 = new pegExpectation("class", "[ \\t\\r\\n]", "[ \t\r\n]", "false");
+        $this->peg_e3 = new pegExpectation("class", "[\\r\\n]", "[\r\n]", "false", "false");
+        $this->peg_e4 = new pegExpectation("class", "[ \\t\\r\\n]", "[ \t\r\n]", "false", "false");
     }
 
     /**
@@ -576,7 +563,7 @@ class Parser
         if ($s1 !== $this->peg_FAILED) {
             $s2 = [];
             $s3 = $this->input_substr($this->peg_currPos, 1);
-            if (peg_regex_test($this->peg_c0, $s3)) {
+            if (\preg_match($this->peg_c0, $s3)) {
                 $this->peg_currPos++;
             } else {
                 $s3 = $this->peg_FAILED;
@@ -588,7 +575,7 @@ class Parser
                 while ($s3 !== $this->peg_FAILED) {
                     $s2[] = $s3;
                     $s3 = $this->input_substr($this->peg_currPos, 1);
-                    if (peg_regex_test($this->peg_c0, $s3)) {
+                    if (\preg_match($this->peg_c0, $s3)) {
                         $this->peg_currPos++;
                     } else {
                         $s3 = $this->peg_FAILED;
@@ -630,7 +617,7 @@ class Parser
         if ($s1 !== $this->peg_FAILED) {
             $s2 = [];
             $s3 = $this->input_substr($this->peg_currPos, 1);
-            if (peg_regex_test($this->peg_c1, $s3)) {
+            if (\preg_match($this->peg_c1, $s3)) {
                 $this->peg_currPos++;
             } else {
                 $s3 = $this->peg_FAILED;
@@ -641,7 +628,7 @@ class Parser
             while ($s3 !== $this->peg_FAILED) {
                 $s2[] = $s3;
                 $s3 = $this->input_substr($this->peg_currPos, 1);
-                if (peg_regex_test($this->peg_c1, $s3)) {
+                if (\preg_match($this->peg_c1, $s3)) {
                     $this->peg_currPos++;
                 } else {
                     $s3 = $this->peg_FAILED;
@@ -665,7 +652,7 @@ class Parser
         $s0 = $this->peg_currPos;
         $s1 = [];
         $s2 = $this->input_substr($this->peg_currPos, 1);
-        if (peg_regex_test($this->peg_c2, $s2)) {
+        if (\preg_match($this->peg_c2, $s2)) {
             $this->peg_currPos++;
         } else {
             $s2 = $this->peg_FAILED;
@@ -677,7 +664,7 @@ class Parser
             while ($s2 !== $this->peg_FAILED) {
                 $s1[] = $s2;
                 $s2 = $this->input_substr($this->peg_currPos, 1);
-                if (peg_regex_test($this->peg_c2, $s2)) {
+                if (\preg_match($this->peg_c2, $s2)) {
                     $this->peg_currPos++;
                 } else {
                     $s2 = $this->peg_FAILED;

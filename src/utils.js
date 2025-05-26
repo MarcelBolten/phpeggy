@@ -55,10 +55,10 @@ function escapePhpRegexp(s) {
     .replace(/\v/g, "\\x0B")       // Vertical tab
     .replace(/\f/g, "\\f")         // Form feed
     .replace(/\r/g, "\\r")         // Carriage return
-    .replace(/[\u{10000}-\u{10FFFF}]/gu,  ch => "\\x{" + hexPad(ch, 6) + "}")
-    .replace(/[\u0100-\uFFFF]/g,          ch => "\\x{" + hexPad(ch, 4) + "}")
-    .replace(/[\x10-\x1F\x7F-\x9F\xFF]/g, ch => "\\x"  + hex(ch))
-    .replace(/[\x00-\x0F]/g,              ch => "\\x0" + hex(ch));
+    .replace(/[\u{10000}-\u{10FFFF}]/gu, ch => "\\x{" + hexPad(ch, 6) + "}")
+    .replace(/[\u0100-\uFFFF]/g,         ch => "\\x{" + hexPad(ch, 4) + "}")
+    .replace(/[\x10-\x1F\x7F-\x9F]/g,    ch => "\\x"  + hex(ch))
+    .replace(/[\x00-\x0F]/g,             ch => "\\x0" + hex(ch));
 }
 
 function escapePhp(s) {
@@ -76,10 +76,10 @@ function escapePhp(s) {
     .replace(/\f/g, "\\f")   // Form feed
     .replace(/\r/g, "\\r")   // Carriage return
     .replace(/\$/g, "\\$")   // Dollar
-    .replace(/[\u{10000}-\u{10FFFF}]/gu,  ch => "\\u{" + hexPad(ch, 6) + "}")
-    .replace(/[\u0100-\uFFFF]/g,          ch => "\\u{" + hexPad(ch, 4) + "}")
-    .replace(/[\x10-\x1F\x7F-\x9F\xFF]/g, ch => "\\x"  + hex(ch))
-    .replace(/[\x00-\x0F]/g,              ch => "\\x0" + hex(ch));
+    .replace(/[\u{10000}-\u{10FFFF}]/gu, ch => "\\u{" + hexPad(ch, 6) + "}")
+    .replace(/[\u0100-\uFFFF]/g,         ch => "\\u{" + hexPad(ch, 4) + "}")
+    .replace(/[\x10-\x1F\x7F-\x9F]/g,    ch => "\\x"  + hex(ch))
+    .replace(/[\x00-\x0F]/g,             ch => "\\x0" + hex(ch));
 }
 
 function quotePhp(s) {
