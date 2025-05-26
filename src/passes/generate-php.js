@@ -450,7 +450,6 @@ module.exports = function(ast, options) {
             const regNum = bc[ip + 1];
             compileInputChunkCondition(
               inputChunk => `\\preg_match(${c(regNum)}, ${inputChunk})`,
-              // inputChunk => `peg_regex_test(${c(regNum)}, ${inputChunk})`,
               1,
               1
             );
