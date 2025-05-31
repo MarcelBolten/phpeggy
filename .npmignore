@@ -1,15 +1,16 @@
 .git/
 .github/
-.phpdoc
+.phpdoc/
+.pnpm-store/
+.vscode/
 docker/
 manual-test/
 node_modules/
-phpdoc
+phpdoc/
 src/.eslintrc.json
 test/
 vendor/
 .dockerignore
-.eslintrc.js
 .gitattributes
 .gitignore
 .nvmrc
@@ -18,5 +19,7 @@ vendor/
 composer.json
 composer.lock
 docker-compose.yml
+eslint.config.js
 phpstan.neon
+pnpm-lock.yaml
 psalm.xml

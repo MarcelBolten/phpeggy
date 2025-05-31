@@ -1,8 +1,9 @@
 {{
 
-/** <?php
 // The `maybeJSON` function is not needed in PHP because its return semantics
 // are the same as `json_decode`
+// but we need a code block for php so here is an empty one
+/** <?php
 ?> **/
 
 function maybeJSON(s) {

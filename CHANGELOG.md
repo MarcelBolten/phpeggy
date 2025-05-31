@@ -3,6 +3,27 @@ Change Log
 
 This file documents all notable changes to PHPeggy.
 
+3.0.0
+-----
+
+Released: TBD
+
+### Breaking Changes
+
+- Node.js v20+ is now required
+- `mbstring` extension is required now. The `mbstringAllowed` option is removed.
+- Drop support for Internet Explorer
+
+### Major Changes
+
+- Add wider support for unicode in grammar files:
+
+
+### Minor Changes
+
+- Fix a bug with named NEVER_MATCH expressions.
+  compare to https://github.com/peggyjs/peggy/pull/454
+
 2.0.1
 -----
 

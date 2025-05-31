@@ -1,5 +1,6 @@
 parameters:
     level: 5
     ignoreErrors:
-        - '#Method .* is unused.#'
+        - identifier: method.unused
+        - identifier: function.alreadyNarrowedType
     reportUnmatchedIgnoredErrors: false
