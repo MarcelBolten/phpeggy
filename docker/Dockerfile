@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1.3
 # Workaround see https://github.com/docker/for-mac/issues/2155#issuecomment-571462709
 # important "any arguments used in FROM commands need to be defined before the first build stage"
-ARG COMPOSER_VERSION=2.8.8
+ARG COMPOSER_VERSION=2.8.9
 FROM composer:${COMPOSER_VERSION} AS composer-version-workaround
 
 FROM php:8.4-fpm-alpine3.21

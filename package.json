@@ -8,14 +8,14 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.1",
-    "@eslint/js": "^9.27.0",
+    "@eslint/js": "^9.28.0",
     "@peggyjs/eslint-config": "^6.0.0",
-    "@typescript-eslint/eslint-plugin": "^8.32.1",
-    "@typescript-eslint/parser": "^8.32.1",
+    "@typescript-eslint/eslint-plugin": "^8.33.1",
+    "@typescript-eslint/parser": "^8.33.1",
     "chai": "^5.2.0",
-    "eslint": "^9.27.0",
-    "mocha": "^11.4.0",
-    "peggy": "^5.0.2",
+    "eslint": "^9.28.0",
+    "mocha": "^11.5.0",
+    "peggy": "^5.0.3",
     "typescript": "^5.8.3"
   },
   "scripts": {
