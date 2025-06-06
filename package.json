@@ -1,6 +1,6 @@
 {
   "name": "phpeggy",
-  "version": "3.0.0",
+  "version": "3.0.0-alpha.1",
   "description": "PHP target for Peggy parser generator",
   "main": "src/phpeggy.js",
   "peerDependencies": {

@@ -3,10 +3,10 @@ Change Log
 
 This file documents all notable changes to PHPeggy.
 
-3.0.0
+3.0.0-alpha
 -----
 
-Released: TBD
+Released: 2025-06-06
 
 ### Breaking Changes
 
