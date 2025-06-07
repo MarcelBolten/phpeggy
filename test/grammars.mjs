@@ -128,7 +128,7 @@ try {
 `;
 }
 
-if (onlyGenerateParsers && !runPhpOnly) {
+if (!onlyGenerateParsers && runPhpOnly) {
   console.log("Determining version of PHP command-line executable...");
 
   const result = runPhp(["--version"]);
@@ -152,6 +152,7 @@ if (onlyGenerateParsers && !runPhpOnly) {
     );
   }
 }
+
 console.log("Running tests");
 
 const grammarNames = getUniqueBasenames(
