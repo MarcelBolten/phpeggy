@@ -128,29 +128,30 @@ try {
 `;
 }
 
-console.log("Determining version of PHP command-line executable...");
+if (onlyGenerateParsers && !runPhpOnly) {
+  console.log("Determining version of PHP command-line executable...");
 
-const result = runPhp(["--version"]);
-const match = result.stdout.match(/^PHP (\d+)\.(\d+)(\.[^ ]+) /);
+  const result = runPhp(["--version"]);
+  const match = result.stdout.match(/^PHP (\d+)\.(\d+)(\.[^ ]+) /);
 
-if (!match) {
-  throw new Error("Unable to determine PHP version.");
+  if (!match) {
+    throw new Error("Unable to determine PHP version.");
+  }
+
+  console.log("PHP version: " + match[0].trim());
+
+  const [minMajor, minMinor] = minPHPVersion.split(".");
+  const major = Number(match[1]);
+  const minor = Number(match[2]);
+
+  if (major < Number(minMajor)
+    || (major === Number(minMajor) && minor < Number(minMinor))
+  ) {
+    throw new Error(
+      `This library requires at least PHP ${minPHPVersion}.`
+    );
+  }
 }
-
-console.log("PHP version: " + match[0].trim());
-
-const [minMajor, minMinor] = minPHPVersion.split(".");
-const major = Number(match[1]);
-const minor = Number(match[2]);
-
-if (major < Number(minMajor)
-  || (major === Number(minMajor) && minor < Number(minMinor))
-) {
-  throw new Error(
-    `This library requires at least PHP ${minPHPVersion}.`
-  );
-}
-
 console.log("Running tests");
 
 const grammarNames = getUniqueBasenames(
