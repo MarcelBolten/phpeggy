@@ -1,14 +1,14 @@
-"use strict";
 import { describe, it } from "mocha";
-import { expect}  from  "chai";
+import { Buffer } from "node:buffer";
+import cp  from "child_process";
+import { expect }  from  "chai";
+import { fileURLToPath } from "url";
 import fs from "fs";
 import path from "path";
-import cp  from "child_process";
-import util from "util";
-import { fileURLToPath } from "url";
-
 import peggy from "peggy";
 import phpeggy from "../src/phpeggy.js";
+import process from "node:process";
+import util from "util";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -65,11 +65,12 @@ function runPeggyCli(args, stdin) {
   args.unshift("peggy");
   args.push("--verbose");
   const npx = "npx" + (isWin() ? ".cmd" : "");
+  // Uncomment next line to debug the CLI command
   // console.log("cli command: npx " + args.join(" "));
   const result = cp.spawnSync(npx, args, {
     input: stdin || null,
     encoding: "utf8",
-    shell: isWin() ? true : false,
+    shell: isWin(),
     env: {
       PATH: process.env.PATH,
     },
@@ -115,7 +116,6 @@ try {
 `;
 }
 
-
 console.log("Determining version of PHP command-line executable...");
 
 const result = runPhp(["--version"]);
@@ -131,14 +131,15 @@ const [minMajor, minMinor] = minPHPVersion.split(".");
 const major = Number(match[1]);
 const minor = Number(match[2]);
 
-if (major < Number(minMajor) || (major === Number(minMajor) && minor < Number(minMinor))) {
+if (major < Number(minMajor)
+  || (major === Number(minMajor) && minor < Number(minMinor))
+) {
   throw new Error(
     `This library requires at least PHP ${minPHPVersion}.`
   );
 }
 
 console.log("Running tests");
-
 
 const grammarNames = getUniqueBasenames(
   fs.readdirSync(path.join(__dirname, "fixtures"))
@@ -150,12 +151,12 @@ grammarNames.forEach(grammarName => {
     let outputActual = undefined;
 
     it("generates the expected PHP code via js api", () => {
-      let grammar = [{
+      const grammar = [{
         "source": grammarName + ".pegjs",
         "text": fs.readFileSync(
           fixtureFilePath(grammarName + ".pegjs"),
           "utf8"
-        )
+        ),
       }];
 
       const peggyOptions = {
@@ -169,7 +170,7 @@ grammarNames.forEach(grammarName => {
           fixtureFilePath(grammarName + ".options.json"),
           "utf8"
         ));
-      } catch (error) {
+      } catch (_error) {
         // Continue regardless of error
       } finally {
         extraOptions.output = "source";
@@ -177,14 +178,14 @@ grammarNames.forEach(grammarName => {
 
       for (const key in extraOptions) {
         if (Object.prototype.hasOwnProperty.call(extraOptions, key)) {
-          if (key === "tests-only" && extraOptions[key]['imports']) {
-            extraOptions[key]['imports'].forEach(importGrammarName => {
+          if (key === "tests-only" && extraOptions[key].imports) {
+            extraOptions[key].imports.forEach(importGrammarName => {
               grammar.push({
                 "source": importGrammarName,
                 "text": fs.readFileSync(
                   fixtureFilePath([grammarName, importGrammarName]),
                   "utf8"
-                )
+                ),
               });
             });
           } else {
@@ -223,7 +224,7 @@ grammarNames.forEach(grammarName => {
     });
 
     it("generates the expected PHP code via cli", function() {
-      // increase timeout for this test
+      // Increase timeout for this test
       // as it takes a while to run the cli
       this.timeout(40000);
 
@@ -232,7 +233,7 @@ grammarNames.forEach(grammarName => {
         "utf8"
       );
 
-      const peggyCliArgs = ['--output', '-', '--plugin', path.join(__dirname, '..', 'src', 'phpeggy.js')];
+      const peggyCliArgs = ["--output", "-", "--plugin", path.join(__dirname, "..", "src", "phpeggy.js")];
 
       let extraOptions = {};
 
@@ -241,12 +242,12 @@ grammarNames.forEach(grammarName => {
           fixtureFilePath(grammarName + ".options.json"),
           "utf8"
         ));
-      } catch (error) {
+      } catch (_error) {
         // Continue regardless of error
       }
 
       if (extraOptions.cache) {
-        peggyCliArgs.push('--cache');
+        peggyCliArgs.push("--cache");
       }
 
       if (extraOptions.phpeggy) {
@@ -258,13 +259,13 @@ grammarNames.forEach(grammarName => {
           jsonArg = '"' + jsonArg.replace(/"/g, '\\"') + '"';
         }
 
-        peggyCliArgs.push('--extra-options', `${jsonArg}`);
+        peggyCliArgs.push("--extra-options", `${jsonArg}`);
       }
 
-      if (extraOptions['tests-only']) {
+      if (extraOptions["tests-only"]) {
         grammar = null;
         peggyCliArgs.push(fixtureFilePath(grammarName + ".pegjs"));
-        extraOptions['tests-only'].imports.forEach(importGrammarName => {
+        extraOptions["tests-only"].imports.forEach(importGrammarName => {
           peggyCliArgs.push(fixtureFilePath([grammarName, importGrammarName]));
         });
       }
@@ -292,7 +293,7 @@ grammarNames.forEach(grammarName => {
           true
         );
       }
-    } catch (err) {
+    } catch (_error) {
       // Continue regardless of error
     }
 
@@ -311,7 +312,7 @@ grammarNames.forEach(grammarName => {
 
         try {
           outputActual = JSON.parse(result.stdout);
-        } catch (err) {
+        } catch (_error) {
           throw new Error("JSON.parse failed: " + result.stdout);
         }
 

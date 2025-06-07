@@ -46,7 +46,7 @@ module.exports = function(ast, options) {
           : internalUtils.escapePhpRegexp(part)
         )).join("")
         + "]/" + (cls.ignoreCase ? "i" : "") + (cls.unicode ? "u" : "");
-        // should use r modifier in future for fine tuning, only as of php 8.4.0
+        // Should use r modifier in future for fine tuning, only as of php 8.4.0
 
       return internalUtils.quotePhp(regexp);
     }
@@ -79,28 +79,32 @@ module.exports = function(ast, options) {
 
         case "literal": {
           return "new pegExpectation("
-            + ['"literal",',
-                internalUtils.quotePhp(internalUtils.quotePhp(e.value)) + ",",
-                internalUtils.quotePhp(e.value) + ",",
-                internalUtils.quotePhp(e.ignoreCase.toString()),
+            + [
+              '"literal",',
+              internalUtils.quotePhp(internalUtils.quotePhp(e.value)) + ",",
+              internalUtils.quotePhp(e.value) + ",",
+              internalUtils.quotePhp(e.ignoreCase.toString()),
+              /* eslint-disable-next-line @stylistic/indent */
               ].join(" ")
             + ")";
         }
 
         case "class": {
           const escapedClass = "["
-            + e.value.map(part => Array.isArray(part)
-                ? part.map(internalUtils.escapePhp).join("-")
-                : internalUtils.escapePhp(part)
-              ).join("")
+            + e.value.map(part => (Array.isArray(part)
+              ? part.map(internalUtils.escapePhp).join("-")
+              : internalUtils.escapePhp(part)
+            )).join("")
             + "]";
 
           return "new pegExpectation("
-            + ['"class",',
-                internalUtils.quotePhp(escapedClass) + ",",
-                `"${escapedClass}",`,
-                internalUtils.quotePhp(e.ignoreCase.toString()) + ",",
-                internalUtils.quotePhp(e.unicode.toString()),
+            + [
+              '"class",',
+              internalUtils.quotePhp(escapedClass) + ",",
+              `"${escapedClass}",`,
+              internalUtils.quotePhp(e.ignoreCase.toString()) + ",",
+              internalUtils.quotePhp(e.unicode.toString()),
+              /* eslint-disable-next-line @stylistic/indent */
               ].join(" ")
             + ")";
         }
@@ -190,7 +194,7 @@ module.exports = function(ast, options) {
       let ip = 0;
       const end = bc.length;
       const parts = [];
-      let stackTop = undefined;
+      // eslint-disable-next-line no-useless-assignment
       let value = undefined;
 
       function compileCondition(cond, argCount, thenFn) {
@@ -288,7 +292,7 @@ module.exports = function(ast, options) {
         parts.push("}");
       }
 
-      // length of string in terms of code points
+      // Length of string in terms of code points
       function countCodePoints(str) {
         return [...str].length;
       }
@@ -379,8 +383,8 @@ module.exports = function(ast, options) {
             ip += 2;
             break;
 
-          case op.TEXT:                  // TEXT
-            stackTop = stack.pop();
+          case op.TEXT: {                // TEXT
+            const stackTop = stack.pop();
             parts.push(stack.push(
               inputSubstr(
                 stackTop,
@@ -389,6 +393,7 @@ module.exports = function(ast, options) {
             ));
             ip++;
             break;
+          }
 
           case op.PLUCK: {               // PLUCK n, k, p1, ..., pK
             const baseLength = 3;
@@ -468,9 +473,9 @@ module.exports = function(ast, options) {
             ip += 2;
             break;
 
-          case op.ACCEPT_STRING:          // ACCEPT_STRING s
-            parts.push(stack.push(l(bc[ip + 1])));
+          case op.ACCEPT_STRING: {         // ACCEPT_STRING s
             const length = countCodePoints(ast.literals[bc[ip + 1]]);
+            parts.push(stack.push(l(bc[ip + 1])));
             parts.push(
               length > 1
                 ? `$this->peg_currPos += ${length};`
@@ -478,6 +483,7 @@ module.exports = function(ast, options) {
             );
             ip += 2;
             break;
+          }
 
           case op.FAIL:                  // FAIL e
             parts.push(stack.push("$this->peg_FAILED"));
