@@ -36,8 +36,10 @@ jobs:
         if: matrix.node-version == '24.x' && matrix.os == 'ubuntu-latest'
         run: pnpm run lint
 
-      - name: Test
-        run: npm run test:generate-parsers
+      - name: Test parser generation
+        run: npm test
+        env:
+          ONLY_GENERATE_PARSERS: 'y'
 
   PHP:
 
