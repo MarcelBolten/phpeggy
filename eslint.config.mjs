@@ -6,6 +6,7 @@ export default [
   {
     ignores: [
       ".phpdoc/**",
+      "docker/**",
       "phpdoc/**",
       "vendor/**",
     ],
