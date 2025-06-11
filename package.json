@@ -4,19 +4,19 @@
   "description": "PHP target for Peggy parser generator",
   "main": "src/phpeggy.js",
   "peerDependencies": {
-    "peggy": "^5.0.2"
+    "peggy": "^5.0.3"
   },
   "devDependencies": {
     "@peggyjs/eslint-config": "^6.0.0",
-    "@types/chai": "^4.3.20",
-    "@types/node": "^22.15.28",
+    "@types/chai": "^5.2.0",
+    "@types/node": "^24.0.0",
     "chai": "^5.2.0",
     "eslint": "^9.28.0",
     "eslint-plugin-mocha": "11.1.0",
-    "mocha": "^11.5.0",
+    "mocha": "^11.6.0",
     "peggy": "^5.0.3",
     "typescript": "^5.8.3",
-    "typescript-eslint": "^8.33.1"
+    "typescript-eslint": "^8.34.0"
   },
   "scripts": {
     "build:fixtures": "rm -f test/fixtures/*.php && GENERATE_MISSING_FIXTURES=y npm test",
