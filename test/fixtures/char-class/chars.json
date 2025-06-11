@@ -83,5 +83,130 @@
         "rule": "Chinese_Character",
         "value": "鱼"
     },
+    "\n",
+    {
+        "rule": "Emoji",
+        "value": "☀"
+    },
+    {
+        "rule": "Emoji",
+        "value": "☢"
+    },
+    {
+        "rule": "Emoji",
+        "value": "✅"
+    },
+    {
+        "rule": "Emoji",
+        "value": "❤"
+    },
+    {
+        "rule": "Emoji",
+        "value": "➿"
+    },
+    {
+        "rule": "Emoji",
+        "value": "🌀"
+    },
+    {
+        "rule": "Emoji",
+        "value": "🐘"
+    },
+    {
+        "rule": "Emoji",
+        "value": "💩"
+    },
+    {
+        "rule": "Emoji",
+        "value": "🖥"
+    },
+    {
+        "rule": "Emoji",
+        "value": "🙏"
+    },
+    {
+        "rule": "Emoji",
+        "value": "🚀"
+    },
+    {
+        "rule": "Emoji",
+        "value": "🚨"
+    },
+    {
+        "rule": "Emoji",
+        "value": "🛼"
+    },
+    {
+        "rule": "Emoji",
+        "value": "🤌"
+    },
+    {
+        "rule": "Emoji",
+        "value": "🦖"
+    },
+    {
+        "rule": "Emoji",
+        "value": "🧿"
+    },
+    {
+        "rule": "Emoji",
+        "value": "🩰"
+    },
+    {
+        "rule": "Emoji",
+        "value": "🪩"
+    },
+    {
+        "rule": "Emoji",
+        "value": "🫸"
+    },
+    "\n",
+    {
+        "rule": "Surfing_Woman_Or_Man",
+        "value": "🏄‍♀️"
+    },
+    {
+        "rule": "Surfing_Woman_Or_Man",
+        "value": "🏄‍♂️"
+    },
+    "\n",
+    {
+        "rule": "Person_Using_Computer",
+        "value": "👩‍💻"
+    },
+    {
+        "rule": "Person_Using_Computer",
+        "value": "👨‍💻"
+    },
+    "\n",
+    {
+        "rule": "Currency_Symbol",
+        "value": "₢"
+    },
+    {
+        "rule": "Currency_Symbol",
+        "value": "$"
+    },
+    {
+        "rule": "Currency_Symbol",
+        "value": "﷼"
+    },
+    {
+        "rule": "Currency_Symbol",
+        "value": "₿"
+    },
+    "\n",
+    {
+        "rule": "No_Automatic_Addition_Of_Unicode_Property",
+        "value": "~"
+    },
+    {
+        "rule": "Automatic_Addition_Of_Unicode_Property",
+        "value": "ā"
+    },
+    {
+        "rule": "Force_Addition_Of_Unicode_Property",
+        "value": "|"
+    },
     "\n"
 ]

@@ -2,20 +2,22 @@
 
 module.exports = function(phpGlobalNamePrefixOrNamespaceEscaped) {
   return [
-    'if (!\\class_exists("' + phpGlobalNamePrefixOrNamespaceEscaped + 'pegExpectation", false)) {',
+    `if (!\\class_exists("${phpGlobalNamePrefixOrNamespaceEscaped}pegExpectation", false)) {`,
     "    class pegExpectation",
     "    {",
     "        public function __construct(",
     "            public ?string $type = null,",
     "            public ?string $description = null,",
     "            public ?string $value = null,",
-    "            public ?string $ignoreCase = null",
+    "            public ?string $ignoreCase = null,",
+    "            public ?string $unicode = null",
     "        ) {",
     "        }",
     "    }",
     "}",
     "",
-    'if (!\\class_exists("' + phpGlobalNamePrefixOrNamespaceEscaped + 'pegCacheItem", false)) {',
+
+    `if (!\\class_exists("${phpGlobalNamePrefixOrNamespaceEscaped}pegCacheItem", false)) {`,
     "    class pegCacheItem",
     "    {",
     "        public function __construct(",
@@ -26,7 +28,8 @@ module.exports = function(phpGlobalNamePrefixOrNamespaceEscaped) {
     "    }",
     "}",
     "",
-    'if (!\\class_exists("' + phpGlobalNamePrefixOrNamespaceEscaped + 'pegCachedPosDetails", false)) {',
+
+    `if (!\\class_exists("${phpGlobalNamePrefixOrNamespaceEscaped}pegCachedPosDetails", false)) {`,
     "    class pegCachedPosDetails",
     "    {",
     "        public function __construct(",
@@ -38,7 +41,8 @@ module.exports = function(phpGlobalNamePrefixOrNamespaceEscaped) {
     "    }",
     "}",
     "",
-    'if (!\\class_exists("' + phpGlobalNamePrefixOrNamespaceEscaped + 'pegLocation", false)) {',
+
+    `if (!\\class_exists("${phpGlobalNamePrefixOrNamespaceEscaped}pegLocation", false)) {`,
     "    class pegLocation",
     "    {",
     "        public function __construct(",
@@ -50,7 +54,8 @@ module.exports = function(phpGlobalNamePrefixOrNamespaceEscaped) {
     "    }",
     "}",
     "",
-    'if (!\\class_exists("' + phpGlobalNamePrefixOrNamespaceEscaped + 'pegPosition", false)) {',
+
+    `if (!\\class_exists("${phpGlobalNamePrefixOrNamespaceEscaped}pegPosition", false)) {`,
     "    class pegPosition",
     "    {",
     "        public function __construct(",
@@ -62,7 +67,8 @@ module.exports = function(phpGlobalNamePrefixOrNamespaceEscaped) {
     "    }",
     "}",
     "",
-    'if (!\\class_exists("' + phpGlobalNamePrefixOrNamespaceEscaped + 'pegRange", false)) {',
+
+    `if (!\\class_exists("${phpGlobalNamePrefixOrNamespaceEscaped}pegRange", false)) {`,
     "    class pegRange",
     "    {",
     "        public function __construct(",

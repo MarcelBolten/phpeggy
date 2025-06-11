@@ -1,1 +1,5 @@
-{ "phpeggy": { "header": "/* Some custom header */\n// More header\n# Even more" } }
+{
+  "phpeggy": {
+    "header": "/* Some custom header */\n// More header\n# Even more"
+  }
+}

@@ -6,11 +6,12 @@ module.exports = function(
 ) {
   return [
     "/* Syntax error exception */",
-    'if (!\\class_exists("' + phpGlobalNamePrefixOrNamespaceEscaped + 'SyntaxError", false)) {',
-    "    class SyntaxError extends " + phpGlobalNamespacePrefix + "Exception",
+    `if (!\\class_exists("${phpGlobalNamePrefixOrNamespaceEscaped}SyntaxError", false)) {`,
+    `    class SyntaxError extends ${phpGlobalNamespacePrefix}Exception`,
     "    {",
     '        public string $name = "SyntaxError";',
     "",
+
     "        /**",
     "         * @param pegExpectation[]|null $expected",
     "         */",
@@ -26,6 +27,7 @@ module.exports = function(
     '            parent::__construct($message ?? "", 0);',
     "        }",
     "",
+
     "        /**",
     "         * @param array<int, array<string, string>> $sources",
     "         */",
@@ -46,7 +48,7 @@ module.exports = function(
     '                $loc = $this->location->source . ":" . $start->line . ":" . $start->column;',
     "                if ($src) {",
     "                    $end = $this->location->end;",
-    '                    $filler = $this->peg_padEnd("", $start->line !== 0 ? (int) \\floor(\\log10($start->line) + 1) : 1);',
+    '                    $filler = $this->peg_padEnd("", $start->line !== 0 ? (int) \\floor(\\log10($start->line) + 1.0) : 1);',
     "                    $line = $src[$start->line - 1];",
     "                    $last = $start->line === $end->line ? $end->column : \\strlen($line) + 1;",
     "                    $hatLen = ($last - $start->column) ?: 1;",
@@ -62,6 +64,7 @@ module.exports = function(
     "            return $str;",
     "        }",
     "",
+
     "        private function peg_padEnd(",
     "            string $str,",
     "            int $targetLength,",

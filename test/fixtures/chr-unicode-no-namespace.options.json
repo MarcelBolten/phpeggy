@@ -1,1 +1,5 @@
-{ "phpeggy": { "parserNamespace": false } }
+{
+  "phpeggy": {
+    "parserNamespace": false
+  }
+}

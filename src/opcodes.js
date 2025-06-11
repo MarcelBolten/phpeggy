@@ -68,7 +68,7 @@ const opcodes = {
    * IF_GE:                   31
    * IF_LT_DYNAMIC:           32
    * IF_GE_DYNAMIC:           33
-   * 34 reserved for @mingun
+   *                          34 reserved for @mingun
    * PUSH_EMPTY_STRING:       35
    * PLUCK:                   36
    *
@@ -79,6 +79,8 @@ const opcodes = {
    * SOURCE_MAP_POP:          38,   // SOURCE_MAP_POP
    * SOURCE_MAP_LABEL_PUSH:   39,   // SOURCE_MAP_LABEL_PUSH sp, literal-index, loc-index
    * SOURCE_MAP_LABEL_POP:    40,   // SOURCE_MAP_LABEL_POP sp
+   * LIBRARY_RULE:            41,
+   * MATCH_UNICODE_CLASS:     42,
    *
    */
 };

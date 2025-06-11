@@ -1,10 +1,11 @@
 /*
- * ! This is modified version of file "peggy/lib/compiler/passes/generate-bytecode.js"
+ * ! This is a modified version of file "peggy/lib/compiler/passes/generate-bytecode.js"
  */
 "use strict";
 
 const asts = require("peggy/lib/compiler/asts");
 const visitor = require("peggy/lib/compiler/visitor");
+const Intern = require("peggy/lib/compiler/intern");
 const { ALWAYS_MATCH, SOMETIMES_MATCH, NEVER_MATCH } = require("peggy/lib/compiler/passes/inference-match-result");
 const op = require("../opcodes");
 
@@ -182,6 +183,14 @@ const op = require("../opcodes");
  *          interpret(ip + 4 + a, ip + 4 + a + f);
  *        }
  *
+ * [42] MATCH_UNICODE_CLASS c, a, f, ...
+ *
+ *        if (classes[c].test(input.unicodeCharAt(currPos))) {
+ *          interpret(ip + 4, ip + 4 + a);
+ *        } else {
+ *          interpret(ip + 4 + a, ip + 4 + a + f);
+ *        }
+ *
  * [21] ACCEPT_N n
  *
  *        stack.push(input.substring(currPos, n));
@@ -275,35 +284,20 @@ const op = require("../opcodes");
  * Wikipedia page (https://en.wikipedia.org/wiki/Asm.js#Code_generation)
  */
 module.exports = function(ast) {
-  const literals = [];
-  const classes = [];
-  const expectations = [];
-  const functions = [];
-
-  function addLiteralConst(value) {
-    const index = literals.indexOf(value);
-
-    return index === -1 ? literals.push(value) - 1 : index;
-  }
-
-  function addClassConst(node) {
-    const cls = {
+  const literals = new Intern();
+  const classes = new Intern({
+    stringify: JSON.stringify,
+    convert: node => ({
       value: node.parts,
       inverted: node.inverted,
       ignoreCase: node.ignoreCase,
-    };
-    const pattern = JSON.stringify(cls);
-    const index = classes.findIndex(c => JSON.stringify(c) === pattern);
-
-    return index === -1 ? classes.push(cls) - 1 : index;
-  }
-
-  function addExpectedConst(expected) {
-    const pattern = JSON.stringify(expected);
-    const index = expectations.findIndex(e => JSON.stringify(e) === pattern);
-
-    return (index === -1) ? expectations.push(expected) - 1 : index;
-  }
+      unicode: node.unicode,
+    }),
+  });
+  const expectations = new Intern({
+    stringify: JSON.stringify,
+  });
+  const functions = [];
 
   function addFunctionConst(predicate, params, node) {
     const func = {
@@ -354,7 +348,7 @@ module.exports = function(ast) {
   }
 
   function buildSimplePredicate(expression, negative, context) {
-    const match = expression.match | 0;
+    const match = expression.match || 0;
 
     return buildSequence(
       [op.PUSH_CURR_POS],
@@ -392,7 +386,7 @@ module.exports = function(ast) {
       [op.UPDATE_SAVED_POS],
       buildCall(functionIndex, 0, context.env, context.sp),
       buildCondition(
-        node.match | 0,
+        node.match || 0,
         [op.IF],
         buildSequence(
           [op.POP],
@@ -465,7 +459,7 @@ module.exports = function(ast) {
     if (max.value !== null) {
       const checkCode = (max.type === "constant")
         ? [op.IF_GE, max.value]
-        : [op.IF_GE_DYNAMIC, max.sp];
+        : [op.IF_GE_DYNAMIC, max.sp || 0];
 
       // Push `peg_FAILED` - this break loop on next iteration, so |result|
       // will contain not more then |max| elements.
@@ -480,7 +474,7 @@ module.exports = function(ast) {
     return expressionCode;
   }
 
-  /* eslint capitalized-comments: "off" */
+  /* -eslint capitalized-comments: "off" */
   /**
    * @param {number[]} expressionCode Bytecode for parsing repeated elements
    * @param {import("../../peg").ast.RepeatedBoundary} min Minimum boundary of repetitions.
@@ -491,17 +485,18 @@ module.exports = function(ast) {
   function buildCheckMin(expressionCode, min) {
     const checkCode = (min.type === "constant")
       ? [op.IF_LT, min.value]
-      : [op.IF_LT_DYNAMIC, min.sp];
+      : [op.IF_LT_DYNAMIC, min.sp || 0];
 
     return buildSequence(
       expressionCode,             // result = [elem...];      stack:[ pos, [elem...] ]
       buildCondition(
         SOMETIMES_MATCH,
         checkCode,                // if (result.length < min) {
-        /* eslint-disable indent -- Clarity */
-        [op.POP, op.POP_CURR_POS, //   currPos = savedPos;    stack:[  ]
+        /* eslint-disable @stylistic/indent -- Clarity */
+        [op.POP,                  //                          stack:[ pos ]
+         op.POP_CURR_POS,         //   currPos = savedPos;    stack:[  ]
          op.PUSH_FAILED],         //   result = peg_FAILED;   stack:[ peg_FAILED ]
-        /* eslint-enable indent */
+        /* eslint-enable @stylistic/indent */
         [op.NIP]                  // }                        stack:[ [elem...] ]
       )
     );
@@ -525,7 +520,7 @@ module.exports = function(ast) {
           action: null,
         }),
         buildCondition(
-          delimiterNode.match | 0,
+          delimiterNode.match || 0,
           [op.IF_NOT_ERROR],          // if (item !== peg_FAILED) {
           buildSequence(
             [op.POP],                 //                          stack:[ pos ]
@@ -534,11 +529,11 @@ module.exports = function(ast) {
               -expressionMatch,
               [op.IF_ERROR],          //   if (item === peg_FAILED) {
               // If element FAILED, rollback currPos to saved value.
-              /* eslint-disable indent -- Clarity */
+              /* eslint-disable @stylistic/indent -- Clarity */
               [op.POP,                //                          stack:[ pos ]
                op.POP_CURR_POS,       //     peg_currPos = pos;   stack:[  ]
                op.PUSH_FAILED],       //     item = peg_FAILED;   stack:[ peg_FAILED ]
-              /* eslint-enable indent */
+              /* eslint-enable @stylistic/indent */
               // Else, just drop saved currPos.
               [op.NIP]                //   }                      stack:[ item ]
             )
@@ -555,10 +550,9 @@ module.exports = function(ast) {
   const generate = visitor.build({
     grammar(node) {
       node.rules.forEach(generate);
-
-      node.literals = literals;
-      node.classes = classes;
-      node.expectations = expectations;
+      node.literals = literals.items;
+      node.classes = classes.items;
+      node.expectations = expectations.items;
       node.functions = functions;
     },
 
@@ -572,11 +566,11 @@ module.exports = function(ast) {
     },
 
     named(node, context) {
-      const match = node.match | 0;
-      // Expectation not required if node always fail
-      const nameIndex = (match === NEVER_MATCH)
-        ? null
-        : addExpectedConst({ type: "rule", value: node.name });
+      const match = node.match || 0;
+      // Expectation not required if node always match
+      const nameIndex = (match === ALWAYS_MATCH)
+        ? -1
+        : expectations.add({ type: "rule", value: node.name });
 
       // The code generated below is slightly suboptimal because |FAIL| pushes
       // to the stack, so we need to stick a |POP| in front of it. We lack a
@@ -586,13 +580,13 @@ module.exports = function(ast) {
         [op.SILENT_FAILS_ON],
         generate(node.expression, context),
         [op.SILENT_FAILS_OFF],
-        buildCondition(match, [op.IF_ERROR], [op.FAIL, nameIndex], [])
+        buildCondition(-match, [op.IF_ERROR], [op.FAIL, nameIndex], [])
       );
     },
 
     choice(node, context) {
       function buildAlternativesCode(alternatives, context) {
-        const match = alternatives[0].match | 0;
+        const match = alternatives[0].match || 0;
         const first = generate(alternatives[0], {
           sp: context.sp,
           env: cloneEnv(context.env),
@@ -613,14 +607,14 @@ module.exports = function(ast) {
           first,
           alternatives.length > 1
             ? buildCondition(
-              SOMETIMES_MATCH,
-              [op.IF_ERROR],
-              buildSequence(
-                [op.POP],
-                buildAlternativesCode(alternatives.slice(1), context)
-              ),
-              []
-            )
+                SOMETIMES_MATCH,
+                [op.IF_ERROR],
+                buildSequence(
+                  [op.POP],
+                  buildAlternativesCode(alternatives.slice(1), context)
+                ),
+                []
+              )
             : []
         );
       }
@@ -637,27 +631,27 @@ module.exports = function(ast) {
         env,
         action: node,
       });
-      const match = node.expression.match | 0;
+      const match = node.expression.match || 0;
       // Function only required if expression can match
       const functionIndex = (emitCall && match !== NEVER_MATCH)
         ? addFunctionConst(false, Object.keys(env), node)
-        : null;
+        : -1;
 
       return emitCall
         ? buildSequence(
-          [op.PUSH_CURR_POS],
-          expressionCode,
-          buildCondition(
-            match,
-            [op.IF_NOT_ERROR],
-            buildSequence(
-              [op.LOAD_SAVED_POS, 1],
-              buildCall(functionIndex, 1, env, context.sp + 2)
+            [op.PUSH_CURR_POS],
+            expressionCode,
+            buildCondition(
+              match,
+              [op.IF_NOT_ERROR],
+              buildSequence(
+                [op.LOAD_SAVED_POS, 1],
+                buildCall(functionIndex, 1, env, context.sp + 2)
+              ),
+              []
             ),
-            []
-          ),
-          [op.NIP]
-        )
+            [op.NIP]
+          )
         : expressionCode;
     },
 
@@ -674,7 +668,7 @@ module.exports = function(ast) {
               action: null,
             }),
             buildCondition(
-              elements[0].match | 0,
+              elements[0].match || 0,
               [op.IF_NOT_ERROR],
               buildElementsCode(elements.slice(1), {
                 sp: context.sp + 1,
@@ -690,7 +684,7 @@ module.exports = function(ast) {
             )
           );
         } else {
-          if (context.pluck.length > 0) {
+          if (context.pluck && context.pluck.length > 0) {
             return buildSequence(
               [op.PLUCK, node.elements.length + 1, context.pluck.length],
               context.pluck.map(eSP => context.sp - eSP)
@@ -741,7 +735,7 @@ module.exports = function(ast) {
 
       if (label) {
         env = cloneEnv(context.env);
-        context.env[node.label] = sp;
+        context.env[label] = sp;
       }
 
       if (node.pick) {
@@ -764,7 +758,7 @@ module.exports = function(ast) {
           action: null,
         }),
         buildCondition(
-          node.match | 0,
+          node.match || 0,
           [op.IF_NOT_ERROR],
           buildSequence([op.POP], [op.TEXT]),
           [op.NIP]
@@ -791,7 +785,7 @@ module.exports = function(ast) {
           // Check expression match, not the node match
           // If expression always match, no need to replace FAILED to NULL,
           // because FAILED will never appeared
-          -(node.expression.match | 0),
+          -(node.expression.match || 0),
           [op.IF_ERROR],
           buildSequence([op.POP], [op.PUSH_NULL]),
           []
@@ -826,7 +820,7 @@ module.exports = function(ast) {
         expressionCode,
         buildCondition(
           // Condition depends on the expression match, not the node match
-          node.expression.match | 0,
+          node.expression.match || 0,
           [op.IF_NOT_ERROR],
           buildSequence(buildAppendLoop(expressionCode), [op.POP]),
           buildSequence([op.POP], [op.POP], [op.PUSH_FAILED])
@@ -848,14 +842,14 @@ module.exports = function(ast) {
       // Do not generate function for "minimum" if grammar used `exact` syntax
       const minCode = node.min
         ? buildRangeCall(
-          node.min,
-          context.env,
-          context.sp,
-          // +1 for the result slot with an array
-          // +1 for the saved position
-          // +1 if we have a "function" maximum it occupies an additional slot in the stack
-          2 + (node.max.type === "function" ? 1 : 0)
-        )
+            node.min,
+            context.env,
+            context.sp,
+            // +1 for the result slot with an array
+            // +1 for the saved position
+            // +1 if we have a "function" maximum it occupies an additional slot in the stack
+            2 + (node.max.type === "function" ? 1 : 0)
+          )
         : { pre: [], post: [], sp: context.sp };
       const maxCode = buildRangeCall(node.max, context.env, minCode.sp, offset);
 
@@ -866,15 +860,15 @@ module.exports = function(ast) {
       });
       const expressionCode = (node.delimiter !== null)
         ? generate(node.expression, {
-          // +1 for the saved position before parsing the `delimiter elem` pair
-          sp: maxCode.sp + offset + 1,
-          env: cloneEnv(context.env),
-          action: null,
-        })
+            // +1 for the saved position before parsing the `delimiter elem` pair
+            sp: maxCode.sp + offset + 1,
+            env: cloneEnv(context.env),
+            action: null,
+          })
         : firstExpressionCode;
       const bodyCode = buildRangeBody(
         node.delimiter,
-        node.expression.match | 0,
+        node.expression.match || 0,
         expressionCode,
         context,
         offset
@@ -928,27 +922,29 @@ module.exports = function(ast) {
     },
 
     literal(node) {
-      if (node.value.length > 0) {
-        const match = node.match | 0;
+      // length of value in terms of code points
+      const valueLength = [...node.value].length;
+      if (valueLength > 0) {
+        const match = node.match || 0;
         // String only required if condition is generated or string is
         // case-sensitive and node always match
         const needConst = (match === SOMETIMES_MATCH)
           || (match === ALWAYS_MATCH && !node.ignoreCase);
         const stringIndex = needConst
-          ? addLiteralConst(
-            node.ignoreCase
-              ? node.value.toLowerCase()
-              : node.value
-          )
-          : null;
+          ? literals.add(
+              node.ignoreCase
+                ? node.value.toLowerCase()
+                : node.value
+            )
+          : -1;
         // Expectation not required if node always match
         const expectedIndex = (match !== ALWAYS_MATCH)
-          ? addExpectedConst({
-            type: "literal",
-            value: node.value,
-            ignoreCase: node.ignoreCase,
-          })
-          : null;
+          ? expectations.add({
+              type: "literal",
+              value: node.value,
+              ignoreCase: node.ignoreCase,
+            })
+          : -1;
 
         // For case-sensitive strings the value must match the beginning of the
         // remaining input exactly. As a result, we can use |ACCEPT_STRING| and
@@ -959,7 +955,7 @@ module.exports = function(ast) {
             ? [op.MATCH_STRING_IC, stringIndex]
             : [op.MATCH_STRING, stringIndex],
           node.ignoreCase
-            ? [op.ACCEPT_N, node.value.length]
+            ? [op.ACCEPT_N, valueLength]
             : [op.ACCEPT_STRING, stringIndex],
           [op.FAIL, expectedIndex]
         );
@@ -969,20 +965,21 @@ module.exports = function(ast) {
     },
 
     class(node) {
-      const match = node.match | 0;
+      const match = node.match || 0;
       // Character class constant only required if condition is generated
       const classIndex = (match === SOMETIMES_MATCH)
-        ? addClassConst(node)
-        : null;
+        ? classes.add(node)
+        : -1;
       // Expectation not required if node always match
       const expectedIndex = (match !== ALWAYS_MATCH)
-        ? addExpectedConst({
-          type: "class",
-          value: node.parts,
-          inverted: node.inverted,
-          ignoreCase: node.ignoreCase,
-        })
-        : null;
+        ? expectations.add({
+            type: "class",
+            value: node.parts,
+            inverted: node.inverted,
+            ignoreCase: node.ignoreCase,
+            unicode: node.unicode,
+          })
+        : -1;
 
       return buildCondition(
         match,
@@ -993,13 +990,13 @@ module.exports = function(ast) {
     },
 
     any(node) {
-      const match = node.match | 0;
+      const match = node.match || 0;
       // Expectation not required if node always match
       const expectedIndex = (match !== ALWAYS_MATCH)
-        ? addExpectedConst({
-          type: "any",
-        })
-        : null;
+        ? expectations.add({
+            type: "any",
+          })
+        : -1;
 
       return buildCondition(
         match,
@@ -1014,11 +1011,11 @@ module.exports = function(ast) {
 };
 /*
  * MIT License
- * Copyright (c) 2010-2023 The Peggy AUTHORS
+ * Copyright (c) 2010-2025 The Peggy AUTHORS
  *
  * ------------------------------------------------------------------
  * Copyright (c) 2010-2013 David Majda
- * Copyright (c) 2014-2023 The PHPeggy AUTHORS
+ * Copyright (c) 2014-2025 The PHPeggy AUTHORS
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation

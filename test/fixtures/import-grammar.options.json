@@ -1,0 +1,8 @@
+{
+  "tests-only": {
+    "imports": [
+      "buzz.pegjs",
+      "fizz.pegjs"
+    ]
+  }
+}

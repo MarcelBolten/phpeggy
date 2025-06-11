@@ -1,7 +1,7 @@
 1. Launch
    # node test.js
    or from package root directory
-   # npm run build-manual-test
+   # npm run build:manual-test
    to generate example parsers
 
 2. Open localhost in your browser
