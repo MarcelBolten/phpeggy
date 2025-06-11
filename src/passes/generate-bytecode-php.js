@@ -295,7 +295,7 @@ module.exports = function(ast) {
     }),
   });
   const expectations = new Intern({
-      stringify: JSON.stringify,
+    stringify: JSON.stringify,
   });
   const functions = [];
 
@@ -353,7 +353,7 @@ module.exports = function(ast) {
     return buildSequence(
       [op.PUSH_CURR_POS],
       [op.SILENT_FAILS_ON],
-      // -eslint-disable-next-line no-use-before-define -- Mutual recursion
+      // eslint-disable-next-line no-use-before-define -- Mutual recursion
       generate(expression, {
         sp: context.sp + 1,
         env: cloneEnv(context.env),
@@ -492,10 +492,11 @@ module.exports = function(ast) {
       buildCondition(
         SOMETIMES_MATCH,
         checkCode,                // if (result.length < min) {
-        /* -eslint-disable indent -- Clarity */
-        [op.POP, op.POP_CURR_POS, //   currPos = savedPos;    stack:[  ]
+        /* eslint-disable @stylistic/indent -- Clarity */
+        [op.POP,                  //                          stack:[ pos ]
+         op.POP_CURR_POS,         //   currPos = savedPos;    stack:[  ]
          op.PUSH_FAILED],         //   result = peg_FAILED;   stack:[ peg_FAILED ]
-        /* -eslint-enable indent */
+        /* eslint-enable @stylistic/indent */
         [op.NIP]                  // }                        stack:[ [elem...] ]
       )
     );
@@ -511,7 +512,7 @@ module.exports = function(ast) {
     if (delimiterNode) {
       return buildSequence(           //                          stack:[  ]
         [op.PUSH_CURR_POS],           // pos = peg_currPos;       stack:[ pos ]
-        // -eslint-disable-next-line no-use-before-define -- Mutual recursion
+        // eslint-disable-next-line no-use-before-define -- Mutual recursion
         generate(delimiterNode, {     // item = delim();          stack:[ pos, delim ]
           // +1 for the saved offset
           sp: context.sp + offset + 1,
@@ -528,11 +529,11 @@ module.exports = function(ast) {
               -expressionMatch,
               [op.IF_ERROR],          //   if (item === peg_FAILED) {
               // If element FAILED, rollback currPos to saved value.
-              /* -eslint-disable indent -- Clarity */
+              /* eslint-disable @stylistic/indent -- Clarity */
               [op.POP,                //                          stack:[ pos ]
                op.POP_CURR_POS,       //     peg_currPos = pos;   stack:[  ]
                op.PUSH_FAILED],       //     item = peg_FAILED;   stack:[ peg_FAILED ]
-              /* -eslint-enable indent */
+              /* eslint-enable @stylistic/indent */
               // Else, just drop saved currPos.
               [op.NIP]                //   }                      stack:[ item ]
             )
@@ -606,14 +607,14 @@ module.exports = function(ast) {
           first,
           alternatives.length > 1
             ? buildCondition(
-              SOMETIMES_MATCH,
-              [op.IF_ERROR],
-              buildSequence(
-                [op.POP],
-                buildAlternativesCode(alternatives.slice(1), context)
-              ),
-              []
-            )
+                SOMETIMES_MATCH,
+                [op.IF_ERROR],
+                buildSequence(
+                  [op.POP],
+                  buildAlternativesCode(alternatives.slice(1), context)
+                ),
+                []
+              )
             : []
         );
       }
@@ -638,19 +639,19 @@ module.exports = function(ast) {
 
       return emitCall
         ? buildSequence(
-          [op.PUSH_CURR_POS],
-          expressionCode,
-          buildCondition(
-            match,
-            [op.IF_NOT_ERROR],
-            buildSequence(
-              [op.LOAD_SAVED_POS, 1],
-              buildCall(functionIndex, 1, env, context.sp + 2)
+            [op.PUSH_CURR_POS],
+            expressionCode,
+            buildCondition(
+              match,
+              [op.IF_NOT_ERROR],
+              buildSequence(
+                [op.LOAD_SAVED_POS, 1],
+                buildCall(functionIndex, 1, env, context.sp + 2)
+              ),
+              []
             ),
-            []
-          ),
-          [op.NIP]
-        )
+            [op.NIP]
+          )
         : expressionCode;
     },
 
@@ -841,14 +842,14 @@ module.exports = function(ast) {
       // Do not generate function for "minimum" if grammar used `exact` syntax
       const minCode = node.min
         ? buildRangeCall(
-          node.min,
-          context.env,
-          context.sp,
-          // +1 for the result slot with an array
-          // +1 for the saved position
-          // +1 if we have a "function" maximum it occupies an additional slot in the stack
-          2 + (node.max.type === "function" ? 1 : 0)
-        )
+            node.min,
+            context.env,
+            context.sp,
+            // +1 for the result slot with an array
+            // +1 for the saved position
+            // +1 if we have a "function" maximum it occupies an additional slot in the stack
+            2 + (node.max.type === "function" ? 1 : 0)
+          )
         : { pre: [], post: [], sp: context.sp };
       const maxCode = buildRangeCall(node.max, context.env, minCode.sp, offset);
 
@@ -859,11 +860,11 @@ module.exports = function(ast) {
       });
       const expressionCode = (node.delimiter !== null)
         ? generate(node.expression, {
-          // +1 for the saved position before parsing the `delimiter elem` pair
-          sp: maxCode.sp + offset + 1,
-          env: cloneEnv(context.env),
-          action: null,
-        })
+            // +1 for the saved position before parsing the `delimiter elem` pair
+            sp: maxCode.sp + offset + 1,
+            env: cloneEnv(context.env),
+            action: null,
+          })
         : firstExpressionCode;
       const bodyCode = buildRangeBody(
         node.delimiter,
@@ -931,18 +932,18 @@ module.exports = function(ast) {
           || (match === ALWAYS_MATCH && !node.ignoreCase);
         const stringIndex = needConst
           ? literals.add(
-            node.ignoreCase
-              ? node.value.toLowerCase()
-              : node.value
-          )
+              node.ignoreCase
+                ? node.value.toLowerCase()
+                : node.value
+            )
           : -1;
         // Expectation not required if node always match
         const expectedIndex = (match !== ALWAYS_MATCH)
           ? expectations.add({
-            type: "literal",
-            value: node.value,
-            ignoreCase: node.ignoreCase,
-          })
+              type: "literal",
+              value: node.value,
+              ignoreCase: node.ignoreCase,
+            })
           : -1;
 
         // For case-sensitive strings the value must match the beginning of the
@@ -972,12 +973,12 @@ module.exports = function(ast) {
       // Expectation not required if node always match
       const expectedIndex = (match !== ALWAYS_MATCH)
         ? expectations.add({
-          type: "class",
-          value: node.parts,
-          inverted: node.inverted,
-          ignoreCase: node.ignoreCase,
-          unicode: node.unicode,
-        })
+            type: "class",
+            value: node.parts,
+            inverted: node.inverted,
+            ignoreCase: node.ignoreCase,
+            unicode: node.unicode,
+          })
         : -1;
 
       return buildCondition(
@@ -993,8 +994,8 @@ module.exports = function(ast) {
       // Expectation not required if node always match
       const expectedIndex = (match !== ALWAYS_MATCH)
         ? expectations.add({
-          type: "any",
-        })
+            type: "any",
+          })
         : -1;
 
       return buildCondition(

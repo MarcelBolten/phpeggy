@@ -20,14 +20,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: "Install PHP"
-        uses: "shivammathur/setup-php@v2"
-        with:
-          coverage: "none"
-          php-version: "8.1"
-          tools: composer:v2
-          ini-values: error_reporting=-1
-
       - name: Install pnpm
         uses: pnpm/action-setup@v4
 
@@ -40,8 +32,14 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
-      - name: Test
-        run: npm run test
+      - name: Check coding standards
+        if: matrix.node-version == '24.x' && matrix.os == 'ubuntu-latest'
+        run: pnpm run lint
+
+      - name: Test parser generation
+        run: npm test
+        env:
+          ONLY_GENERATE_PARSERS: 'y'
 
   PHP:
 
@@ -56,6 +54,17 @@ jobs:
       - name: "Checkout"
         uses: "actions/checkout@v4"
 
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install
+
       - name: "Install PHP"
         uses: "shivammathur/setup-php@v2"
         with:
@@ -67,5 +76,11 @@ jobs:
       - name: "Install dependencies"
         run: "composer install --no-interaction --no-progress"
 
-      - name: "PHP Tests"
+      - name: "Check coding standards"
+        run: npm run php:csfix
+
+      - name: "Static analysis"
+        run: npm run php:static
+
+      - name: "Test Parsers"
         run: npm run php:test

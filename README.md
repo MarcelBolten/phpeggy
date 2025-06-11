@@ -177,6 +177,7 @@ catch (PHPeggy\SyntaxError $e) {
 
 Which will look similar to:
 
+<!-- eslint-disable-next-line markdown/fenced-code-language -->
 ```
 SyntaxError: Expected "a" but "b" found.
  --> Input string:1:1

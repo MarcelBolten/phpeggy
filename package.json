@@ -1,34 +1,37 @@
 {
   "name": "phpeggy",
-  "version": "3.0.0-alpha.1",
+  "version": "3.0.0",
   "description": "PHP target for Peggy parser generator",
   "main": "src/phpeggy.js",
   "peerDependencies": {
-    "peggy": "^5.0.2"
+    "peggy": "^5.0.3"
   },
   "devDependencies": {
-    "@eslint/eslintrc": "^3.3.1",
-    "@eslint/js": "^9.28.0",
     "@peggyjs/eslint-config": "^6.0.0",
-    "@typescript-eslint/eslint-plugin": "^8.33.1",
-    "@typescript-eslint/parser": "^8.33.1",
+    "@types/chai": "^5.2.0",
+    "@types/node": "^24.0.0",
     "chai": "^5.2.0",
     "eslint": "^9.28.0",
-    "mocha": "^11.5.0",
+    "eslint-plugin-mocha": "11.1.0",
+    "mocha": "^11.6.0",
     "peggy": "^5.0.3",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "typescript-eslint": "^8.34.0"
   },
   "scripts": {
     "build:fixtures": "rm -f test/fixtures/*.php && GENERATE_MISSING_FIXTURES=y npm test",
     "build:manual-tests": "cd manual-test && node test.js",
     "lint": "eslint .",
+    "php:all": "npm run php:csfix && npm run php:static && npm run php:test",
+    "php:all-manual": "npm run php:csfix-manual && npm run php:static-manual && npm run php:test",
     "php:csfix": "PHP_CS_FIXER_IGNORE_ENV=1 ./vendor/bin/php-cs-fixer fix --config=.php-cs-fixer.dist.php -v --dry-run --diff --using-cache=no",
     "php:csfix-manual": "PHP_CS_FIXER_IGNORE_ENV=1 ./vendor/bin/php-cs-fixer fix --config=.php-cs-fixer.dist.manual.php -v --dry-run --diff --using-cache=no",
+    "php:lint": "npm run php:csfix && npm run php:static",
+    "php:lint-manual": "npm run php:csfix-manual && npm run php:static-manual",
     "php:static": "for f in test/fixtures/*.php; do echo \"\nProcessing $f ...\nPHPStan:\"; ./vendor/bin/phpstan analyse -c phpstan.neon --no-progress $f; echo \"Psalm:\" ; ./vendor/bin/psalm $f; done",
     "php:static-manual": "for f in manual-test/output/*.php; do echo \"\nProcessing $f ...\nPHPStan:\"; ./vendor/bin/phpstan analyse -c phpstan.neon --no-progress $f; echo \"Psalm:\" ; ./vendor/bin/psalm $f; done",
-    "php:test": "npm run php:csfix && npm run php:static",
-    "php:test-manual": "npm run php:csfix-manual && npm run php:static-manual",
-    "pretest": "npm run lint",
+    "php:test": "ONLY_RUN_PHP=y npm test",
+    "test:generate-parsers": "ONLY_GENERATE_PARSERS=y npm test",
     "test": "mocha"
   },
   "repository": {
