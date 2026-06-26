@@ -9,10 +9,10 @@
   "devDependencies": {
     "@peggyjs/eslint-config": "^6.0.14",
     "@types/chai": "^5.2.3",
-    "@types/node": "^24.13.2",
+    "@types/node": "^26.0.1",
     "chai": "^5.3.3",
-    "eslint": "^9.39.4",
-    "eslint-plugin-mocha": "11.1.0",
+    "eslint": "^10.5.0",
+    "eslint-plugin-mocha": "11.3.0",
     "mocha": "^11.7.6",
     "peggy": "^5.1.0",
     "typescript": "^5.9.3",
@@ -24,8 +24,8 @@
     "lint": "eslint .",
     "php:all": "npm run php:csfix && npm run php:static && npm run php:test",
     "php:all-manual": "npm run php:csfix-manual && npm run php:static-manual && npm run php:test",
-    "php:csfix": "PHP_CS_FIXER_IGNORE_ENV=1 ./vendor/bin/php-cs-fixer fix --config=.php-cs-fixer.dist.php -v --dry-run --diff --using-cache=no",
-    "php:csfix-manual": "PHP_CS_FIXER_IGNORE_ENV=1 ./vendor/bin/php-cs-fixer fix --config=.php-cs-fixer.dist.manual.php -v --dry-run --diff --using-cache=no",
+    "php:csfix": "./vendor/bin/php-cs-fixer --allow-unsupported-php-version=yes fix --config=.php-cs-fixer.dist.php -v --dry-run --diff --using-cache=no",
+    "php:csfix-manual": "./vendor/bin/php-cs-fixer --allow-unsupported-php-version=yes fix --config=.php-cs-fixer.dist.manual.php -v --dry-run --diff --using-cache=no",
     "php:lint": "npm run php:csfix && npm run php:static",
     "php:lint-manual": "npm run php:csfix-manual && npm run php:static-manual",
     "php:static": "for f in test/fixtures/*.php; do echo \"\nProcessing $f ...\nPHPStan:\"; ./vendor/bin/phpstan analyse -c phpstan.neon --no-progress $f; echo \"Psalm:\" ; ./vendor/bin/psalm $f; done",
@@ -55,7 +55,7 @@
   "bugs": {
     "url": "https://github.com/marcelbolten/phpeggy/issues"
   },
-  "packageManager": "pnpm@10.11.0+sha512.6540583f41cc5f628eb3d9773ecee802f4f9ef9923cc45b69890fb47991d4b092964694ec3a4f738a420c918a333062c8b925d312f42e4f0c263eb603551f977",
+  "packageManager": "pnpm@11.9.0+sha512.bd682d5d03fe525ef7c9fd6780c6884d1e756ac4c9c9fe00c538782824310dcf90e3ddc4f53835f06dfaebd5085e41855e0bcbb3b60de2ac5bbab89e5036f03b",
   "engines": {
     "node": ">=20"
   }
