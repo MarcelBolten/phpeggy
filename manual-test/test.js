@@ -4,8 +4,7 @@ const fs = require("fs");
 const peggy = require("peggy");
 const phpeggy = require("../src/phpeggy.js");
 
-const examples
-= {
+const examples = {
   "Digits": "digits.pegjs",
   "Arithmetics": "arithmetics.pegjs",
   "Json": "json.pegjs",
