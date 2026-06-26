@@ -33,7 +33,6 @@ ADD --chmod=0755 https://github.com/mlocati/docker-php-extension-installer/relea
 RUN install-php-extensions xdebug
 
 RUN echo 'memory_limit = 1024M' >> /usr/local/etc/php/conf.d/docker-php-memlimit.ini
-RUN echo 'zend_extension=opcache' >> /usr/local/etc/php/conf.d/docker-php-ext-opcache.ini
 
 WORKDIR /app
 
