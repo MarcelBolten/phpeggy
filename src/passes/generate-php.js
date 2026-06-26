@@ -60,7 +60,7 @@ module.exports = function(ast, options) {
     );
 
     const expectations = ast.expectations.map(
-      (e, i) => "private pegExpectation $peg_e" + i + ";"
+      (_e, i) => "private pegExpectation $peg_e" + i + ";"
     );
 
     return [
