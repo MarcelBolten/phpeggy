@@ -1,5 +1,6 @@
 *.js text eol=lf
 *.json text eol=lf
+*.mjs text eol=lf
 *.php text eol=lf
 *.txt text eol=lf
 error-0x0d-cr.txt text eol=crlf
