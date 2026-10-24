@@ -10,6 +10,7 @@ ARG PHAN_VERSION=6.0.11
 ARG PHP_DOCUMENTOR_VERSION=v3.10.0
 ARG PHP_METRICS_VERSION=v2.11.0
 ARG DOCKER_PHP_EXTENSION_INSTALLER=2.12.3
+ARG COREPACK_VERSION=0.36.0
 
 #Phan
 ADD --chmod=755 https://github.com/phan/phan/releases/download/$PHAN_VERSION/phan.phar /usr/bin/phan
@@ -38,4 +39,4 @@ WORKDIR /app
 
 # avoid download prompt
 ENV COREPACK_ENABLE_DOWNLOAD_PROMPT=0
-RUN corepack enable pnpm && npm install -g corepack@latest
+RUN npm install -g corepack@$COREPACK_VERSION -- force && corepack enable pnpm
