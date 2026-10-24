@@ -443,10 +443,13 @@ module.exports = function(ast, options) {
 
           case op.MATCH_STRING_IC: {     // MATCH_STRING_IC s, a, f, ...
             const litNum = bc[ip + 1];
+            const inputChunkLength = bc[ip + 4] === op.ACCEPT_N
+              ? bc[ip + 5]
+              : countCodePoints(ast.literals[litNum]);
             compileInputChunkCondition(
               inputChunk => `\\mb_strtolower(${inputChunk}, "UTF-8") === ${l(litNum)}`,
               1,
-              countCodePoints(ast.literals[litNum])
+              inputChunkLength
             );
             break;
           }
