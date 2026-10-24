@@ -1,15 +1,15 @@
 # syntax=docker/dockerfile:1.3
 # Workaround see https://github.com/docker/for-mac/issues/2155#issuecomment-571462709
 # important "any arguments used in FROM commands need to be defined before the first build stage"
-ARG COMPOSER_VERSION=2.10.1
+ARG COMPOSER_VERSION=2.10.3
 FROM composer:${COMPOSER_VERSION} AS composer-version-workaround
 
-FROM php:8.5-fpm-alpine3.23
+FROM php:8.5-fpm-alpine3.24
 
-ARG PHAN_VERSION=6.0.5
+ARG PHAN_VERSION=6.0.11
 ARG PHP_DOCUMENTOR_VERSION=v3.10.0
-ARG PHP_METRICS_VERSION=v2.9.0
-ARG DOCKER_PHP_EXTENSION_INSTALLER=2.11.12
+ARG PHP_METRICS_VERSION=v2.11.0
+ARG DOCKER_PHP_EXTENSION_INSTALLER=2.12.3
 
 #Phan
 ADD --chmod=755 https://github.com/phan/phan/releases/download/$PHAN_VERSION/phan.phar /usr/bin/phan
