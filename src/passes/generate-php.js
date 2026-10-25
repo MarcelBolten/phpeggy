@@ -12,6 +12,10 @@ const syntaxErrorClass = require("./generate-php/syntax-error-class");
 const dataStorageClasses = require("./generate-php/data-storage-classes");
 const commonMethods = require("./generate-php/common-methods");
 
+// Classes with more parts than this keep using a RegExp, because a long
+// chain of charCodeAt comparisons is slower than the RegExp's lookup.
+const MAX_CHAR_CODE_CLASS_PARTS = 32;
+
 /* Generates parser PHP code. */
 module.exports = function(ast, options) {
   if (!ast.literals || !ast.classes || !ast.expectations || !ast.functions) {
@@ -37,6 +41,53 @@ module.exports = function(ast, options) {
 
   function name(name) { return "peg_parse_" + name; }
 
+  /**
+   * @param {PEG.ast.GrammarCharacterClass} cls
+   * @returns {boolean}
+   */
+  function canUseCharCodeClass(cls) {
+    return !cls.ignoreCase
+      && !cls.unicode
+      && cls.value.length <= MAX_CHAR_CODE_CLASS_PARTS
+      && cls.value.every(part => (
+        Array.isArray(part)
+          ? part[0].length === 1 && part[1].length === 1
+          : typeof part === "string" && part.length === 1
+      ));
+  }
+
+  /**
+   * @param {PEG.ast.GrammarCharacterClass} cls
+   * @param {string} inputChunk
+   * @returns {string}
+   */
+  function buildCharCodeClassCondition(cls, inputChunk) {
+    const charCode = "$peg_charCode";
+    const tests = cls.value.map((part, id) => {
+      // The canUseCharCodeClass check already rejected class escapes.
+      if (!Array.isArray(part)) {
+        part = [part, part];
+      }
+      const begin = part[0].charCodeAt(0);
+      const end = part[1].charCodeAt(0);
+      // Assign the character code of the input chunk to the variable for the first part.
+      const assignOrReuseCharCode = id === 0
+        ? `(${charCode} = \\mb_ord(${inputChunk}, 'UTF-8'))`
+        : `${charCode}`;
+      return begin === end
+        ? `${assignOrReuseCharCode} === ${begin}`
+        : `(${assignOrReuseCharCode} >= ${begin} && ${charCode} <= ${end})`;
+    });
+
+    // Empty classes never match, so they never get here.
+    const assignedCondition = "(" + tests.join(" || ") + ")";
+
+    // Prevent empty chunks before calling mb_ord
+    return `${inputChunk} !== "" && `
+      + (cls.inverted ? "!" : "")
+      + assignedCondition;
+  }
+
   function generateTablesDeclaration() {
     function buildRegexp(cls) {
       const regexp = "/^["
@@ -55,9 +106,11 @@ module.exports = function(ast, options) {
       (l, i) => "private string $peg_l" + i + " = " + internalUtils.quotePhp(l) + ";"
     );
 
-    const classes = ast.classes.map(
-      (c, i) => "private string $peg_c" + i + " = " + buildRegexp(c) + ";"
-    );
+    const classes = ast.classes.flatMap((c, i) => (
+      canUseCharCodeClass(c)
+        ? []
+        : [`private string $peg_c${i} = ${buildRegexp(c)};`]
+    ));
 
     const expectations = ast.expectations.map(
       (_e, i) => "private pegExpectation $peg_e" + i + ";"
@@ -482,8 +535,14 @@ module.exports = function(ast, options) {
 
           case op.MATCH_CHAR_CLASS: {    // MATCH_CHAR_CLASS c, a, f, ...
             const regNum = bc[ip + 1];
+            const cls = ast.classes[regNum];
             compileInputChunkCondition(
-              inputChunk => `\\preg_match(${c(regNum)}, ${inputChunk})`,
+              inputChunk => {
+                if (canUseCharCodeClass(cls)) {
+                  return buildCharCodeClassCondition(cls, inputChunk);
+                }
+                return `\\preg_match(${c(regNum)}, ${inputChunk})`;
+              },
               1,
               1
             );
