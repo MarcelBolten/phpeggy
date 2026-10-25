@@ -831,7 +831,7 @@ module.exports = function(ast, options) {
   ].map(line => indent(8, line)));
 
   parts.push(...[
-    "if (method_exists($this, 'initialize')) {",
+    "if (\\method_exists($this, 'initialize')) {",
     "    $this->initialize();",
     "}",
     "",
