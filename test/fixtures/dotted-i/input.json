@@ -1,0 +1,17 @@
+[
+    {
+        "rule": "Literal_With_Changed_Lower_Case_Length",
+        "value": ["\u0130", "x"]
+    },
+    "\n",
+    {
+        "rule": "Dotted_I_Capital",
+        "value": "\u0130"
+    },
+    "\n",
+    {
+        "rule": "Dotted_I_Small",
+        "value": "i\u0307"
+    },
+    "\n"
+]
