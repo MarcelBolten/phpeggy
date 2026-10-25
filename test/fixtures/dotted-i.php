@@ -555,8 +555,8 @@ class Parser
     {
         $s0 = $this->peg_currPos;
         $s1 = $this->peg_currPos;
-        if (\mb_strtolower($this->input_substr($this->peg_currPos, 2), "UTF-8") === $this->peg_l0) {
-            $s2 = $this->input_substr($this->peg_currPos, 1);
+        $s2 = $this->input_substr($this->peg_currPos, 1);
+        if (\mb_strtolower($s2, "UTF-8") === $this->peg_l0) {
             $this->peg_currPos++;
         } else {
             $s2 = $this->peg_FAILED;
