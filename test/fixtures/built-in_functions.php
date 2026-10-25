@@ -718,29 +718,22 @@ class Parser
     private function peg_parse_ws(): mixed
     {
         $s0 = [];
-        $s1 = $this->input_substr($this->peg_currPos, 1);
-        if (\preg_match($this->peg_c0, $s1)) {
-            $this->peg_currPos++;
-        } else {
-            $s1 = $this->peg_FAILED;
-            if ($this->peg_silentFails === 0) {
-                $this->peg_fail($this->peg_e5);
-            }
-        }
-        if ($s1 !== $this->peg_FAILED) {
-            while ($s1 !== $this->peg_FAILED) {
-                $s0[] = $s1;
-                $s1 = $this->input_substr($this->peg_currPos, 1);
-                if (\preg_match($this->peg_c0, $s1)) {
-                    $this->peg_currPos++;
-                } else {
-                    $s1 = $this->peg_FAILED;
-                    if ($this->peg_silentFails === 0) {
-                        $this->peg_fail($this->peg_e5);
-                    }
+        while (true) {
+            $s1 = $this->input_substr($this->peg_currPos, 1);
+            if (\preg_match($this->peg_c0, $s1)) {
+                $this->peg_currPos++;
+            } else {
+                $s1 = $this->peg_FAILED;
+                if ($this->peg_silentFails === 0) {
+                    $this->peg_fail($this->peg_e5);
                 }
             }
-        } else {
+            if ($s1 === $this->peg_FAILED) {
+                break;
+            }
+            $s0[] = $s1;
+        }
+        if (\count($s0) < 1) {
             $s0 = $this->peg_FAILED;
         }
 

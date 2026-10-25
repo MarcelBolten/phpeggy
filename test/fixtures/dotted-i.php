@@ -522,13 +522,14 @@ class Parser
     private function peg_parse_Document(): mixed
     {
         $s0 = [];
-        $s1 = $this->peg_parse_Thing();
-        if ($s1 !== $this->peg_FAILED) {
-            while ($s1 !== $this->peg_FAILED) {
-                $s0[] = $s1;
-                $s1 = $this->peg_parse_Thing();
+        while (true) {
+            $s1 = $this->peg_parse_Thing();
+            if ($s1 === $this->peg_FAILED) {
+                break;
             }
-        } else {
+            $s0[] = $s1;
+        }
+        if (\count($s0) < 1) {
             $s0 = $this->peg_FAILED;
         }
 
@@ -640,29 +641,22 @@ class Parser
     {
         $s0 = $this->peg_currPos;
         $s1 = [];
-        $s2 = $this->input_substr($this->peg_currPos, 1);
-        if (\preg_match($this->peg_c0, $s2)) {
-            $this->peg_currPos++;
-        } else {
-            $s2 = $this->peg_FAILED;
-            if ($this->peg_silentFails === 0) {
-                $this->peg_fail($this->peg_e4);
-            }
-        }
-        if ($s2 !== $this->peg_FAILED) {
-            while ($s2 !== $this->peg_FAILED) {
-                $s1[] = $s2;
-                $s2 = $this->input_substr($this->peg_currPos, 1);
-                if (\preg_match($this->peg_c0, $s2)) {
-                    $this->peg_currPos++;
-                } else {
-                    $s2 = $this->peg_FAILED;
-                    if ($this->peg_silentFails === 0) {
-                        $this->peg_fail($this->peg_e4);
-                    }
+        while (true) {
+            $s2 = $this->input_substr($this->peg_currPos, 1);
+            if (\preg_match($this->peg_c0, $s2)) {
+                $this->peg_currPos++;
+            } else {
+                $s2 = $this->peg_FAILED;
+                if ($this->peg_silentFails === 0) {
+                    $this->peg_fail($this->peg_e4);
                 }
             }
-        } else {
+            if ($s2 === $this->peg_FAILED) {
+                break;
+            }
+            $s1[] = $s2;
+        }
+        if (\count($s1) < 1) {
             $s1 = $this->peg_FAILED;
         }
         if ($s1 !== $this->peg_FAILED) {

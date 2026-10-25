@@ -522,13 +522,14 @@ class Parser
     private function peg_parse_Document(): mixed
     {
         $s0 = [];
-        $s1 = $this->peg_parse_Thing();
-        if ($s1 !== $this->peg_FAILED) {
-            while ($s1 !== $this->peg_FAILED) {
-                $s0[] = $s1;
-                $s1 = $this->peg_parse_Thing();
+        while (true) {
+            $s1 = $this->peg_parse_Thing();
+            if ($s1 === $this->peg_FAILED) {
+                break;
             }
-        } else {
+            $s0[] = $s1;
+        }
+        if (\count($s0) < 1) {
             $s0 = $this->peg_FAILED;
         }
 
@@ -562,29 +563,22 @@ class Parser
         }
         if ($s1 !== $this->peg_FAILED) {
             $s2 = [];
-            $s3 = $this->input_substr($this->peg_currPos, 1);
-            if (\preg_match($this->peg_c0, $s3)) {
-                $this->peg_currPos++;
-            } else {
-                $s3 = $this->peg_FAILED;
-                if ($this->peg_silentFails === 0) {
-                    $this->peg_fail($this->peg_e1);
-                }
-            }
-            if ($s3 !== $this->peg_FAILED) {
-                while ($s3 !== $this->peg_FAILED) {
-                    $s2[] = $s3;
-                    $s3 = $this->input_substr($this->peg_currPos, 1);
-                    if (\preg_match($this->peg_c0, $s3)) {
-                        $this->peg_currPos++;
-                    } else {
-                        $s3 = $this->peg_FAILED;
-                        if ($this->peg_silentFails === 0) {
-                            $this->peg_fail($this->peg_e1);
-                        }
+            while (true) {
+                $s3 = $this->input_substr($this->peg_currPos, 1);
+                if (\preg_match($this->peg_c0, $s3)) {
+                    $this->peg_currPos++;
+                } else {
+                    $s3 = $this->peg_FAILED;
+                    if ($this->peg_silentFails === 0) {
+                        $this->peg_fail($this->peg_e1);
                     }
                 }
-            } else {
+                if ($s3 === $this->peg_FAILED) {
+                    break;
+                }
+                $s2[] = $s3;
+            }
+            if (\count($s2) < 1) {
                 $s2 = $this->peg_FAILED;
             }
             if ($s2 !== $this->peg_FAILED) {
@@ -616,17 +610,7 @@ class Parser
         }
         if ($s1 !== $this->peg_FAILED) {
             $s2 = [];
-            $s3 = $this->input_substr($this->peg_currPos, 1);
-            if (\preg_match($this->peg_c1, $s3)) {
-                $this->peg_currPos++;
-            } else {
-                $s3 = $this->peg_FAILED;
-                if ($this->peg_silentFails === 0) {
-                    $this->peg_fail($this->peg_e3);
-                }
-            }
-            while ($s3 !== $this->peg_FAILED) {
-                $s2[] = $s3;
+            while (true) {
                 $s3 = $this->input_substr($this->peg_currPos, 1);
                 if (\preg_match($this->peg_c1, $s3)) {
                     $this->peg_currPos++;
@@ -636,6 +620,10 @@ class Parser
                         $this->peg_fail($this->peg_e3);
                     }
                 }
+                if ($s3 === $this->peg_FAILED) {
+                    break;
+                }
+                $s2[] = $s3;
             }
             $this->peg_reportedPos = $s0;
             $s0 = $this->peg_f1($s1, $s2);
@@ -651,29 +639,22 @@ class Parser
     {
         $s0 = $this->peg_currPos;
         $s1 = [];
-        $s2 = $this->input_substr($this->peg_currPos, 1);
-        if (\preg_match($this->peg_c2, $s2)) {
-            $this->peg_currPos++;
-        } else {
-            $s2 = $this->peg_FAILED;
-            if ($this->peg_silentFails === 0) {
-                $this->peg_fail($this->peg_e4);
-            }
-        }
-        if ($s2 !== $this->peg_FAILED) {
-            while ($s2 !== $this->peg_FAILED) {
-                $s1[] = $s2;
-                $s2 = $this->input_substr($this->peg_currPos, 1);
-                if (\preg_match($this->peg_c2, $s2)) {
-                    $this->peg_currPos++;
-                } else {
-                    $s2 = $this->peg_FAILED;
-                    if ($this->peg_silentFails === 0) {
-                        $this->peg_fail($this->peg_e4);
-                    }
+        while (true) {
+            $s2 = $this->input_substr($this->peg_currPos, 1);
+            if (\preg_match($this->peg_c2, $s2)) {
+                $this->peg_currPos++;
+            } else {
+                $s2 = $this->peg_FAILED;
+                if ($this->peg_silentFails === 0) {
+                    $this->peg_fail($this->peg_e4);
                 }
             }
-        } else {
+            if ($s2 === $this->peg_FAILED) {
+                break;
+            }
+            $s1[] = $s2;
+        }
+        if (\count($s1) < 1) {
             $s1 = $this->peg_FAILED;
         }
         if ($s1 !== $this->peg_FAILED) {
