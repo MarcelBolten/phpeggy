@@ -305,6 +305,28 @@ module.exports = function(ast, options) {
         return stack.index(p);
       }
 
+      function compileAppendLoop() {
+        const baseLength = 2;
+        const bodyLength = bc[ip + baseLength - 1];
+
+        const bodyCode = stack.checkedLoop(ip, () => {
+          ip += baseLength + bodyLength;
+          const code = compile(bc.slice(ip - bodyLength, ip));
+          const item = stack.pop();
+          code.push(
+            `if (${item} === $this->peg_FAILED) {`,
+            "    break;",
+            "}",
+            `${stack.top()}[] = ${item};`
+          );
+          return code;
+        });
+
+        parts.push("while (true) {");
+        parts.push(...bodyCode.map(line => indent(4, line)));
+        parts.push("}");
+      }
+
       function compileCall(baseLength) {
         const paramsLength = bc[ip + baseLength - 1];
 
@@ -421,6 +443,10 @@ module.exports = function(ast, options) {
 
           case op.IF_NOT_ERROR:          // IF_NOT_ERROR t, f
             compileCondition(stack.top() + " !== $this->peg_FAILED", 0);
+            break;
+
+          case op.LOOP_APPEND:           // LOOP_APPEND b
+            compileAppendLoop();
             break;
 
           case op.WHILE_NOT_ERROR:       // WHILE_NOT_ERROR b
