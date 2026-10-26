@@ -205,8 +205,6 @@ class Parser
     private string $peg_l0 = "\\x";
     private string $peg_l1 = "//";
     private string $peg_c0 = "/^[0-9a-f]/i";
-    private string $peg_c1 = "/^[^\\r\\n]/";
-    private string $peg_c2 = "/^[ \\t\\r\\n]/";
     private pegExpectation $peg_e0;
     private pegExpectation $peg_e1;
     private pegExpectation $peg_e2;
@@ -248,7 +246,7 @@ class Parser
         $old_regex_encoding = (string) \mb_regex_encoding();
         \mb_regex_encoding("UTF-8");
 
-        if (method_exists($this, 'initialize')) {
+        if (\method_exists($this, 'initialize')) {
             $this->initialize();
         }
 
@@ -610,7 +608,7 @@ class Parser
             $s2 = [];
             while (true) {
                 $s3 = $this->input_substr($this->peg_currPos, 1);
-                if (\preg_match($this->peg_c1, $s3)) {
+                if ($s3 !== "" && !(($peg_charCode = \mb_ord($s3, 'UTF-8')) === 13 || $peg_charCode === 10)) {
                     $this->peg_currPos++;
                 } else {
                     $s3 = $this->peg_FAILED;
@@ -639,7 +637,7 @@ class Parser
         $s1 = [];
         while (true) {
             $s2 = $this->input_substr($this->peg_currPos, 1);
-            if (\preg_match($this->peg_c2, $s2)) {
+            if ($s2 !== "" && (($peg_charCode = \mb_ord($s2, 'UTF-8')) === 32 || $peg_charCode === 9 || $peg_charCode === 13 || $peg_charCode === 10)) {
                 $this->peg_currPos++;
             } else {
                 $s2 = $this->peg_FAILED;

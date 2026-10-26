@@ -212,9 +212,6 @@ class Parser
     private string $peg_l5 = "/";
     private string $peg_l6 = "{";
     private string $peg_l7 = "}";
-    private string $peg_c0 = "/^[-0-9A-Z_a-z]/";
-    private string $peg_c1 = "/^[a-zA-Z]/";
-    private string $peg_c2 = "/^[ \\t\\r\\n]/";
     private pegExpectation $peg_e0;
     private pegExpectation $peg_e1;
     private pegExpectation $peg_e2;
@@ -270,7 +267,7 @@ class Parser
         $old_regex_encoding = (string) \mb_regex_encoding();
         \mb_regex_encoding("UTF-8");
 
-        if (method_exists($this, 'initialize')) {
+        if (\method_exists($this, 'initialize')) {
             $this->initialize();
         }
 
@@ -1190,7 +1187,7 @@ class Parser
     private function peg_parse_ASCII_AlphaNumeric(): mixed
     {
         $s0 = $this->input_substr($this->peg_currPos, 1);
-        if (\preg_match($this->peg_c0, $s0)) {
+        if ($s0 !== "" && (($peg_charCode = \mb_ord($s0, 'UTF-8')) === 45 || ($peg_charCode >= 48 && $peg_charCode <= 57) || ($peg_charCode >= 65 && $peg_charCode <= 90) || $peg_charCode === 95 || ($peg_charCode >= 97 && $peg_charCode <= 122))) {
             $this->peg_currPos++;
         } else {
             $s0 = $this->peg_FAILED;
@@ -1205,7 +1202,7 @@ class Parser
     private function peg_parse_ASCII_Letter(): mixed
     {
         $s0 = $this->input_substr($this->peg_currPos, 1);
-        if (\preg_match($this->peg_c1, $s0)) {
+        if ($s0 !== "" && ((($peg_charCode = \mb_ord($s0, 'UTF-8')) >= 97 && $peg_charCode <= 122) || ($peg_charCode >= 65 && $peg_charCode <= 90))) {
             $this->peg_currPos++;
         } else {
             $s0 = $this->peg_FAILED;
@@ -1220,7 +1217,7 @@ class Parser
     private function peg_parse_WS(): mixed
     {
         $s0 = $this->input_substr($this->peg_currPos, 1);
-        if (\preg_match($this->peg_c2, $s0)) {
+        if ($s0 !== "" && (($peg_charCode = \mb_ord($s0, 'UTF-8')) === 32 || $peg_charCode === 9 || $peg_charCode === 13 || $peg_charCode === 10)) {
             $this->peg_currPos++;
         } else {
             $s0 = $this->peg_FAILED;

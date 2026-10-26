@@ -209,7 +209,6 @@ class Parser
     private string $peg_l2 = "orbit";
     private string $peg_l3 = "maple";
     private string $peg_l4 = "prism";
-    private string $peg_c0 = "/^[ \\t\\n\\r]/";
     private pegExpectation $peg_e0;
     private pegExpectation $peg_e1;
     private pegExpectation $peg_e2;
@@ -253,7 +252,7 @@ class Parser
         $old_regex_encoding = (string) \mb_regex_encoding();
         \mb_regex_encoding("UTF-8");
 
-        if (method_exists($this, 'initialize')) {
+        if (\method_exists($this, 'initialize')) {
             $this->initialize();
         }
 
@@ -720,7 +719,7 @@ class Parser
         $s0 = [];
         while (true) {
             $s1 = $this->input_substr($this->peg_currPos, 1);
-            if (\preg_match($this->peg_c0, $s1)) {
+            if ($s1 !== "" && (($peg_charCode = \mb_ord($s1, 'UTF-8')) === 32 || $peg_charCode === 9 || $peg_charCode === 10 || $peg_charCode === 13)) {
                 $this->peg_currPos++;
             } else {
                 $s1 = $this->peg_FAILED;

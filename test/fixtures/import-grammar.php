@@ -222,11 +222,7 @@ class Parser
     private string $peg_l4 = "buzz";
     private string $peg_l5 = "\u{01F41D}";
     private string $peg_l6 = "fizz";
-    private string $peg_c0 = "/^[^\\n]/";
     private string $peg_c1 = "/^[0-9a-f]/i";
-    private string $peg_c2 = "/^[0-9]/";
-    private string $peg_c3 = "/^[ \\t]/";
-    private string $peg_c4 = "/^[\\n\\r]/";
     private string $peg_c5 = "/^[\\x{01F37A}\\x{01F37B}]/u";
     private pegExpectation $peg_e0;
     private pegExpectation $peg_e1;
@@ -320,7 +316,7 @@ class Parser
         $old_regex_encoding = (string) \mb_regex_encoding();
         \mb_regex_encoding("UTF-8");
 
-        if (method_exists($this, 'initialize')) {
+        if (\method_exists($this, 'initialize')) {
             $this->initialize();
         }
 
@@ -818,7 +814,7 @@ class Parser
             $s3 = [];
             while (true) {
                 $s4 = $this->input_substr($this->peg_currPos, 1);
-                if (\preg_match($this->peg_c0, $s4)) {
+                if ($s4 !== "" && !(($peg_charCode = \mb_ord($s4, 'UTF-8')) === 10)) {
                     $this->peg_currPos++;
                 } else {
                     $s4 = $this->peg_FAILED;
@@ -984,7 +980,7 @@ class Parser
             $s2 = [];
             while (true) {
                 $s3 = $this->input_substr($this->peg_currPos, 1);
-                if (\preg_match($this->peg_c2, $s3)) {
+                if ($s3 !== "" && ((($peg_charCode = \mb_ord($s3, 'UTF-8')) >= 48 && $peg_charCode <= 57))) {
                     $this->peg_currPos++;
                 } else {
                     $s3 = $this->peg_FAILED;
@@ -1046,7 +1042,7 @@ class Parser
         $s1 = [];
         while (true) {
             $s2 = $this->input_substr($this->peg_currPos, 1);
-            if (\preg_match($this->peg_c3, $s2)) {
+            if ($s2 !== "" && (($peg_charCode = \mb_ord($s2, 'UTF-8')) === 32 || $peg_charCode === 9)) {
                 $this->peg_currPos++;
             } else {
                 $s2 = $this->peg_FAILED;
@@ -1071,7 +1067,7 @@ class Parser
         $s0 = [];
         while (true) {
             $s1 = $this->input_substr($this->peg_currPos, 1);
-            if (\preg_match($this->peg_c4, $s1)) {
+            if ($s1 !== "" && (($peg_charCode = \mb_ord($s1, 'UTF-8')) === 10 || $peg_charCode === 13)) {
                 $this->peg_currPos++;
             } else {
                 $s1 = $this->peg_FAILED;

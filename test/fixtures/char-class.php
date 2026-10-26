@@ -212,16 +212,13 @@ class Parser
     private string $peg_l1 = "\u{01F3C4}\u{200D}\u{2640}\u{FE0F}";
     private string $peg_l2 = "\u{01F3C4}\u{200D}\u{2642}\u{FE0F}";
     private string $peg_c0 = "/^[a-z0-9]/i";
-    private string $peg_c1 = "/^['\"]/";
     private string $peg_c2 = "/^[\\p{Sc}]/u";
-    private string $peg_c3 = "/^[~]/";
     private string $peg_c4 = "/^[\\x{0101}]/u";
     private string $peg_c5 = "/^[|]/u";
     private string $peg_c6 = "/^[ÿ-\\x{0100}]/u";
     private string $peg_c7 = "/^[\\x{2E80}-\\x{2FD5}\\x{3400}-\\x{4DBF}\\x{4E00}-\\x{9FCC}]/u";
     private string $peg_c8 = "/^[\\x{01F469}\\x{01F468}]/u";
     private string $peg_c9 = "/^[\\x{2600}-\\x{27BF}\\x{01F300}-\\x{01F64F}\\x{01F680}-\\x{01F6FC}\\x{01F900}-\\x{01F9FF}\\x{01FA70}-\\x{01FAF8}]/u";
-    private string $peg_c10 = "/^[ \\t\\r\\n]/";
     private pegExpectation $peg_e0;
     private pegExpectation $peg_e1;
     private pegExpectation $peg_e2;
@@ -281,7 +278,7 @@ class Parser
         $old_regex_encoding = (string) \mb_regex_encoding();
         \mb_regex_encoding("UTF-8");
 
-        if (method_exists($this, 'initialize')) {
+        if (\method_exists($this, 'initialize')) {
             $this->initialize();
         }
 
@@ -681,7 +678,7 @@ class Parser
     {
         $s0 = $this->peg_currPos;
         $s1 = $this->input_substr($this->peg_currPos, 1);
-        if (\preg_match($this->peg_c1, $s1)) {
+        if ($s1 !== "" && (($peg_charCode = \mb_ord($s1, 'UTF-8')) === 39 || $peg_charCode === 34)) {
             $this->peg_currPos++;
         } else {
             $s1 = $this->peg_FAILED;
@@ -723,7 +720,7 @@ class Parser
     {
         $s0 = $this->peg_currPos;
         $s1 = $this->input_substr($this->peg_currPos, 1);
-        if (\preg_match($this->peg_c3, $s1)) {
+        if ($s1 !== "" && (($peg_charCode = \mb_ord($s1, 'UTF-8')) === 126)) {
             $this->peg_currPos++;
         } else {
             $s1 = $this->peg_FAILED;
@@ -925,7 +922,7 @@ class Parser
         $s1 = [];
         while (true) {
             $s2 = $this->input_substr($this->peg_currPos, 1);
-            if (\preg_match($this->peg_c10, $s2)) {
+            if ($s2 !== "" && (($peg_charCode = \mb_ord($s2, 'UTF-8')) === 32 || $peg_charCode === 9 || $peg_charCode === 13 || $peg_charCode === 10)) {
                 $this->peg_currPos++;
             } else {
                 $s2 = $this->peg_FAILED;

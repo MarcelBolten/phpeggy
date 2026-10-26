@@ -214,9 +214,6 @@ class Parser
     private string $peg_l7 = "/";
     private string $peg_l8 = "{";
     private string $peg_l9 = "}";
-    private string $peg_c0 = "/^[a-z]/";
-    private string $peg_c1 = "/^[a-z0-9_-]/";
-    private string $peg_c2 = "/^[ \\t\\r\\n]/";
     private pegExpectation $peg_e0;
     private pegExpectation $peg_e1;
     private pegExpectation $peg_e2;
@@ -316,7 +313,7 @@ class Parser
         $old_regex_encoding = (string) \mb_regex_encoding();
         \mb_regex_encoding("UTF-8");
 
-        if (method_exists($this, 'initialize')) {
+        if (\method_exists($this, 'initialize')) {
             $this->initialize();
         }
 
@@ -1465,7 +1462,7 @@ class Parser
         $s0 = $this->peg_currPos;
         $s1 = $this->peg_currPos;
         $s2 = $this->input_substr($this->peg_currPos, 1);
-        if (\preg_match($this->peg_c0, $s2)) {
+        if ($s2 !== "" && ((($peg_charCode = \mb_ord($s2, 'UTF-8')) >= 97 && $peg_charCode <= 122))) {
             $this->peg_currPos++;
         } else {
             $s2 = $this->peg_FAILED;
@@ -1477,7 +1474,7 @@ class Parser
             $s3 = [];
             while (true) {
                 $s4 = $this->input_substr($this->peg_currPos, 1);
-                if (\preg_match($this->peg_c1, $s4)) {
+                if ($s4 !== "" && ((($peg_charCode = \mb_ord($s4, 'UTF-8')) >= 97 && $peg_charCode <= 122) || ($peg_charCode >= 48 && $peg_charCode <= 57) || $peg_charCode === 95 || $peg_charCode === 45)) {
                     $this->peg_currPos++;
                 } else {
                     $s4 = $this->peg_FAILED;
@@ -1655,7 +1652,7 @@ class Parser
     private function peg_parse_WS(): mixed
     {
         $s0 = $this->input_substr($this->peg_currPos, 1);
-        if (\preg_match($this->peg_c2, $s0)) {
+        if ($s0 !== "" && (($peg_charCode = \mb_ord($s0, 'UTF-8')) === 32 || $peg_charCode === 9 || $peg_charCode === 13 || $peg_charCode === 10)) {
             $this->peg_currPos++;
         } else {
             $s0 = $this->peg_FAILED;
