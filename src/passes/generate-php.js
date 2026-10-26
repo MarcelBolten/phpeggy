@@ -103,7 +103,7 @@ module.exports = function(ast, options) {
     }
 
     const literals = ast.literals.map(
-      (l, i) => "private string $peg_l" + i + " = " + internalUtils.quotePhp(l) + ";"
+      (l, i) => `private string $peg_l${i} = ${internalUtils.quotePhp(l)};`
     );
 
     const classes = ast.classes.flatMap((c, i) => (
@@ -113,7 +113,7 @@ module.exports = function(ast, options) {
     ));
 
     const expectations = ast.expectations.map(
-      (_e, i) => "private pegExpectation $peg_e" + i + ";"
+      (_e, i) => `private pegExpectation $peg_e${i};`
     );
 
     return [
@@ -170,7 +170,7 @@ module.exports = function(ast, options) {
     }
 
     const expectations = ast.expectations.map(
-      (e, i) => "$this->peg_e" + i + " = " + buildExpectation(e) + ";"
+      (e, i) => `$this->peg_e${i} = ${buildExpectation(e)};`
     );
 
     return [
