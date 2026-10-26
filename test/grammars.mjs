@@ -1,7 +1,7 @@
 import { describe, it } from "mocha";
 import { Buffer } from "node:buffer";
-import cp  from "child_process";
-import { expect }  from  "chai";
+import cp from "child_process";
+import { expect } from "chai";
 import { fileURLToPath } from "url";
 import fs from "fs";
 import path from "path";
